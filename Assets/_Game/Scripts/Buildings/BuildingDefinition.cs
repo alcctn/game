@@ -90,7 +90,8 @@ namespace CleanEnergy.Buildings
             float buildingEfficiency = 0.8f,
             float upkeepCost = 1f,
             float hubLinkCapacity = 0f,
-            int sameTypeSpacing = 0)
+            int sameTypeSpacing = 0,
+            Vector2Int? footprint = null)
         {
             id = buildingId;
             displayName = name;
@@ -106,7 +107,9 @@ namespace CleanEnergy.Buildings
             requiresAdjacentWater = adjacentWater;
             requireBuildableCell = buildableRequired;
             gizmoColor = color;
-            size = Vector2Int.one;
+            size = footprint.HasValue
+                ? new Vector2Int(Mathf.Max(1, footprint.Value.x), Mathf.Max(1, footprint.Value.y))
+                : Vector2Int.one;
             efficiency = buildingEfficiency;
             baseDemand = demand;
             storageCapacity = capacity;

@@ -38,6 +38,9 @@ namespace CleanEnergy.DebugTools
                 case KeyCode.F9:
                     mode = DebugViewMode.Demand;
                     return true;
+                case KeyCode.F10:
+                    mode = DebugViewMode.Environmental;
+                    return true;
                 default:
                     mode = DebugViewMode.Normal;
                     return false;

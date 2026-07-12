@@ -78,8 +78,8 @@ namespace CleanEnergy.Tests.EditMode
             Assert.That(names, Does.Not.Contain("UnlockBattery"));
 
             var info = TutorialProgressService.GetInfo(TutorialStepId.PlaceBattery);
-            Assert.That(info.Title, Does.Not.Contain("Research").IgnoreCase);
-            Assert.That(info.Hint, Does.Contain("unlocked").IgnoreCase);
+            Assert.That(info.Hint, Does.Contain("storage_basic").IgnoreCase);
+            Assert.That(info.Title, Does.Contain("Storage").IgnoreCase);
         }
 
         [Test]

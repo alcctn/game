@@ -62,10 +62,16 @@ namespace CleanEnergy.Energy
             }
 
             var count = 0;
+            var seen = new System.Collections.Generic.HashSet<string>();
             foreach (var pair in occupancy.Occupied)
             {
                 var other = pair.Value;
                 if (other?.Definition == null || other.Definition.Id != buildingId)
+                {
+                    continue;
+                }
+
+                if (!seen.Add(other.InstanceId))
                 {
                     continue;
                 }
@@ -75,12 +81,12 @@ namespace CleanEnergy.Energy
                     continue;
                 }
 
-                if (pair.Key.Equals(coordinate))
+                if (other.Coordinate.Equals(coordinate))
                 {
                     continue;
                 }
 
-                if (Chebyshev(coordinate, pair.Key) <= maxChebyshevDistance)
+                if (Chebyshev(coordinate, other.Coordinate) <= maxChebyshevDistance)
                 {
                     count++;
                 }

@@ -1,3 +1,4 @@
+using System;
 using CleanEnergy.Energy;
 using CleanEnergy.Maintenance;
 using CleanEnergy.Research;
@@ -23,6 +24,15 @@ namespace CleanEnergy.UI
         private bool _hadCongestion;
 
         public NotificationService Service => _service;
+
+        /// <summary>Raised when a shortage warning is pushed to the feed.</summary>
+        public event Action ShortageWarned;
+
+        /// <summary>Raised when a research unlock is pushed to the feed.</summary>
+        public event Action ResearchUnlockNotified;
+
+        /// <summary>Raised when a battery-full notice is pushed to the feed.</summary>
+        public event Action BatteryFullNotified;
 
         public void Configure(
             EnergySimulationDriver driver,
@@ -106,6 +116,7 @@ namespace CleanEnergy.UI
 
             _hadShortage = true;
             _service.Push("Energy shortage", Time.unscaledTime);
+            ShortageWarned?.Invoke();
         }
 
         private void OnBalance(EnergyBalanceResult result)
@@ -135,7 +146,10 @@ namespace CleanEnergy.UI
 
             if (result.EnergyCharged > 0.0001f && HasFullBattery())
             {
-                _service.TryPushBatteryFull(Time.unscaledTime);
+                if (_service.TryPushBatteryFull(Time.unscaledTime))
+                {
+                    BatteryFullNotified?.Invoke();
+                }
             }
         }
 
@@ -147,6 +161,7 @@ namespace CleanEnergy.UI
             }
 
             _service.Push($"Unlocked: {evt.NodeId}", Time.unscaledTime);
+            ResearchUnlockNotified?.Invoke();
         }
 
         private void OnEmergencyCredit()

@@ -42,6 +42,7 @@ namespace CleanEnergy.Placement
             }
 
             var best = int.MaxValue;
+            var seen = new System.Collections.Generic.HashSet<string>();
             foreach (var pair in occupancy.Occupied)
             {
                 var other = pair.Value;
@@ -50,7 +51,12 @@ namespace CleanEnergy.Placement
                     continue;
                 }
 
-                var d = Manhattan(coordinate, pair.Key);
+                if (!seen.Add(other.InstanceId))
+                {
+                    continue;
+                }
+
+                var d = Manhattan(coordinate, other.Coordinate);
                 if (d < best)
                 {
                     best = d;

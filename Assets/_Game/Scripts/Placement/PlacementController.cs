@@ -149,15 +149,13 @@ namespace CleanEnergy.Placement
                 mapGenerator.Grid,
                 _occupancy,
                 _wallet,
-                _buildingUnlocks);
+                _buildingUnlocks,
+                _rotation);
             _lastFailures = result.FailureReasons;
             _hoverCoordinate = coordinate;
             _hoverValid = result.IsValid;
 
-            if (mapGenerator.Grid.TryGetCell(coordinate, out var cell))
-            {
-                preview.Show(_selected, cell.WorldPosition, result.IsValid, _rotation);
-            }
+            preview.Show(_selected, coordinate, mapGenerator.Grid, result.IsValid, _rotation);
 
             if (Input.GetMouseButtonDown(0) && !IsPointerOverImgui())
             {
@@ -255,11 +253,6 @@ namespace CleanEnergy.Placement
                 return false;
             }
 
-            if (_occupancy.IsOccupied(coordinate))
-            {
-                return false;
-            }
-
             var parent = buildingRoot != null ? buildingRoot : transform;
             var instance = _factory.Create(definition, coordinate, mapGenerator.Grid, parent, rotation);
             if (instance == null)
@@ -279,7 +272,7 @@ namespace CleanEnergy.Placement
                 return false;
             }
 
-            mapGenerator.Grid.SetOccupyingBuildingId(coordinate, instance.InstanceId);
+            SetFootprintOccupyingIds(instance, instance.InstanceId);
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
             return true;
         }
@@ -315,7 +308,8 @@ namespace CleanEnergy.Placement
                 mapGenerator.Grid,
                 _occupancy,
                 _wallet,
-                _buildingUnlocks);
+                _buildingUnlocks,
+                _rotation);
             _lastFailures = result.FailureReasons;
             if (!result.IsValid)
             {
@@ -345,7 +339,7 @@ namespace CleanEnergy.Placement
             if (!_wallet.TrySpend(PowerLinePlacementCost.ComputeEffectiveCost(
                     _selected, coordinate, _occupancy)))
             {
-                _occupancy.Release(coordinate);
+                _occupancy.ReleaseInstance(instance);
                 if (instance.GameObject != null)
                 {
                     Destroy(instance.GameObject);
@@ -354,7 +348,7 @@ namespace CleanEnergy.Placement
                 return PlacementValidationResult.Failure(new[] { "Payment failed." });
             }
 
-            mapGenerator.Grid.SetOccupyingBuildingId(coordinate, instance.InstanceId);
+            SetFootprintOccupyingIds(instance, instance.InstanceId);
             ClearDemolishUndo();
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
@@ -413,11 +407,8 @@ namespace CleanEnergy.Placement
                 building.MaintenanceLevel,
                 refund);
             _wallet?.Add(refund);
-            _occupancy.Release(coordinate);
-            if (mapGenerator != null && mapGenerator.Grid.IsInitialized)
-            {
-                mapGenerator.Grid.SetOccupyingBuildingId(coordinate, null);
-            }
+            _occupancy.ReleaseInstance(building);
+            SetFootprintOccupyingIds(building, null);
 
             if (building.GameObject != null)
             {
@@ -427,6 +418,26 @@ namespace CleanEnergy.Placement
             BuildingRemoved?.Invoke(new BuildingPlacedEvent(building));
             Debug.Log($"[Placement] Demolished '{building.Definition.Id}' at {coordinate}. Refund={refund:F0}");
             return true;
+        }
+
+        private void SetFootprintOccupyingIds(BuildingInstance instance, string occupyingId)
+        {
+            if (instance?.Definition == null
+                || mapGenerator == null
+                || !mapGenerator.Grid.IsInitialized)
+            {
+                return;
+            }
+
+            var cells = BuildingFootprint.GetCells(
+                instance.Definition, instance.Coordinate, instance.Rotation);
+            for (var i = 0; i < cells.Count; i++)
+            {
+                if (mapGenerator.Grid.InBounds(cells[i]))
+                {
+                    mapGenerator.Grid.SetOccupyingBuildingId(cells[i], occupyingId);
+                }
+            }
         }
 
         private void OnMapGenerated(MapGeneratedEvent _)

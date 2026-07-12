@@ -65,7 +65,7 @@ namespace CleanEnergy.Tests.EditMode
                 "prod", new GridCoordinate(0, 0),
                 new FakeProducer("prod", 100f), null, null, false, 4);
             var cons = new EnergyNetworkNode(
-                "cons", new GridCoordinate(4, 0),
+                "cons", new GridCoordinate(0, 0),
                 null, new FakeConsumer("cons", 50f), null, false, 4);
             var hubA = new EnergyNetworkNode(
                 "hubA", new GridCoordinate(1, 0),
@@ -94,7 +94,7 @@ namespace CleanEnergy.Tests.EditMode
                 "prod", new GridCoordinate(0, 0),
                 new FakeProducer("prod", production), null, null, false, 4);
             var cons = new EnergyNetworkNode(
-                "cons", new GridCoordinate(4, 0),
+                "cons", new GridCoordinate(0, 0),
                 null, new FakeConsumer("cons", demand), null, false, 4);
             var hub = new EnergyNetworkNode(
                 "hub", new GridCoordinate(2, 0),

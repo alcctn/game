@@ -1,3 +1,4 @@
+using CleanEnergy.Audio;
 using CleanEnergy.Buildings;
 using CleanEnergy.CameraSystem;
 using CleanEnergy.DebugTools;
@@ -86,7 +87,12 @@ namespace CleanEnergy.Core
             research.Configure(ResolveResearchTree(), driver, network, scenario, mapGenerator);
             scenario.Configure(selectedScenario, driver, network, clock, mapGenerator, research);
             placement.SetBuildingUnlockQuery(research.Service);
-            network.Configure(placement, mapGenerator, research.Service.GetEfficiencyBonus);
+            network.Configure(
+                placement,
+                mapGenerator,
+                research.Service.GetEfficiencyBonus,
+                () => scenario.Settlement.DemandScale,
+                research.Service.GetStorageCapacityBonus);
             placementUi.Configure(placement, clock, research);
 
             var hudGo = EnsureChild("EnergyHudUI", debugRoot);
@@ -95,13 +101,16 @@ namespace CleanEnergy.Core
 
             var inspectionGo = EnsureChild("InspectionPanelUI", debugRoot);
             var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
-            inspection.Configure(overlay, mapGenerator, placement, network, clock, research);
+            inspection.Configure(overlay, mapGenerator, placement, network, clock, research, scenario);
 
             var notification = FindOrAdd<NotificationController>(simRoot.gameObject);
             notification.Configure(driver, research, maintenance, network, scenario);
+            var sfxGo = EnsureChild("SfxService", debugRoot);
+            var sfx = FindOrAdd<SfxService>(sfxGo.gameObject);
+            sfx.Configure(placement, notification);
             var notificationHudGo = EnsureChild("NotificationHudUI", debugRoot);
             var notificationHud = FindOrAdd<NotificationHudUI>(notificationHudGo.gameObject);
-            notificationHud.Configure(notification);
+            notificationHud.Configure(notification, sfx);
 
             var scenarioHudGo = EnsureChild("ScenarioHudUI", debugRoot);
             var scenarioHud = FindOrAdd<ScenarioHudUI>(scenarioHudGo.gameObject);
@@ -119,7 +128,6 @@ namespace CleanEnergy.Core
 
             var pauseGo = EnsureChild("PauseOverlayUI", debugRoot);
             var pauseOverlay = FindOrAdd<PauseOverlayUI>(pauseGo.gameObject);
-            pauseOverlay.Configure(clock, placement);
 
             var camTransform = cameraRoot.Find("Main Camera");
             Camera cam;
@@ -156,6 +164,11 @@ namespace CleanEnergy.Core
                 cam.gameObject.AddComponent<AudioListener>();
             }
 
+            SettingsService.ApplyAll(controller);
+            pauseOverlay.Configure(clock, placement, controller);
+            var hotkeys = FindOrAdd<PlayHotkeys>(simRoot.gameObject);
+            hotkeys.Configure(clock, placement, pauseOverlay);
+
             var focusGo = EnsureChild("SelectionCameraFocus", debugRoot);
             var selectionFocus = FindOrAdd<SelectionCameraFocus>(focusGo.gameObject);
             selectionFocus.Configure(overlay, mapGenerator, placement, controller);
@@ -167,7 +180,7 @@ namespace CleanEnergy.Core
             tutorialHud.Configure(tutorial);
 
             var saveLoad = FindOrAdd<SaveLoadController>(simRoot.gameObject);
-            saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial, driver);
+            saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial, driver, sfx);
             var saveHudGo = EnsureChild("SaveLoadHudUI", debugRoot);
             var saveHud = FindOrAdd<SaveLoadHudUI>(saveHudGo.gameObject);
             saveHud.Configure(saveLoad);
@@ -238,6 +251,12 @@ namespace CleanEnergy.Core
                 return scenarioDefinition;
             }
 
+            if (id == "wind_coast")
+            {
+                scenarioDefinition = ScenarioProgressService.CreateRuntimeWindCoast();
+                return scenarioDefinition;
+            }
+
             if (scenarioDefinition != null)
             {
                 return scenarioDefinition;
@@ -273,7 +292,7 @@ namespace CleanEnergy.Core
                 CreateRuntimeBuilding(
                     "small_solar", "Small Solar", "Daytime solar array",
                     BuildingCategory.Energy, 120f, 12f, 20f, 0f, 0.45f, 0f, false, true,
-                    new Color(0.95f, 0.8f, 0.2f)),
+                    new Color(0.95f, 0.8f, 0.2f), footprint: new Vector2Int(2, 1)),
                 CreateRuntimeBuilding(
                     "small_wind", "Small Wind", "Open-area turbine",
                     BuildingCategory.Energy, 150f, 14f, 28f, 0f, 0f, 0.4f, false, true,
@@ -323,7 +342,8 @@ namespace CleanEnergy.Core
             bool hub = false,
             float buildingEfficiency = 0.8f,
             float hubLinkCapacity = 0f,
-            int sameTypeSpacing = 0)
+            int sameTypeSpacing = 0,
+            Vector2Int? footprint = null)
         {
             var def = ScriptableObject.CreateInstance<BuildingDefinition>();
             def.name = id;
@@ -333,7 +353,8 @@ namespace CleanEnergy.Core
                 adjacentWater, requireBuildable, color,
                 demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency,
                 hubLinkCapacity: hubLinkCapacity,
-                sameTypeSpacing: sameTypeSpacing);
+                sameTypeSpacing: sameTypeSpacing,
+                footprint: footprint);
             return def;
         }
 

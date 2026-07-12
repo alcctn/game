@@ -6,7 +6,7 @@ using UnityEngine;
 namespace CleanEnergy.UI
 {
     /// <summary>
-    /// IMGUI main menu: New Game / Continue (slots 1–3) / Delete / Quit.
+    /// IMGUI main menu: New Game / Continue (slots 1–3) / Settings / Delete / Quit.
     /// </summary>
     public sealed class MainMenuUI : MonoBehaviour
     {
@@ -15,6 +15,7 @@ namespace CleanEnergy.UI
         private int _selectedScenarioIndex;
         private int _selectedSlot = 1;
         private SaveGameService _saveService;
+        private bool _settingsOpen;
 
         public void ConfigureScenarios(string[] ids, string[] labels)
         {
@@ -26,12 +27,19 @@ namespace CleanEnergy.UI
         private void Awake()
         {
             _saveService = new SaveGameService();
+            SettingsService.ApplyAll();
         }
 
         private void OnGUI()
         {
+            if (_settingsOpen)
+            {
+                DrawSettingsPanel();
+                return;
+            }
+
             const float width = 360f;
-            const float height = 400f;
+            const float height = 440f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -84,9 +92,33 @@ namespace CleanEnergy.UI
                 SceneFlow.LoadPlayScene();
             }
 
+            if (GUILayout.Button("Settings", GUILayout.Height(28f)))
+            {
+                _settingsOpen = true;
+            }
+
             if (GUILayout.Button("Quit", GUILayout.Height(28f)))
             {
                 SceneFlow.QuitGame();
+            }
+
+            GUILayout.EndArea();
+        }
+
+        private void DrawSettingsPanel()
+        {
+            const float width = 360f;
+            const float height = 280f;
+            var x = (Screen.width - width) * 0.5f;
+            var y = (Screen.height - height) * 0.5f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            GUILayout.Label("Settings");
+            GUILayout.Space(8f);
+            SettingsPanelUI.Draw();
+            GUILayout.Space(12f);
+            if (GUILayout.Button("Back", GUILayout.Height(28f)))
+            {
+                _settingsOpen = false;
             }
 
             GUILayout.EndArea();

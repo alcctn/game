@@ -1,4 +1,5 @@
 using System.IO;
+using CleanEnergy.Audio;
 using CleanEnergy.Buildings;
 using CleanEnergy.CameraSystem;
 using CleanEnergy.Core;
@@ -28,6 +29,7 @@ namespace CleanEnergy.Editor
         private const string SettingsPath = "Assets/_Game/Data/Map/MapGenerationSettings.asset";
         private const string ScenarioPath = "Assets/_Game/Data/Scenarios/green_valley.asset";
         private const string SunRidgeScenarioPath = "Assets/_Game/Data/Scenarios/sun_ridge.asset";
+        private const string WindCoastScenarioPath = "Assets/_Game/Data/Scenarios/wind_coast.asset";
         private const string ResearchPath = "Assets/_Game/Data/Research/green_valley_research.asset";
         private const string ScenePath = "Assets/_Game/Scenes/Test_Terrain.unity";
         private const string MainMenuScenePath = "Assets/_Game/Scenes/MainMenu.unity";
@@ -42,9 +44,10 @@ namespace CleanEnergy.Editor
             var settings = CreateOrLoadSettings();
             var scenario = CreateOrLoadScenario();
             var sunRidge = CreateOrLoadSunRidgeScenario();
+            var windCoast = CreateOrLoadWindCoastScenario();
             var research = CreateOrLoadResearch();
             var buildings = CreateOrLoadBuildings();
-            CreateScene(settings, buildings, scenario, sunRidge, research);
+            CreateScene(settings, buildings, scenario, sunRidge, windCoast, research);
             EnsureMainMenuScene();
             UpdateBuildSettings();
             AssetDatabase.SaveAssets();
@@ -76,6 +79,7 @@ namespace CleanEnergy.Editor
             EnsureFolders();
             CreateOrLoadScenario();
             CreateOrLoadSunRidgeScenario();
+            CreateOrLoadWindCoastScenario();
             AssetDatabase.SaveAssets();
             Debug.Log("[Setup] Scenario definitions created/updated.");
         }
@@ -162,6 +166,35 @@ namespace CleanEnergy.Editor
             return existing;
         }
 
+        private static ScenarioDefinition CreateOrLoadWindCoastScenario()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<ScenarioDefinition>(WindCoastScenarioPath);
+            if (existing == null)
+            {
+                existing = ScriptableObject.CreateInstance<ScenarioDefinition>();
+                AssetDatabase.CreateAsset(existing, WindCoastScenarioPath);
+            }
+
+            existing.Configure(
+                "wind_coast",
+                "Wind Coast",
+                0.9f,
+                50,
+                2,
+                100f,
+                2.2f,
+                0.28f,
+                28f,
+                researchNodeIds: new[] { "wind_basic" },
+                seed: "wind_coast_77",
+                solarOverride: 0.35f,
+                streamOverride: 14f,
+                population: 100f,
+                windOverride: 0.85f);
+            EditorUtility.SetDirty(existing);
+            return existing;
+        }
+
         private static ResearchTreeDefinition CreateOrLoadResearch()
         {
             var existing = AssetDatabase.LoadAssetAtPath<ResearchTreeDefinition>(ResearchPath);
@@ -191,7 +224,7 @@ namespace CleanEnergy.Editor
                 CreateOrUpdateBuilding(
                     "small_solar", "Small Solar", "Daytime solar array",
                     BuildingCategory.Energy, 120f, 12f, 20f, 0f, 0.45f, 0f, false, true,
-                    new Color(0.95f, 0.8f, 0.2f)),
+                    new Color(0.95f, 0.8f, 0.2f), footprint: new Vector2Int(2, 1)),
                 CreateOrUpdateBuilding(
                     "small_wind", "Small Wind", "Open-area turbine",
                     BuildingCategory.Energy, 150f, 14f, 28f, 0f, 0f, 0.4f, false, true,
@@ -241,7 +274,8 @@ namespace CleanEnergy.Editor
             bool hub = false,
             float buildingEfficiency = 0.8f,
             float hubLinkCapacity = 0f,
-            int sameTypeSpacing = 0)
+            int sameTypeSpacing = 0,
+            Vector2Int? footprint = null)
         {
             var path = $"{BuildingsFolder}/{id}.asset";
             var asset = AssetDatabase.LoadAssetAtPath<BuildingDefinition>(path);
@@ -257,7 +291,8 @@ namespace CleanEnergy.Editor
                 adjacentWater, requireBuildable, color,
                 demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency,
                 hubLinkCapacity: hubLinkCapacity,
-                sameTypeSpacing: sameTypeSpacing);
+                sameTypeSpacing: sameTypeSpacing,
+                footprint: footprint);
             EditorUtility.SetDirty(asset);
             return asset;
         }
@@ -267,6 +302,7 @@ namespace CleanEnergy.Editor
             BuildingDefinition[] buildings,
             ScenarioDefinition scenario,
             ScenarioDefinition sunRidge,
+            ScenarioDefinition windCoast,
             ResearchTreeDefinition research)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -279,9 +315,10 @@ namespace CleanEnergy.Editor
             so.FindProperty("researchTreeDefinition").objectReferenceValue = research;
             so.FindProperty("startingMoney").floatValue = 1000f;
             var catalogProp = so.FindProperty("scenarioCatalog");
-            catalogProp.arraySize = 2;
+            catalogProp.arraySize = 3;
             catalogProp.GetArrayElementAtIndex(0).objectReferenceValue = scenario;
             catalogProp.GetArrayElementAtIndex(1).objectReferenceValue = sunRidge;
+            catalogProp.GetArrayElementAtIndex(2).objectReferenceValue = windCoast;
             var buildingsProp = so.FindProperty("buildingDefinitions");
             buildingsProp.arraySize = buildings.Length;
             for (var i = 0; i < buildings.Length; i++)
@@ -321,7 +358,12 @@ namespace CleanEnergy.Editor
             researchController.Configure(research, driver, network, scenarioController, mapGenerator);
             scenarioController.Configure(scenario, driver, network, clock, mapGenerator, researchController);
             placement.Configure(mapGenerator, buildingRoot.transform, buildings, 1000f, researchController.Service);
-            network.Configure(placement, mapGenerator, researchController.Service.GetEfficiencyBonus);
+            network.Configure(
+                placement,
+                mapGenerator,
+                researchController.Service.GetEfficiencyBonus,
+                () => scenarioController.Settlement.DemandScale,
+                researchController.Service.GetStorageCapacityBonus);
             maintenance.Configure(placement);
             driver.Configure(clock, network, placement, maintenance, mapGenerator);
 
@@ -363,14 +405,18 @@ namespace CleanEnergy.Editor
             var inspectionGo = new GameObject("InspectionPanelUI");
             inspectionGo.transform.SetParent(debugRoot.transform, false);
             var inspection = inspectionGo.AddComponent<InspectionPanelUI>();
-            inspection.Configure(overlay, mapGenerator, placement, network, clock, researchController);
+            inspection.Configure(overlay, mapGenerator, placement, network, clock, researchController, scenarioController);
 
             var notification = simRoot.AddComponent<NotificationController>();
             notification.Configure(driver, researchController, maintenance, network, scenarioController);
+            var sfxGo = new GameObject("SfxService");
+            sfxGo.transform.SetParent(debugRoot.transform, false);
+            var sfx = sfxGo.AddComponent<SfxService>();
+            sfx.Configure(placement, notification);
             var notificationHudGo = new GameObject("NotificationHudUI");
             notificationHudGo.transform.SetParent(debugRoot.transform, false);
             var notificationHud = notificationHudGo.AddComponent<NotificationHudUI>();
-            notificationHud.Configure(notification);
+            notificationHud.Configure(notification, sfx);
 
             var scenarioHudGo = new GameObject("ScenarioHudUI");
             scenarioHudGo.transform.SetParent(debugRoot.transform, false);
@@ -392,7 +438,6 @@ namespace CleanEnergy.Editor
             var pauseGo = new GameObject("PauseOverlayUI");
             pauseGo.transform.SetParent(debugRoot.transform, false);
             var pauseOverlay = pauseGo.AddComponent<PauseOverlayUI>();
-            pauseOverlay.Configure(clock, placement);
 
             var cameraRoot = new GameObject("CameraRoot");
             cameraRoot.transform.SetParent(gameRoot.transform, false);
@@ -413,6 +458,8 @@ namespace CleanEnergy.Editor
             }
 
             controller.ConfigureBounds(settings.TerrainWorldSize);
+            CleanEnergy.UI.SettingsService.ApplyAll(controller);
+            pauseOverlay.Configure(clock, placement, controller);
 
             var focusGo = new GameObject("SelectionCameraFocus");
             focusGo.transform.SetParent(debugRoot.transform, false);
@@ -429,7 +476,7 @@ namespace CleanEnergy.Editor
 
             var saveLoad = simRoot.AddComponent<SaveLoadController>();
             saveLoad.Configure(
-                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController, driver);
+                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController, driver, sfx);
             var saveHudGo = new GameObject("SaveLoadHudUI");
             saveHudGo.transform.SetParent(debugRoot.transform, false);
             var saveHud = saveHudGo.AddComponent<SaveLoadHudUI>();
@@ -444,8 +491,8 @@ namespace CleanEnergy.Editor
             var menuGo = new GameObject("MainMenuUI");
             var menu = menuGo.AddComponent<MainMenuUI>();
             menu.ConfigureScenarios(
-                new[] { "green_valley", "sun_ridge" },
-                new[] { "Yeşil Vadi", "Güneş Sırtı" });
+                new[] { "green_valley", "sun_ridge", "wind_coast" },
+                new[] { "Yeşil Vadi", "Güneş Sırtı", "Rüzgâr Sahili" });
             EditorSceneManager.SaveScene(scene, MainMenuScenePath);
         }
 

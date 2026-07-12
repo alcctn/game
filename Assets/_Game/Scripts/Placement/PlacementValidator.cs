@@ -25,7 +25,8 @@ namespace CleanEnergy.Placement
             GridService grid,
             GridOccupancyService occupancy,
             Wallet wallet,
-            IBuildingUnlockQuery buildingUnlocks = null)
+            IBuildingUnlockQuery buildingUnlocks = null,
+            int rotation = 0)
         {
             var reasons = new List<string>();
             if (definition == null)
@@ -47,7 +48,7 @@ namespace CleanEnergy.Placement
             }
 
             var context = new PlacementContext(
-                definition, coordinate, grid, occupancy, wallet, buildingUnlocks);
+                definition, coordinate, grid, occupancy, wallet, buildingUnlocks, rotation);
             var allPassed = true;
             for (var i = 0; i < _rules.Count; i++)
             {

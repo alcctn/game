@@ -53,7 +53,7 @@ namespace CleanEnergy.Tests.EditMode
                 new List<EnergyNetworkNode>
                 {
                     new EnergyNetworkNode("p", new GridCoordinate(0, 0), new FakeProducer(12f), null, null, false, 4),
-                    new EnergyNetworkNode("c", new GridCoordinate(1, 0), null, new FakeConsumer(5f), null, false, 4)
+                    new EnergyNetworkNode("c", new GridCoordinate(0, 0), null, new FakeConsumer(5f), null, false, 4)
                 });
             var result = calculator.Calculate(component, new SimulationContext(1, 0.5f, SimulationSpeed.One));
             Assert.AreEqual(12f, result.Production, 0.001f);

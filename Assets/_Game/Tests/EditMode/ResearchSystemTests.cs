@@ -21,6 +21,7 @@ namespace CleanEnergy.Tests.EditMode
             Assert.IsFalse(service.IsBuildingUnlocked("small_solar"));
             Assert.IsFalse(service.IsBuildingUnlocked("small_wind"));
             Assert.IsFalse(service.IsBuildingUnlocked("small_hydro"));
+            Assert.IsFalse(service.IsBuildingUnlocked("battery"));
         }
 
         [Test]

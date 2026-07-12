@@ -223,5 +223,28 @@ namespace CleanEnergy.Scenario
                 streamOverride: 18f);
             return def;
         }
+
+        public static ScenarioDefinition CreateRuntimeWindCoast()
+        {
+            var def = ScriptableObject.CreateInstance<ScenarioDefinition>();
+            def.name = "RuntimeWindCoast";
+            def.Configure(
+                "wind_coast",
+                "Wind Coast",
+                0.9f,
+                50,
+                2,
+                100f,
+                2.2f,
+                0.28f,
+                28f,
+                researchNodeIds: new[] { "wind_basic" },
+                seed: "wind_coast_77",
+                solarOverride: 0.35f,
+                streamOverride: 14f,
+                population: 100f,
+                windOverride: 0.85f);
+            return def;
+        }
     }
 }

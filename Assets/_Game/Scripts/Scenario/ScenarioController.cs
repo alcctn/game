@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CleanEnergy.Energy;
 using CleanEnergy.Map;
 using CleanEnergy.Research;
+using CleanEnergy.Settlements;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
@@ -21,9 +22,11 @@ namespace CleanEnergy.Scenario
 
         private ScenarioProgressService _progress;
         private readonly HashSet<string> _activeTypesBuffer = new HashSet<string>();
+        private readonly SettlementState _settlement = new SettlementState();
 
         public ScenarioProgressService Progress => _progress;
         public ScenarioObjectiveState State => _progress?.State;
+        public SettlementState Settlement => _settlement;
         public event System.Action<ScenarioWonEvent> Won;
         public event System.Action<ScenarioFailedEvent> Failed;
         public event System.Action<ScenarioObjectiveState> StateChanged;
@@ -67,6 +70,8 @@ namespace CleanEnergy.Scenario
             _progress.Won += OnWon;
             _progress.Failed += OnFailed;
             _progress.StateChanged += OnStateChanged;
+            _settlement.Reset(definition.StartingPopulation);
+            networkService?.SetDemandScaleProvider(() => _settlement.DemandScale);
             Subscribe();
             StateChanged?.Invoke(_progress.State);
         }
@@ -75,10 +80,24 @@ namespace CleanEnergy.Scenario
         {
             EnsureProgress();
             _progress.Reset();
+            _settlement.Reset(definition != null
+                ? definition.StartingPopulation
+                : SettlementState.DefaultStartingPopulation);
+            networkService?.MarkDirty();
             if (clock != null && clock.Speed == SimulationSpeed.Paused)
             {
                 clock.SetSpeed(SimulationSpeed.One);
             }
+        }
+
+        public void RestoreSettlement(float population)
+        {
+            var start = definition != null
+                ? definition.StartingPopulation
+                : SettlementState.DefaultStartingPopulation;
+            _settlement.Restore(population, start);
+            networkService?.SetDemandScaleProvider(() => _settlement.DemandScale);
+            networkService?.MarkDirty();
         }
 
         public void RestoreProgress(ScenarioObjectiveState snapshot)
@@ -111,6 +130,8 @@ namespace CleanEnergy.Scenario
             _progress.Won += OnWon;
             _progress.Failed += OnFailed;
             _progress.StateChanged += OnStateChanged;
+            _settlement.Reset(definition.StartingPopulation);
+            networkService?.SetDemandScaleProvider(() => _settlement.DemandScale);
         }
 
         private void Subscribe()
@@ -153,6 +174,7 @@ namespace CleanEnergy.Scenario
 
             networkService?.RebuildIfNeeded();
             AnalyzeNetwork(out var typeCount, out var hasBattery);
+            _settlement.Tick(result.CoverageRatio);
             _progress.Evaluate(new ScenarioTickInput(
                 result.CoverageRatio,
                 result.Demand,

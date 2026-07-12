@@ -26,6 +26,7 @@ namespace CleanEnergy.Research
         private readonly HashSet<string> _unlockedNodes = new HashSet<string>();
         private readonly HashSet<string> _unlockedBuildings = new HashSet<string>();
         private readonly Dictionary<string, float> _efficiencyBonuses = new Dictionary<string, float>();
+        private readonly Dictionary<string, float> _storageCapacityBonuses = new Dictionary<string, float>();
         private readonly Dictionary<string, ResearchNodeDefinition> _nodesById =
             new Dictionary<string, ResearchNodeDefinition>();
 
@@ -48,6 +49,7 @@ namespace CleanEnergy.Research
             _unlockedNodes.Clear();
             _unlockedBuildings.Clear();
             _efficiencyBonuses.Clear();
+            _storageCapacityBonuses.Clear();
             _wallet.SetPoints(0f);
 
             foreach (var id in _tree.AlwaysUnlockedBuildingIds)
@@ -113,6 +115,16 @@ namespace CleanEnergy.Research
             }
 
             return _efficiencyBonuses.TryGetValue(buildingTypeId, out var bonus) ? bonus : 0f;
+        }
+
+        public float GetStorageCapacityBonus(string buildingTypeId)
+        {
+            if (string.IsNullOrEmpty(buildingTypeId))
+            {
+                return 0f;
+            }
+
+            return _storageCapacityBonuses.TryGetValue(buildingTypeId, out var bonus) ? bonus : 0f;
         }
 
         public bool CanUnlock(string nodeId, out string reason)
@@ -201,6 +213,22 @@ namespace CleanEnergy.Research
                 else
                 {
                     _efficiencyBonuses[node.EfficiencyTargetBuildingId] = node.EfficiencyBonus;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(node.StorageCapacityTargetBuildingId)
+                && node.StorageCapacityBonus > 0f)
+            {
+                if (_storageCapacityBonuses.TryGetValue(
+                        node.StorageCapacityTargetBuildingId, out var existingCap))
+                {
+                    _storageCapacityBonuses[node.StorageCapacityTargetBuildingId] =
+                        existingCap + node.StorageCapacityBonus;
+                }
+                else
+                {
+                    _storageCapacityBonuses[node.StorageCapacityTargetBuildingId] =
+                        node.StorageCapacityBonus;
                 }
             }
         }

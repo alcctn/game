@@ -15,7 +15,6 @@ namespace CleanEnergy.Research
         {
             "water_wheel",
             "village",
-            "battery",
             "power_line",
             "maintenance_depot",
             "distribution_hub"
@@ -35,7 +34,6 @@ namespace CleanEnergy.Research
             {
                 "water_wheel",
                 "village",
-                "battery",
                 "power_line",
                 "maintenance_depot",
                 "distribution_hub"
@@ -91,11 +89,23 @@ namespace CleanEnergy.Research
                 "wind_blade", "Advanced Blade", "+0.1 wind efficiency",
                 "wind_eff", 40f, false, Array.Empty<string>(), "small_wind", 0.1f);
 
+            var storageBasic = new ResearchNodeDefinition();
+            storageBasic.Configure(
+                "storage_basic", "Basic Storage", "Unlocks battery",
+                "", 20f, false, new[] { "battery" }, "", 0f);
+
+            var batteryCap = new ResearchNodeDefinition();
+            batteryCap.Configure(
+                "battery_cap", "Battery Capacity", "+25% battery capacity",
+                "storage_basic", 25f, false, Array.Empty<string>(), "", 0f,
+                storageCapacityTarget: "battery", storageCapacityBonusAmount: 0.25f);
+
             nodes = new[]
             {
                 hydroBasic, hydroTurbine, hydroEff, hydroTune,
                 solarBasic, solarEff, solarInverter,
-                windBasic, windEff, windBlade
+                windBasic, windEff, windBlade,
+                storageBasic, batteryCap
             };
         }
     }

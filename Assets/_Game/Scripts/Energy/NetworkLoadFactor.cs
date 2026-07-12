@@ -67,15 +67,22 @@ namespace CleanEnergy.Energy
             }
 
             var range = Mathf.Max(0, definition.ConnectionRange);
+            var seen = new System.Collections.Generic.HashSet<string>();
             foreach (var pair in occupancy.Occupied)
             {
-                var other = pair.Value?.Definition;
+                var instance = pair.Value;
+                var other = instance?.Definition;
                 if (other == null || (!other.IsConsumer && !other.IsStorage))
                 {
                     continue;
                 }
 
-                if (Manhattan(coordinate, pair.Key) <= range)
+                if (!seen.Add(instance.InstanceId))
+                {
+                    continue;
+                }
+
+                if (Manhattan(coordinate, instance.Coordinate) <= range)
                 {
                     return 1f;
                 }

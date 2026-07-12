@@ -40,7 +40,7 @@ namespace CleanEnergy.Tests.EditMode
         [Test]
         public void OtherKey_ReturnsFalse()
         {
-            Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.F10, out _));
+            Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.F11, out _));
             Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.A, out _));
             Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.Escape, out _));
         }

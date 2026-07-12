@@ -32,6 +32,8 @@ namespace CleanEnergy.Energy
 
         private readonly EnergyNetworkGraph _graph = new EnergyNetworkGraph();
         private System.Func<string, float> _efficiencyBonusProvider;
+        private System.Func<float> _demandScaleProvider;
+        private System.Func<string, float> _storageCapacityBonusProvider;
         private bool _dirty = true;
 
         public EnergyNetworkGraph Graph => _graph;
@@ -50,12 +52,16 @@ namespace CleanEnergy.Energy
         public void Configure(
             PlacementController placement,
             MapGenerator generator,
-            System.Func<string, float> efficiencyBonusProvider = null)
+            System.Func<string, float> efficiencyBonusProvider = null,
+            System.Func<float> demandScaleProvider = null,
+            System.Func<string, float> storageCapacityBonusProvider = null)
         {
             Unsubscribe();
             placementController = placement;
             mapGenerator = generator;
             _efficiencyBonusProvider = efficiencyBonusProvider;
+            _demandScaleProvider = demandScaleProvider;
+            _storageCapacityBonusProvider = storageCapacityBonusProvider;
             Subscribe();
             MarkDirty();
             Rebuild();
@@ -64,6 +70,18 @@ namespace CleanEnergy.Energy
         public void SetEfficiencyBonusProvider(System.Func<string, float> efficiencyBonusProvider)
         {
             _efficiencyBonusProvider = efficiencyBonusProvider;
+            MarkDirty();
+        }
+
+        public void SetDemandScaleProvider(System.Func<float> demandScaleProvider)
+        {
+            _demandScaleProvider = demandScaleProvider;
+            MarkDirty();
+        }
+
+        public void SetStorageCapacityBonusProvider(System.Func<string, float> storageCapacityBonusProvider)
+        {
+            _storageCapacityBonusProvider = storageCapacityBonusProvider;
             MarkDirty();
         }
 
@@ -95,10 +113,11 @@ namespace CleanEnergy.Energy
             var hubs = new System.Collections.Generic.List<EnergyNetworkNode>();
             var energyNodes = new System.Collections.Generic.List<EnergyNetworkNode>();
 
+            var seenInstances = new System.Collections.Generic.HashSet<string>();
             foreach (var pair in placementController.Occupancy.Occupied)
             {
                 var instance = pair.Value;
-                if (instance?.Definition == null)
+                if (instance?.Definition == null || !seenInstances.Add(instance.InstanceId))
                 {
                     continue;
                 }
@@ -106,8 +125,9 @@ namespace CleanEnergy.Energy
                 var def = instance.Definition;
                 var producer = BuildingEnergyFactory.TryCreateProducer(
                     instance, grid, settings, _efficiencyBonusProvider, placementController.Occupancy);
-                var consumer = BuildingEnergyFactory.TryCreateConsumer(instance);
-                var storage = BuildingEnergyFactory.TryCreateStorage(instance);
+                var consumer = BuildingEnergyFactory.TryCreateConsumer(instance, _demandScaleProvider);
+                var storage = BuildingEnergyFactory.TryCreateStorage(
+                    instance, _storageCapacityBonusProvider);
                 var isHub = IsHubDefinition(def);
                 var range = def.ConnectionRange > 0 ? def.ConnectionRange : defaultConnectionRange;
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CleanEnergy.Grid;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
@@ -98,6 +99,16 @@ namespace CleanEnergy.Energy
                     if (producers[i] is ResourceProducerAdapter adapter)
                     {
                         adapter.ClearReportedProduction();
+                    }
+                }
+                else
+                {
+                    var coord = ResolveProducerCoordinate(component, producers[i].NodeId);
+                    var delivery = TransmissionLoss.ResolveDeliveryFactor(coord, component);
+                    amount *= delivery;
+                    if (producers[i] is ResourceProducerAdapter adapter)
+                    {
+                        adapter.SetReportedProduction(amount);
                     }
                 }
 
@@ -224,6 +235,21 @@ namespace CleanEnergy.Energy
             }
 
             return hubCount == 0 ? -1f : sum;
+        }
+
+        private static GridCoordinate ResolveProducerCoordinate(
+            EnergyNetworkComponent component,
+            string nodeId)
+        {
+            for (var i = 0; i < component.Nodes.Count; i++)
+            {
+                if (component.Nodes[i].Id == nodeId)
+                {
+                    return component.Nodes[i].Coordinate;
+                }
+            }
+
+            return default;
         }
     }
 }

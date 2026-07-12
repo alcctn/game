@@ -81,7 +81,7 @@ namespace CleanEnergy.Buildings
                     break;
                 case "small_solar":
                     type = PrimitiveType.Cube;
-                    scale = new Vector3(1.4f, 0.12f, 1.0f);
+                    scale = new Vector3(2.2f, 0.12f, 1.0f);
                     break;
                 case "small_wind":
                     type = PrimitiveType.Cylinder;

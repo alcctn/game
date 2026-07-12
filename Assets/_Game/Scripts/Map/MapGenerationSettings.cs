@@ -86,6 +86,11 @@ namespace CleanEnergy.Map
             baseClimateSolar = Mathf.Max(0f, value);
         }
 
+        public void SetBaseWind(float value)
+        {
+            baseWind = Mathf.Max(0f, value);
+        }
+
         /// <summary>
         /// Test/editor helper to override water classification thresholds.
         /// </summary>

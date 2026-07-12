@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CleanEnergy.Audio;
 using CleanEnergy.Energy;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
@@ -23,6 +24,7 @@ namespace CleanEnergy.Save
         [SerializeField] private EnergyNetworkService networkService;
         [SerializeField] private TutorialController tutorialController;
         [SerializeField] private EnergySimulationDriver energyDriver;
+        [SerializeField] private SfxService sfxService;
 
         private readonly SaveGameService _saveService = new SaveGameService();
 
@@ -37,7 +39,8 @@ namespace CleanEnergy.Save
             SimulationClock simulationClock,
             EnergyNetworkService network,
             TutorialController tutorial = null,
-            EnergySimulationDriver driver = null)
+            EnergySimulationDriver driver = null,
+            SfxService sfx = null)
         {
             mapGenerator = map;
             placementController = placement;
@@ -47,6 +50,7 @@ namespace CleanEnergy.Save
             networkService = network;
             tutorialController = tutorial;
             energyDriver = driver;
+            sfxService = sfx;
         }
 
         public bool SaveSlot()
@@ -135,7 +139,10 @@ namespace CleanEnergy.Save
                     : 0,
                 scenarioId = scenarioController?.Progress?.Definition != null
                     ? scenarioController.Progress.Definition.ScenarioId
-                    : ScenarioSession.ResolveSelectedId()
+                    : ScenarioSession.ResolveSelectedId(),
+                settlementPopulation = scenarioController?.Settlement != null
+                    ? scenarioController.Settlement.Population
+                    : 100f
             };
 
             if (researchController?.Service != null)
@@ -167,12 +174,22 @@ namespace CleanEnergy.Save
                 tutorialController.SuppressEvents = true;
             }
 
+            if (sfxService != null)
+            {
+                sfxService.SuppressPlayback = true;
+            }
+
             mapGenerator.SetSeed(string.IsNullOrEmpty(data.seed) ? "12345" : data.seed);
             if (!mapGenerator.Generate())
             {
                 if (tutorialController != null)
                 {
                     tutorialController.SuppressEvents = false;
+                }
+
+                if (sfxService != null)
+                {
+                    sfxService.SuppressPlayback = false;
                 }
 
                 return false;
@@ -223,6 +240,12 @@ namespace CleanEnergy.Save
                 scenarioController.RestoreProgress(ToScenarioState(data.scenario));
             }
 
+            if (scenarioController != null)
+            {
+                scenarioController.RestoreSettlement(
+                    data.settlementPopulation > 0.001f ? data.settlementPopulation : 100f);
+            }
+
             if (clock != null)
             {
                 clock.RestoreTick(data.tickIndex);
@@ -237,6 +260,11 @@ namespace CleanEnergy.Save
                 // Clamp covers legacy saves if enum order changes.
                 tutorialController.RestoreTutorial(step);
                 tutorialController.SuppressEvents = false;
+            }
+
+            if (sfxService != null)
+            {
+                sfxService.SuppressPlayback = false;
             }
 
             networkService?.MarkDirty();

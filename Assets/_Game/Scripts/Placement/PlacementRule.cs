@@ -20,6 +20,7 @@ namespace CleanEnergy.Placement
     {
         public BuildingDefinition Definition { get; }
         public GridCoordinate Coordinate { get; }
+        public int Rotation { get; }
         public GridService Grid { get; }
         public GridOccupancyService Occupancy { get; }
         public Wallet Wallet { get; }
@@ -34,10 +35,12 @@ namespace CleanEnergy.Placement
             GridService grid,
             GridOccupancyService occupancy,
             Wallet wallet,
-            IBuildingUnlockQuery buildingUnlocks = null)
+            IBuildingUnlockQuery buildingUnlocks = null,
+            int rotation = 0)
         {
             Definition = definition;
             Coordinate = coordinate;
+            Rotation = rotation;
             Grid = grid;
             Occupancy = occupancy;
             Wallet = wallet;

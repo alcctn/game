@@ -43,6 +43,34 @@ namespace CleanEnergy.DebugTools
         private void Update()
         {
             UpdatePlacementHoverFocus();
+            if (Input.GetKeyDown(KeyCode.Home))
+            {
+                FitHome();
+            }
+        }
+
+        public void FitHome(float duration = -1f)
+        {
+            if (cameraController == null)
+            {
+                return;
+            }
+
+            var d = duration < 0f ? focusDuration : duration;
+            if (debugOverlay != null
+                && debugOverlay.SelectedCell.HasValue
+                && mapGenerator != null
+                && mapGenerator.Grid.IsInitialized
+                && mapGenerator.Grid.TryGetCell(debugOverlay.SelectedCell.Value, out var cell))
+            {
+                var cellSize = mapGenerator.Grid.CellSize;
+                var fit = CameraFitMath.BoundsAroundCell(
+                    cell.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);
+                cameraController.FitToBounds(fit, d);
+                return;
+            }
+
+            cameraController.FitToMapBounds(d);
         }
 
         private void Subscribe()

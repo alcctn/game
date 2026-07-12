@@ -49,5 +49,6 @@ namespace CleanEnergy.Save
         public ScenarioSaveData scenario = new ScenarioSaveData();
         public int tutorialStep;
         public string scenarioId = "";
+        public float settlementPopulation = 100f;
     }
 }

@@ -1,3 +1,4 @@
+using CleanEnergy.Audio;
 using UnityEngine;
 
 namespace CleanEnergy.UI
@@ -9,13 +10,15 @@ namespace CleanEnergy.UI
     {
         [SerializeField] private NotificationController notificationController;
 
-        public void Configure(NotificationController controller)
+        public void Configure(NotificationController controller, SfxService sfx = null)
         {
             notificationController = controller;
         }
 
         private void OnGUI()
         {
+            DrawMuteToggle();
+
             var service = notificationController != null ? notificationController.Service : null;
             if (service == null || service.Active.Count == 0)
             {
@@ -36,6 +39,23 @@ namespace CleanEnergy.UI
             for (var i = 0; i < service.Active.Count; i++)
             {
                 GUILayout.Label(service.Active[i].Message);
+            }
+
+            GUILayout.EndArea();
+        }
+
+        private void DrawMuteToggle()
+        {
+            const float width = 120f;
+            const float height = 28f;
+            var x = Screen.width - width - 16f;
+            var y = Screen.height - height - 16f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            var muted = SfxService.IsMuted;
+            var next = GUILayout.Toggle(muted, "Mute SFX");
+            if (next != muted)
+            {
+                SfxService.IsMuted = next;
             }
 
             GUILayout.EndArea();

@@ -72,6 +72,16 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 57. [Sprint 53 — Placement Yield Curtailment](docs/SPRINT_53_YIELD_CURTAIL.md)
 58. [Sprint 54 — Save Slot Metadata](docs/SPRINT_54_SLOT_METADATA.md)
 59. [Sprint 55 — Demolish Undo](docs/SPRINT_55_DEMOLISH_UNDO.md)
+60. [Sprint 56 — Transmission Loss](docs/SPRINT_56_TRANSMISSION_LOSS.md)
+61. [Sprint 57 — Village Population](docs/SPRINT_57_VILLAGE_POPULATION.md)
+62. [Sprint 58 — Zoom to Fit](docs/SPRINT_58_ZOOM_FIT.md)
+63. [Sprint 59 — Multi-Cell Footprint](docs/SPRINT_59_MULTI_CELL.md)
+64. [Sprint 60 — Notification SFX](docs/SPRINT_60_NOTIFICATION_SFX.md)
+65. [Sprint 61 — Settings Panel](docs/SPRINT_61_SETTINGS.md)
+66. [Sprint 62 — Environmental Layer](docs/SPRINT_62_ENVIRONMENTAL.md)
+67. [Sprint 63 — Third Scenario](docs/SPRINT_63_THIRD_SCENARIO.md)
+68. [Sprint 64 — Play Hotkeys](docs/SPRINT_64_PLAY_HOTKEYS.md)
+69. [Sprint 65 — Storage Research](docs/SPRINT_65_STORAGE_RESEARCH.md)
 
 ## İlk Uygulama Sırası
 

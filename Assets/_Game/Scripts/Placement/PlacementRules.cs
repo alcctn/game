@@ -11,20 +11,29 @@ namespace CleanEnergy.Placement
 
         public bool Evaluate(PlacementContext context, List<string> failureReasons)
         {
-            if (!context.Grid.TryGetCell(context.Coordinate, out var cell))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            var ok = true;
+            for (var i = 0; i < cells.Count; i++)
             {
-                failureReasons.Add("Cell is out of bounds.");
-                return false;
+                if (!context.Grid.TryGetCell(cells[i], out var cell))
+                {
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
+
+                if (cell.Slope <= context.Definition.MaxSlopeDegrees)
+                {
+                    continue;
+                }
+
+                failureReasons.Add(
+                    $"Slope exceeds limit ({cell.Slope:F1}° > {context.Definition.MaxSlopeDegrees:F1}°).");
+                ok = false;
+                break;
             }
 
-            if (cell.Slope <= context.Definition.MaxSlopeDegrees)
-            {
-                return true;
-            }
-
-            failureReasons.Add(
-                $"Slope exceeds limit ({cell.Slope:F1}° > {context.Definition.MaxSlopeDegrees:F1}°).");
-            return false;
+            return ok;
         }
     }
 
@@ -96,25 +105,30 @@ namespace CleanEnergy.Placement
                 return true;
             }
 
-            if (!context.Grid.TryGetCell(context.Coordinate, out _))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            for (var i = 0; i < cells.Count; i++)
             {
-                failureReasons.Add("Cell is out of bounds.");
-                return false;
-            }
-
-            for (var dx = -1; dx <= 1; dx++)
-            {
-                for (var dy = -1; dy <= 1; dy++)
+                if (!context.Grid.TryGetCell(cells[i], out _))
                 {
-                    if (dx == 0 && dy == 0)
-                    {
-                        continue;
-                    }
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
 
-                    var n = new GridCoordinate(context.Coordinate.X + dx, context.Coordinate.Y + dy);
-                    if (context.Grid.TryGetCell(n, out var neighbor) && neighbor.IsWater)
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    for (var dy = -1; dy <= 1; dy++)
                     {
-                        return true;
+                        if (dx == 0 && dy == 0)
+                        {
+                            continue;
+                        }
+
+                        var n = new GridCoordinate(cells[i].X + dx, cells[i].Y + dy);
+                        if (context.Grid.TryGetCell(n, out var neighbor) && neighbor.IsWater)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -135,20 +149,27 @@ namespace CleanEnergy.Placement
                 return true;
             }
 
-            if (!context.Grid.TryGetCell(context.Coordinate, out var cell))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            for (var i = 0; i < cells.Count; i++)
             {
-                failureReasons.Add("Cell is out of bounds.");
+                if (!context.Grid.TryGetCell(cells[i], out var cell))
+                {
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
+
+                if (cell.SolarPotential >= context.Definition.MinSolarPotential)
+                {
+                    continue;
+                }
+
+                failureReasons.Add(
+                    $"Solar potential too low ({cell.SolarPotential:F2} < {context.Definition.MinSolarPotential:F2}).");
                 return false;
             }
 
-            if (cell.SolarPotential >= context.Definition.MinSolarPotential)
-            {
-                return true;
-            }
-
-            failureReasons.Add(
-                $"Solar potential too low ({cell.SolarPotential:F2} < {context.Definition.MinSolarPotential:F2}).");
-            return false;
+            return true;
         }
     }
 
@@ -163,20 +184,27 @@ namespace CleanEnergy.Placement
                 return true;
             }
 
-            if (!context.Grid.TryGetCell(context.Coordinate, out var cell))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            for (var i = 0; i < cells.Count; i++)
             {
-                failureReasons.Add("Cell is out of bounds.");
+                if (!context.Grid.TryGetCell(cells[i], out var cell))
+                {
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
+
+                if (cell.WindPotential >= context.Definition.MinWindPotential)
+                {
+                    continue;
+                }
+
+                failureReasons.Add(
+                    $"Wind potential too low ({cell.WindPotential:F2} < {context.Definition.MinWindPotential:F2}).");
                 return false;
             }
 
-            if (cell.WindPotential >= context.Definition.MinWindPotential)
-            {
-                return true;
-            }
-
-            failureReasons.Add(
-                $"Wind potential too low ({cell.WindPotential:F2} < {context.Definition.MinWindPotential:F2}).");
-            return false;
+            return true;
         }
     }
 
@@ -193,10 +221,16 @@ namespace CleanEnergy.Placement
             }
 
             var id = context.Definition.Id;
+            var seen = new HashSet<string>();
             foreach (var pair in context.Occupancy.Occupied)
             {
                 var other = pair.Value;
                 if (other?.Definition == null || other.Definition.Id != id)
+                {
+                    continue;
+                }
+
+                if (!seen.Add(other.InstanceId))
                 {
                     continue;
                 }
@@ -229,13 +263,26 @@ namespace CleanEnergy.Placement
 
         public bool Evaluate(PlacementContext context, List<string> failureReasons)
         {
-            if (!context.Occupancy.IsOccupied(context.Coordinate))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            for (var i = 0; i < cells.Count; i++)
             {
-                return true;
+                if (!context.Grid.InBounds(cells[i]))
+                {
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
+
+                if (!context.Occupancy.IsOccupied(cells[i]))
+                {
+                    continue;
+                }
+
+                failureReasons.Add("Cell is already occupied.");
+                return false;
             }
 
-            failureReasons.Add("Cell is already occupied.");
-            return false;
+            return true;
         }
     }
 
@@ -250,25 +297,32 @@ namespace CleanEnergy.Placement
                 return true;
             }
 
-            if (!context.Grid.TryGetCell(context.Coordinate, out var cell))
+            var cells = BuildingFootprint.GetCells(
+                context.Definition, context.Coordinate, context.Rotation);
+            for (var i = 0; i < cells.Count; i++)
             {
-                failureReasons.Add("Cell is out of bounds.");
+                if (!context.Grid.TryGetCell(cells[i], out var cell))
+                {
+                    failureReasons.Add("Cell is out of bounds.");
+                    return false;
+                }
+
+                // Water-adjacent hydro can sit on a non-buildable shore edge if still not water itself.
+                if (context.Definition.RequiresAdjacentWater && !cell.IsWater)
+                {
+                    continue;
+                }
+
+                if (cell.IsBuildable && !cell.IsWater)
+                {
+                    continue;
+                }
+
+                failureReasons.Add("Terrain is not buildable.");
                 return false;
             }
 
-            // Water-adjacent hydro can sit on a non-buildable shore edge if still not water itself.
-            if (context.Definition.RequiresAdjacentWater && !cell.IsWater)
-            {
-                return true;
-            }
-
-            if (cell.IsBuildable && !cell.IsWater)
-            {
-                return true;
-            }
-
-            failureReasons.Add("Terrain is not buildable.");
-            return false;
+            return true;
         }
     }
 
@@ -313,6 +367,7 @@ namespace CleanEnergy.Placement
     /// <summary>
     /// Producers and storage must place within link range of an existing network node.
     /// Empty map: only hubs and consumers (village) may place freely.
+    /// Distance uses each building's anchor cell only.
     /// </summary>
     public sealed class NetworkConnectionRule : IPlacementRule
     {
@@ -336,16 +391,23 @@ namespace CleanEnergy.Placement
             }
 
             var placedRange = Mathf.Max(0, definition.ConnectionRange);
+            var seen = new HashSet<string>();
             foreach (var pair in occupancy.Occupied)
             {
-                var other = pair.Value?.Definition;
+                var instance = pair.Value;
+                var other = instance?.Definition;
                 if (other == null || !IsNetworkNode(other))
                 {
                     continue;
                 }
 
+                if (!seen.Add(instance.InstanceId))
+                {
+                    continue;
+                }
+
                 var allowed = Mathf.Max(placedRange, Mathf.Max(0, other.ConnectionRange));
-                if (Manhattan(context.Coordinate, pair.Key) <= allowed)
+                if (Manhattan(context.Coordinate, instance.Coordinate) <= allowed)
                 {
                     return true;
                 }

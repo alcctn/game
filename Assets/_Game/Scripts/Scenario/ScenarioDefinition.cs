@@ -20,6 +20,7 @@ namespace CleanEnergy.Scenario
         [SerializeField] private float riskSatisfactionThreshold = 30f;
         [SerializeField] private string mapSeed = "";
         [SerializeField] private float baseClimateSolarOverride = -1f;
+        [SerializeField] private float baseClimateWindOverride = -1f;
         [SerializeField] private float streamAccumulationOverride = -1f;
         [SerializeField] private string[] countedProducerTypeIds =
         {
@@ -32,6 +33,7 @@ namespace CleanEnergy.Scenario
         {
             "solar_basic"
         };
+        [SerializeField] private float startingPopulation = 100f;
 
         public string ScenarioId => scenarioId;
         public string DisplayName => displayName;
@@ -44,9 +46,11 @@ namespace CleanEnergy.Scenario
         public float RiskSatisfactionThreshold => riskSatisfactionThreshold;
         public string MapSeed => mapSeed ?? string.Empty;
         public float BaseClimateSolarOverride => baseClimateSolarOverride;
+        public float BaseClimateWindOverride => baseClimateWindOverride;
         public float StreamAccumulationOverride => streamAccumulationOverride;
         public string[] CountedProducerTypeIds => countedProducerTypeIds ?? System.Array.Empty<string>();
         public string[] RequiredResearchNodeIds => requiredResearchNodeIds ?? System.Array.Empty<string>();
+        public float StartingPopulation => startingPopulation > 0.001f ? startingPopulation : 100f;
 
         public void Configure(
             string id,
@@ -61,7 +65,9 @@ namespace CleanEnergy.Scenario
             string[] researchNodeIds = null,
             string seed = "",
             float solarOverride = -1f,
-            float streamOverride = -1f)
+            float streamOverride = -1f,
+            float population = 100f,
+            float windOverride = -1f)
         {
             scenarioId = id;
             displayName = name;
@@ -83,6 +89,8 @@ namespace CleanEnergy.Scenario
             mapSeed = seed ?? string.Empty;
             baseClimateSolarOverride = solarOverride;
             streamAccumulationOverride = streamOverride;
+            startingPopulation = population > 0.001f ? population : 100f;
+            baseClimateWindOverride = windOverride;
         }
 
         public void ApplyToMapSettings(MapGenerationSettings settings)
@@ -100,6 +108,11 @@ namespace CleanEnergy.Scenario
             if (baseClimateSolarOverride >= 0f)
             {
                 settings.SetBaseClimateSolar(baseClimateSolarOverride);
+            }
+
+            if (baseClimateWindOverride >= 0f)
+            {
+                settings.SetBaseWind(baseClimateWindOverride);
             }
 
             if (streamAccumulationOverride > 0f)

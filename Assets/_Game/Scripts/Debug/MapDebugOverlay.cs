@@ -117,7 +117,8 @@ namespace CleanEnergy.DebugTools
         {
             if (_mode == DebugViewMode.Network
                 || _mode == DebugViewMode.Production
-                || _mode == DebugViewMode.Demand)
+                || _mode == DebugViewMode.Demand
+                || _mode == DebugViewMode.Environmental)
             {
                 Rebuild();
             }
@@ -357,6 +358,13 @@ namespace CleanEnergy.DebugTools
                     }
 
                     return DemandUtilization.EmptyCellColor;
+                }
+                case DebugViewMode.Environmental:
+                {
+                    var coordinate = new GridCoordinate(cell.X, cell.Y);
+                    var occupancy = placementController != null ? placementController.Occupancy : null;
+                    var score = EnvironmentalImpact.ScoreAt(coordinate, occupancy);
+                    return EnvironmentalImpact.ColorForScore(score);
                 }
                 default:
                     return Color.white;

@@ -4,6 +4,7 @@ using CleanEnergy.Maintenance;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
 using CleanEnergy.Research;
+using CleanEnergy.Scenario;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ namespace CleanEnergy.UI
         [SerializeField] private EnergyNetworkService networkService;
         [SerializeField] private SimulationClock simulationClock;
         [SerializeField] private ResearchController researchController;
+        [SerializeField] private ScenarioController scenarioController;
 
         private string _actionMessage = string.Empty;
 
@@ -29,7 +31,8 @@ namespace CleanEnergy.UI
             PlacementController placement,
             EnergyNetworkService network,
             SimulationClock clock = null,
-            ResearchController research = null)
+            ResearchController research = null,
+            ScenarioController scenario = null)
         {
             debugOverlay = overlay;
             mapGenerator = generator;
@@ -37,6 +40,7 @@ namespace CleanEnergy.UI
             networkService = network;
             simulationClock = clock;
             researchController = research;
+            scenarioController = scenario;
         }
 
         private void OnGUI()
@@ -120,6 +124,10 @@ namespace CleanEnergy.UI
                 if (def.IsConsumer)
                 {
                     GUILayout.Label($"Demand {def.BaseDemand:F1}");
+                    if (scenarioController != null)
+                    {
+                        GUILayout.Label($"Population {scenarioController.Settlement.Population:F1}");
+                    }
                 }
 
                 if (def.IsNetworkHub)
@@ -193,6 +201,8 @@ namespace CleanEnergy.UI
                 : 0f;
             var networkFactor = NetworkLoadFactor.ResolveForBuilding(
                 building, networkService != null ? networkService.Graph : null);
+            var deliveryFactor = TransmissionLoss.ResolveForBuilding(
+                building, networkService != null ? networkService.Graph : null);
             var breakdown = ProductionEstimate.BreakDown(
                 def,
                 coordinate,
@@ -203,7 +213,8 @@ namespace CleanEnergy.UI
                 bonus,
                 building.MaintenanceLevel,
                 building.InstanceId,
-                networkFactor);
+                networkFactor,
+                deliveryFactor);
 
             GUILayout.Label($"Potential {breakdown.ResourcePotential:F2}");
             GUILayout.Label($"Phase {breakdown.PhaseFactor:F2}");
@@ -215,6 +226,7 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.Label($"NetworkFactor {breakdown.NetworkFactor:F0}");
+            GUILayout.Label($"Loss {(1f - breakdown.DeliveryFactor) * 100f:F0}%");
             GUILayout.Label($"= Production {breakdown.Production:F1}");
         }
     }

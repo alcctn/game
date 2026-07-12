@@ -18,6 +18,8 @@ namespace CleanEnergy.Research
         [SerializeField] private string[] unlockBuildingIds = Array.Empty<string>();
         [SerializeField] private string efficiencyTargetBuildingId = "";
         [SerializeField] private float efficiencyBonus;
+        [SerializeField] private string storageCapacityTargetBuildingId = "";
+        [SerializeField] private float storageCapacityBonus;
 
         public string Id => id;
         public string DisplayName => displayName;
@@ -28,6 +30,8 @@ namespace CleanEnergy.Research
         public string[] UnlockBuildingIds => unlockBuildingIds ?? Array.Empty<string>();
         public string EfficiencyTargetBuildingId => efficiencyTargetBuildingId;
         public float EfficiencyBonus => efficiencyBonus;
+        public string StorageCapacityTargetBuildingId => storageCapacityTargetBuildingId;
+        public float StorageCapacityBonus => storageCapacityBonus;
 
         public void Configure(
             string nodeId,
@@ -38,7 +42,9 @@ namespace CleanEnergy.Research
             bool unlockedDefault,
             string[] buildings,
             string efficiencyTarget,
-            float bonus)
+            float bonus,
+            string storageCapacityTarget = "",
+            float storageCapacityBonusAmount = 0f)
         {
             id = nodeId;
             displayName = name;
@@ -49,6 +55,8 @@ namespace CleanEnergy.Research
             unlockBuildingIds = buildings ?? Array.Empty<string>();
             efficiencyTargetBuildingId = efficiencyTarget ?? string.Empty;
             efficiencyBonus = bonus;
+            storageCapacityTargetBuildingId = storageCapacityTarget ?? string.Empty;
+            storageCapacityBonus = storageCapacityBonusAmount;
         }
     }
 }
