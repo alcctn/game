@@ -47,6 +47,10 @@ namespace CleanEnergy.Core
             var overlay = FindOrAdd<MapDebugOverlay>(overlayGo.gameObject);
             overlay.SetMapGenerator(mapGenerator);
 
+            var highlightGo = EnsureChild("SelectionHighlight", overlayGo);
+            var highlight = FindOrAdd<SelectionHighlight>(highlightGo.gameObject);
+            highlight.Configure(overlay, mapGenerator);
+
             var uiGo = EnsureChild("MapDebugUI", debugRoot);
             var ui = FindOrAdd<MapDebugUI>(uiGo.gameObject);
             ui.Configure(mapGenerator, overlay);

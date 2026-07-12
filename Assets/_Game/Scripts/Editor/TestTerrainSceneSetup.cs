@@ -283,6 +283,11 @@ namespace CleanEnergy.Editor
             overlay.SetMapGenerator(mapGenerator);
             overlay.SetPlacementController(placement);
 
+            var highlightGo = new GameObject("SelectionHighlight");
+            highlightGo.transform.SetParent(overlayGo.transform, false);
+            var highlight = highlightGo.AddComponent<SelectionHighlight>();
+            highlight.Configure(overlay, mapGenerator);
+
             var uiGo = new GameObject("MapDebugUI");
             uiGo.transform.SetParent(debugRoot.transform, false);
             var ui = uiGo.AddComponent<MapDebugUI>();

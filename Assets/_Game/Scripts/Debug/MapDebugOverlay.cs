@@ -26,6 +26,9 @@ namespace CleanEnergy.DebugTools
         public DebugViewMode Mode => _mode;
         public GridCoordinate? SelectedCell => _selectedCell;
 
+        public event System.Action<DebugViewMode> ModeChanged;
+        public event System.Action<GridCoordinate?> SelectionChanged;
+
         private void Awake()
         {
             EnsureComponents();
@@ -92,11 +95,21 @@ namespace CleanEnergy.DebugTools
             ModeChanged?.Invoke(_mode);
         }
 
-        public event System.Action<DebugViewMode> ModeChanged;
+        public void SetSelection(GridCoordinate? coordinate)
+        {
+            if (_selectedCell.HasValue == coordinate.HasValue
+                && (!_selectedCell.HasValue || _selectedCell.Value.Equals(coordinate.Value)))
+            {
+                return;
+            }
+
+            _selectedCell = coordinate;
+            SelectionChanged?.Invoke(_selectedCell);
+        }
 
         public void ClearSelection()
         {
-            _selectedCell = null;
+            SetSelection(null);
         }
 
         public bool TryGetSelectedCellData(out GridCellData cell)
@@ -112,6 +125,7 @@ namespace CleanEnergy.DebugTools
 
         private void OnMapGenerated(Core.MapGeneratedEvent _)
         {
+            ClearSelection();
             Rebuild();
         }
 
@@ -270,7 +284,7 @@ namespace CleanEnergy.DebugTools
 
             if (mapGenerator.Grid.TryWorldToGrid(hit.point, out var coordinate))
             {
-                _selectedCell = coordinate;
+                SetSelection(coordinate);
             }
         }
 

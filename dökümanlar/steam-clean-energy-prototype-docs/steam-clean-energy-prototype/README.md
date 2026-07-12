@@ -38,6 +38,7 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 23. [Sprint 19 — Tutorial Batarya Uyumu](docs/SPRINT_19_TUTORIAL_ALIGN.md)
 24. [Sprint 20 — Oturum Telemetrisi](docs/SPRINT_20_TELEMETRY.md)
 25. [Sprint 21 — Hat Kapasite Limiti](docs/SPRINT_21_LINE_CAPACITY.md)
+26. [Sprint 22 — Seçim Highlight](docs/SPRINT_22_SELECTION_HIGHLIGHT.md)
 
 ## İlk Uygulama Sırası
 
