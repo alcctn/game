@@ -84,6 +84,12 @@ namespace CleanEnergy.Core
             var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
             inspection.Configure(overlay, mapGenerator, placement, network);
 
+            var notification = FindOrAdd<NotificationController>(simRoot.gameObject);
+            notification.Configure(driver, research, maintenance, network);
+            var notificationHudGo = EnsureChild("NotificationHudUI", debugRoot);
+            var notificationHud = FindOrAdd<NotificationHudUI>(notificationHudGo.gameObject);
+            notificationHud.Configure(notification);
+
             var scenarioHudGo = EnsureChild("ScenarioHudUI", debugRoot);
             var scenarioHud = FindOrAdd<ScenarioHudUI>(scenarioHudGo.gameObject);
             scenarioHud.Configure(scenario);

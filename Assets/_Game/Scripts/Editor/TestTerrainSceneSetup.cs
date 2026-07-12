@@ -300,6 +300,13 @@ namespace CleanEnergy.Editor
             var inspection = inspectionGo.AddComponent<InspectionPanelUI>();
             inspection.Configure(overlay, mapGenerator, placement, network);
 
+            var notification = simRoot.AddComponent<NotificationController>();
+            notification.Configure(driver, researchController, maintenance, network);
+            var notificationHudGo = new GameObject("NotificationHudUI");
+            notificationHudGo.transform.SetParent(debugRoot.transform, false);
+            var notificationHud = notificationHudGo.AddComponent<NotificationHudUI>();
+            notificationHud.Configure(notification);
+
             var scenarioHudGo = new GameObject("ScenarioHudUI");
             scenarioHudGo.transform.SetParent(debugRoot.transform, false);
             var scenarioHud = scenarioHudGo.AddComponent<ScenarioHudUI>();

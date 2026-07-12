@@ -10,6 +10,7 @@ namespace CleanEnergy.Energy
         public float Stored { get; }
         public float SurplusSold { get; }
         public float Shortage { get; }
+        public float EnergyCharged { get; }
         public bool HasShortage => Shortage > 0.0001f;
 
         /// <summary>
@@ -39,13 +40,15 @@ namespace CleanEnergy.Energy
             float demand,
             float stored,
             float surplusSold,
-            float shortage)
+            float shortage,
+            float energyCharged = 0f)
         {
             Production = production;
             Demand = demand;
             Stored = stored;
             SurplusSold = surplusSold;
             Shortage = shortage;
+            EnergyCharged = energyCharged;
         }
     }
 
@@ -87,12 +90,13 @@ namespace CleanEnergy.Energy
             var available = production;
             var shortage = 0f;
             var surplusSold = 0f;
+            var energyCharged = 0f;
 
             if (available >= demand)
             {
                 available -= demand;
-                var charged = _storageDispatch.ChargeAll(storages, available);
-                available -= charged;
+                energyCharged = _storageDispatch.ChargeAll(storages, available);
+                available -= energyCharged;
                 surplusSold = available;
             }
             else
@@ -104,7 +108,7 @@ namespace CleanEnergy.Energy
             }
 
             var stored = _storageDispatch.TotalStored(storages);
-            return new EnergyBalanceResult(production, demand, stored, surplusSold, shortage);
+            return new EnergyBalanceResult(production, demand, stored, surplusSold, shortage, energyCharged);
         }
 
         public EnergyBalanceResult CalculateNetwork(
@@ -116,6 +120,7 @@ namespace CleanEnergy.Energy
             var stored = 0f;
             var sold = 0f;
             var shortage = 0f;
+            var charged = 0f;
 
             foreach (var component in graph.Components)
             {
@@ -125,9 +130,10 @@ namespace CleanEnergy.Energy
                 stored += result.Stored;
                 sold += result.SurplusSold;
                 shortage += result.Shortage;
+                charged += result.EnergyCharged;
             }
 
-            return new EnergyBalanceResult(production, demand, stored, sold, shortage);
+            return new EnergyBalanceResult(production, demand, stored, sold, shortage, charged);
         }
     }
 }
