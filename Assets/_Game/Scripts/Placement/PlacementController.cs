@@ -328,7 +328,7 @@ namespace CleanEnergy.Placement
                 // #region agent log
                 var hasNet = false;
                 var hasWater = false;
-                for (var i = 0; i < result.FailureReasons.Length; i++)
+                for (var i = 0; i < result.FailureReasons.Count; i++)
                 {
                     var r = result.FailureReasons[i] ?? string.Empty;
                     if (r.IndexOf("network", System.StringComparison.OrdinalIgnoreCase) >= 0)
