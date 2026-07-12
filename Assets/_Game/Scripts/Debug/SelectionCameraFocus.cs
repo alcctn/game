@@ -102,15 +102,6 @@ namespace CleanEnergy.DebugTools
             }
 
             FocusCell(coordinate.Value, focusDuration);
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "A",
-                "SelectionCameraFocus.OnSelectionChanged",
-                "fit_on_select",
-                "{\"x\":" + coordinate.Value.X +
-                ",\"y\":" + coordinate.Value.Y +
-                ",\"duration\":" + focusDuration.ToString("F2") + "}");
-            // #endregion
         }
 
         private void OnMultiSelectionChanged()
