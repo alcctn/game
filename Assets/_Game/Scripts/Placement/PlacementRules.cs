@@ -366,7 +366,7 @@ namespace CleanEnergy.Placement
 
     /// <summary>
     /// Producers and storage must place within link range of an existing network node.
-    /// Empty map: only hubs and consumers (village) may place freely.
+    /// Empty map: first network node (including producers) may seed the network.
     /// Distance uses each building's anchor cell only.
     /// </summary>
     public sealed class NetworkConnectionRule : IPlacementRule
@@ -386,8 +386,15 @@ namespace CleanEnergy.Placement
             var occupancy = context.Occupancy;
             if (occupancy == null || occupancy.Occupied.Count == 0)
             {
-                failureReasons.Add(FailReason);
-                return false;
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "N",
+                    "NetworkConnectionRule.Evaluate",
+                    "seed_ok",
+                    "{\"id\":\"" + definition.Id + "\",\"empty\":true}");
+                // #endregion
+                // Seed the network — tutorial places water_wheel first.
+                return true;
             }
 
             var placedRange = Mathf.Max(0, definition.ConnectionRange);

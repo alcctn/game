@@ -325,10 +325,50 @@ namespace CleanEnergy.Placement
             if (!result.IsValid)
             {
                 PlacementRejected?.Invoke();
+                // #region agent log
+                var hasNet = false;
+                var hasWater = false;
+                for (var i = 0; i < result.FailureReasons.Length; i++)
+                {
+                    var r = result.FailureReasons[i] ?? string.Empty;
+                    if (r.IndexOf("network", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        hasNet = true;
+                    }
+
+                    if (r.IndexOf("water", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        hasWater = true;
+                    }
+                }
+
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "N",
+                    "PlacementController.TryPlace",
+                    "place_fail",
+                    "{\"id\":\"" + _selected.Id +
+                    "\",\"x\":" + coordinate.X +
+                    ",\"y\":" + coordinate.Y +
+                    ",\"occ\":" + (_occupancy != null ? _occupancy.Occupied.Count : -1) +
+                    ",\"hasNetworkFail\":" + (hasNet ? "true" : "false") +
+                    ",\"hasWaterFail\":" + (hasWater ? "true" : "false") +
+                    ",\"reasons\":\"" + string.Join(" | ", result.FailureReasons).Replace("\"", "'") + "\"}");
+                // #endregion
                 Debug.Log(
                     $"[Placement] Building '{_selected.Id}' could not be placed at {coordinate}: {string.Join("; ", result.FailureReasons)}");
                 return result;
             }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "N",
+                "PlacementController.TryPlace",
+                "place_ok",
+                "{\"id\":\"" + _selected.Id +
+                "\",\"x\":" + coordinate.X +
+                ",\"y\":" + coordinate.Y +
+                ",\"occ\":" + (_occupancy != null ? _occupancy.Occupied.Count : -1) + "}");
+            // #endregion
 
             var parent = buildingRoot != null ? buildingRoot : transform;
             var instance = _factory.Create(_selected, coordinate, mapGenerator.Grid, parent, _rotation);

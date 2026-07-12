@@ -10,15 +10,15 @@ namespace CleanEnergy.Tests.EditMode
     public sealed class NetworkConnectionRuleTests
     {
         [Test]
-        public void Producer_OnEmptyMap_Fails()
+        public void Producer_OnEmptyMap_SeedsNetwork()
         {
             var solar = CreateSolar();
             var rule = new NetworkConnectionRule();
             var reasons = new List<string>();
             var context = new PlacementContext(
                 solar, new GridCoordinate(1, 1), CreateGrid(4), new GridOccupancyService(), null);
-            Assert.IsFalse(rule.Evaluate(context, reasons));
-            Assert.AreEqual(NetworkConnectionRule.FailReason, reasons[0]);
+            Assert.IsTrue(rule.Evaluate(context, reasons));
+            Assert.AreEqual(0, reasons.Count);
         }
 
         [Test]
