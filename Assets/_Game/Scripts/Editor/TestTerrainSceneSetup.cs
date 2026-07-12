@@ -270,7 +270,7 @@ namespace CleanEnergy.Editor
             placement.Configure(mapGenerator, buildingRoot.transform, buildings, 1000f, researchController.Service);
             network.Configure(placement, mapGenerator, researchController.Service.GetEfficiencyBonus);
             maintenance.Configure(placement);
-            driver.Configure(clock, network, placement, maintenance);
+            driver.Configure(clock, network, placement, maintenance, mapGenerator);
 
             var debugRoot = new GameObject("DebugRoot");
             debugRoot.transform.SetParent(gameRoot.transform, false);
@@ -347,7 +347,7 @@ namespace CleanEnergy.Editor
 
             var saveLoad = simRoot.AddComponent<SaveLoadController>();
             saveLoad.Configure(
-                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController);
+                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController, driver);
             var saveHudGo = new GameObject("SaveLoadHudUI");
             saveHudGo.transform.SetParent(debugRoot.transform, false);
             var saveHud = saveHudGo.AddComponent<SaveLoadHudUI>();

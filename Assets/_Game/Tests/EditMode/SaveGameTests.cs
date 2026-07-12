@@ -17,6 +17,7 @@ namespace CleanEnergy.Tests.EditMode
                 tickIndex = 17,
                 money = 850.5f,
                 researchPoints = 22f,
+                emergencyCreditUsed = true,
                 unlockedNodeIds = new[] { "hydro_basic", "solar_basic" },
                 buildings = new[]
                 {
@@ -58,6 +59,7 @@ namespace CleanEnergy.Tests.EditMode
             Assert.AreEqual(17, loaded.tickIndex);
             Assert.AreEqual(850.5f, loaded.money, 0.001f);
             Assert.AreEqual(22f, loaded.researchPoints, 0.001f);
+            Assert.IsTrue(loaded.emergencyCreditUsed);
             Assert.AreEqual(2, loaded.unlockedNodeIds.Length);
             Assert.AreEqual("solar_basic", loaded.unlockedNodeIds[1]);
             Assert.AreEqual(2, loaded.buildings.Length);

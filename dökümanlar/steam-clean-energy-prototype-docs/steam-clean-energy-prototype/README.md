@@ -32,6 +32,7 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 17. [Sprint 13 — Periyodik Bakım Gideri](docs/SPRINT_13_UPKEEP.md)
 18. [Sprint 14 — Sağ Bilgi Paneli](docs/SPRINT_14_INFO_PANEL.md)
 19. [Sprint 15 — Alt Bildirim Alanı](docs/SPRINT_15_NOTIFICATIONS.md)
+20. [Sprint 16 — Acil Yardım Kredisi](docs/SPRINT_16_EMERGENCY_CREDIT.md)
 
 ## İlk Uygulama Sırası
 

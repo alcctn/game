@@ -58,6 +58,7 @@ namespace CleanEnergy.UI
             {
                 energyDriver.ShortageOccurred += OnShortage;
                 energyDriver.BalanceUpdated += OnBalance;
+                energyDriver.EmergencyCreditGranted += OnEmergencyCredit;
             }
 
             if (researchController?.Service != null)
@@ -72,6 +73,7 @@ namespace CleanEnergy.UI
             {
                 energyDriver.ShortageOccurred -= OnShortage;
                 energyDriver.BalanceUpdated -= OnBalance;
+                energyDriver.EmergencyCreditGranted -= OnEmergencyCredit;
             }
 
             if (researchController?.Service != null)
@@ -117,6 +119,13 @@ namespace CleanEnergy.UI
             }
 
             _service.Push($"Unlocked: {evt.NodeId}", Time.unscaledTime);
+        }
+
+        private void OnEmergencyCredit()
+        {
+            _service.Push(
+                $"Emergency credit +{Economy.EmergencyCreditService.CreditAmount:F0}",
+                Time.unscaledTime);
         }
 
         private bool HasFullBattery()

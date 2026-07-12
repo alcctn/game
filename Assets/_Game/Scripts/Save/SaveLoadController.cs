@@ -22,6 +22,7 @@ namespace CleanEnergy.Save
         [SerializeField] private SimulationClock clock;
         [SerializeField] private EnergyNetworkService networkService;
         [SerializeField] private TutorialController tutorialController;
+        [SerializeField] private EnergySimulationDriver energyDriver;
 
         private readonly SaveGameService _saveService = new SaveGameService();
 
@@ -35,7 +36,8 @@ namespace CleanEnergy.Save
             ScenarioController scenario,
             SimulationClock simulationClock,
             EnergyNetworkService network,
-            TutorialController tutorial = null)
+            TutorialController tutorial = null,
+            EnergySimulationDriver driver = null)
         {
             mapGenerator = map;
             placementController = placement;
@@ -44,6 +46,7 @@ namespace CleanEnergy.Save
             clock = simulationClock;
             networkService = network;
             tutorialController = tutorial;
+            energyDriver = driver;
         }
 
         public bool SaveSlot()
@@ -95,6 +98,8 @@ namespace CleanEnergy.Save
                 researchPoints = researchController?.Service != null
                     ? researchController.Service.Wallet.Points
                     : 0f,
+                emergencyCreditUsed = energyDriver != null
+                    && energyDriver.EmergencyCredit.HasBeenUsed,
                 tutorialStep = tutorialController?.Progress != null
                     ? (int)tutorialController.Progress.CurrentStep
                     : 0
@@ -171,6 +176,12 @@ namespace CleanEnergy.Save
             if (placementController.Wallet != null)
             {
                 placementController.Wallet.SetMoney(data.money);
+            }
+
+            if (energyDriver != null)
+            {
+                // Generate already reset the flag via MapGenerated; restore from save.
+                energyDriver.EmergencyCredit.Restore(data.emergencyCreditUsed);
             }
 
             if (scenarioController != null && data.scenario != null)

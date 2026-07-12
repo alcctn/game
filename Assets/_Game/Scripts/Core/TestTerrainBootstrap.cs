@@ -66,7 +66,7 @@ namespace CleanEnergy.Core
             var maintenance = FindOrAdd<MaintenanceController>(simRoot.gameObject);
             maintenance.Configure(placement);
             var driver = FindOrAdd<EnergySimulationDriver>(simRoot.gameObject);
-            driver.Configure(clock, network, placement, maintenance);
+            driver.Configure(clock, network, placement, maintenance, mapGenerator);
 
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
             scenario.Configure(ResolveScenario(), driver, network, clock, mapGenerator);
@@ -140,7 +140,7 @@ namespace CleanEnergy.Core
             tutorialHud.Configure(tutorial);
 
             var saveLoad = FindOrAdd<SaveLoadController>(simRoot.gameObject);
-            saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial);
+            saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial, driver);
             var saveHudGo = EnsureChild("SaveLoadHudUI", debugRoot);
             var saveHud = FindOrAdd<SaveLoadHudUI>(saveHudGo.gameObject);
             saveHud.Configure(saveLoad);
