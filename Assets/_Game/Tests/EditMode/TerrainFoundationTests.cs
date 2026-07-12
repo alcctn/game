@@ -143,4 +143,161 @@ namespace CleanEnergy.Tests.EditMode
             Assert.IsFalse(float.IsNaN(slope));
         }
     }
+
+    public sealed class WaterFlowCalculatorTests
+    {
+        [Test]
+        public void SlopedMap_RoutesFlowDownhillAndAccumulates()
+        {
+            const int size = 8;
+            var heightMap = new float[size, size];
+            for (var x = 0; x < size; x++)
+            {
+                for (var y = 0; y < size; y++)
+                {
+                    // High elevation at large Y so flow drains toward Y=0.
+                    heightMap[x, y] = y / (float)(size - 1);
+                }
+            }
+
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            settings.SetSeed("water");
+            settings.SetWaterThresholds(4f, 20f);
+            var grid = TestMapFactory.CreateFilledGrid(heightMap, settings);
+
+            new WaterFlowCalculator().Calculate(heightMap, grid, settings);
+
+            var top = grid.GetCell(new GridCoordinate(3, size - 1));
+            var bottom = grid.GetCell(new GridCoordinate(3, 0));
+            Assert.AreEqual(new Vector2Int(0, -1), top.FlowDirection);
+            Assert.Greater(bottom.WaterFlow, top.WaterFlow);
+            Assert.IsTrue(bottom.IsWater);
+        }
+
+        [Test]
+        public void SameHeightMap_ProducesDeterministicWater()
+        {
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            settings.SetSeed("det-water");
+            var heightMap = new HeightMapGenerator().Generate(settings);
+
+            var gridA = TestMapFactory.CreateFilledGrid(heightMap, settings);
+            var gridB = TestMapFactory.CreateFilledGrid(heightMap, settings);
+            var calculator = new WaterFlowCalculator();
+            calculator.Calculate(heightMap, gridA, settings);
+            calculator.Calculate(heightMap, gridB, settings);
+
+            for (var x = 0; x < settings.GridWidth; x++)
+            {
+                for (var y = 0; y < settings.GridHeight; y++)
+                {
+                    var a = gridA.GetCell(new GridCoordinate(x, y));
+                    var b = gridB.GetCell(new GridCoordinate(x, y));
+                    Assert.AreEqual(a.WaterFlow, b.WaterFlow, 1e-5f);
+                    Assert.AreEqual(a.IsWater, b.IsWater);
+                    Assert.AreEqual(a.FlowDirection, b.FlowDirection);
+                }
+            }
+        }
+    }
+
+    public sealed class ResourceLayerTests
+    {
+        [Test]
+        public void SolarAndWind_AreClampedAndFinite()
+        {
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            settings.SetSeed("resources");
+            var heightMap = new HeightMapGenerator().Generate(settings);
+            var grid = TestMapFactory.CreateFilledGrid(heightMap, settings);
+
+            new SlopeCalculator().Calculate(heightMap, grid, settings.MaxHeight, settings.CellSize, settings.MaxBuildableSlopeDegrees);
+            new WaterFlowCalculator().Calculate(heightMap, grid, settings);
+            new SolarPotentialCalculator().Calculate(grid, settings);
+            new WindPotentialCalculator().Calculate(heightMap, grid, settings);
+            new BiomeGenerator().Calculate(grid, settings);
+            new BuildabilityCalculator().Calculate(grid, settings);
+
+            for (var x = 0; x < settings.GridWidth; x++)
+            {
+                for (var y = 0; y < settings.GridHeight; y++)
+                {
+                    var cell = grid.GetCell(new GridCoordinate(x, y));
+                    Assert.GreaterOrEqual(cell.SolarPotential, 0f);
+                    Assert.LessOrEqual(cell.SolarPotential, 1f);
+                    Assert.IsFalse(float.IsNaN(cell.SolarPotential));
+                    Assert.GreaterOrEqual(cell.WindPotential, 0f);
+                    Assert.LessOrEqual(cell.WindPotential, 1f);
+                    Assert.IsFalse(float.IsNaN(cell.WindPotential));
+                    if (cell.IsWater)
+                    {
+                        Assert.IsFalse(cell.IsBuildable);
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void WaterCells_AreNotBuildable()
+        {
+            const int size = 4;
+            var heightMap = new float[size, size];
+            for (var x = 0; x < size; x++)
+            {
+                for (var y = 0; y < size; y++)
+                {
+                    heightMap[x, y] = y / (float)(size - 1);
+                }
+            }
+
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            settings.SetWaterThresholds(2f, 10f);
+            var grid = TestMapFactory.CreateFilledGrid(heightMap, settings);
+            new SlopeCalculator().Calculate(heightMap, grid, 40f, 1f, 30f);
+            new WaterFlowCalculator().Calculate(heightMap, grid, settings);
+            new BuildabilityCalculator().Calculate(grid, settings);
+
+            var waterFound = false;
+            for (var x = 0; x < size; x++)
+            {
+                for (var y = 0; y < size; y++)
+                {
+                    var cell = grid.GetCell(new GridCoordinate(x, y));
+                    if (!cell.IsWater)
+                    {
+                        continue;
+                    }
+
+                    waterFound = true;
+                    Assert.IsFalse(cell.IsBuildable);
+                }
+            }
+
+            Assert.IsTrue(waterFound);
+        }
+    }
+
+    internal static class TestMapFactory
+    {
+        public static GridService CreateFilledGrid(float[,] heightMap, MapGenerationSettings settings)
+        {
+            var width = heightMap.GetLength(0);
+            var height = heightMap.GetLength(1);
+            var grid = new GridService();
+            var cellSize = settings != null && settings.GridWidth == width
+                ? settings.CellSize
+                : 1f;
+            var maxHeight = settings != null ? settings.MaxHeight : 40f;
+            grid.Create(width, height, cellSize, Vector3.zero);
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < height; y++)
+                {
+                    grid.SetElevation(new GridCoordinate(x, y), heightMap[x, y] * maxHeight);
+                }
+            }
+
+            return grid;
+        }
+    }
 }

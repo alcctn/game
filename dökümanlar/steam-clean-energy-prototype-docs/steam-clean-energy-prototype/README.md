@@ -18,6 +18,8 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 3. [Teknik Mimari](docs/TECHNICAL_ARCHITECTURE.md)
 4. [Cursor Kuralları](docs/CURSOR_RULES.md)
 5. [Sprint 01 — Arazi Sistemi](docs/SPRINT_01_TERRAIN.md)
+6. [Sprint 02 — Kaynak Katmanları](docs/SPRINT_02_RESOURCES.md)
+7. [Sprint 03 — Bina Yerleştirme](docs/SPRINT_03_PLACEMENT.md)
 
 ## İlk Uygulama Sırası
 

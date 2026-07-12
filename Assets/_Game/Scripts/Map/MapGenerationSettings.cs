@@ -24,6 +24,29 @@ namespace CleanEnergy.Map
         [SerializeField] private float lacunarity = 2f;
         [SerializeField] private string seed = "12345";
 
+        [Header("Water")]
+        [SerializeField] private float streamAccumulationThreshold = 12f;
+        [SerializeField] private float lakeAccumulationThreshold = 40f;
+
+        [Header("Solar")]
+        [SerializeField] private float baseClimateSolar = 0.75f;
+        [SerializeField] private float cloudFactor = 1f;
+        [SerializeField] private float treeCoverFactorPlains = 1f;
+        [SerializeField] private float treeCoverFactorForest = 0.7f;
+
+        [Header("Wind")]
+        [SerializeField] private float baseWind = 0.35f;
+        [SerializeField] private float elevationWindBonus = 0.35f;
+        [SerializeField] private float ridgeWindBonus = 0.25f;
+        [SerializeField] private float obstacleWindPenalty = 0.15f;
+        [SerializeField] private Vector2 prevailingWindDirection = new Vector2(1f, 0.25f);
+
+        [Header("Biome")]
+        [SerializeField] private float forestNoiseScale = 0.08f;
+        [SerializeField] private float forestThreshold = 0.62f;
+        [SerializeField] private float hillsSlopeDegrees = 12f;
+        [SerializeField] private float ridgeSlopeDegrees = 22f;
+
         public int GridWidth => gridWidth;
         public int GridHeight => gridHeight;
         public float TerrainWorldSize => terrainWorldSize;
@@ -35,11 +58,36 @@ namespace CleanEnergy.Map
         public float Lacunarity => lacunarity;
         public string Seed => seed;
 
+        public float StreamAccumulationThreshold => streamAccumulationThreshold;
+        public float LakeAccumulationThreshold => lakeAccumulationThreshold;
+        public float BaseClimateSolar => baseClimateSolar;
+        public float CloudFactor => cloudFactor;
+        public float TreeCoverFactorPlains => treeCoverFactorPlains;
+        public float TreeCoverFactorForest => treeCoverFactorForest;
+        public float BaseWind => baseWind;
+        public float ElevationWindBonus => elevationWindBonus;
+        public float RidgeWindBonus => ridgeWindBonus;
+        public float ObstacleWindPenalty => obstacleWindPenalty;
+        public Vector2 PrevailingWindDirection => prevailingWindDirection;
+        public float ForestNoiseScale => forestNoiseScale;
+        public float ForestThreshold => forestThreshold;
+        public float HillsSlopeDegrees => hillsSlopeDegrees;
+        public float RidgeSlopeDegrees => ridgeSlopeDegrees;
+
         public float CellSize => terrainWorldSize / Mathf.Max(1, gridWidth);
 
         public void SetSeed(string newSeed)
         {
             seed = newSeed ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Test/editor helper to override water classification thresholds.
+        /// </summary>
+        public void SetWaterThresholds(float streamThreshold, float lakeThreshold)
+        {
+            streamAccumulationThreshold = streamThreshold;
+            lakeAccumulationThreshold = lakeThreshold;
         }
 
         public bool Validate(out string error)
@@ -65,6 +113,18 @@ namespace CleanEnergy.Map
             if (octaves < 1)
             {
                 error = "[Map] Octaves must be at least 1.";
+                return false;
+            }
+
+            if (streamAccumulationThreshold <= 0f || lakeAccumulationThreshold < streamAccumulationThreshold)
+            {
+                error = "[Map] Water thresholds must be positive and lake >= stream.";
+                return false;
+            }
+
+            if (baseClimateSolar < 0f || baseWind < 0f)
+            {
+                error = "[Map] Base solar and wind must be non-negative.";
                 return false;
             }
 

@@ -4,6 +4,9 @@ namespace CleanEnergy.DebugTools
     {
         Normal = 0,
         Height = 1,
-        Slope = 2
+        Slope = 2,
+        Water = 3,
+        Solar = 4,
+        Wind = 5
     }
 }

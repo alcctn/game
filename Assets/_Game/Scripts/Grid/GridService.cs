@@ -1,4 +1,5 @@
 using System;
+using CleanEnergy.Map;
 using UnityEngine;
 
 namespace CleanEnergy.Grid
@@ -52,7 +53,15 @@ namespace CleanEnergy.Grid
                         WorldPosition = GridToWorld(new GridCoordinate(x, y)),
                         Elevation = 0f,
                         Slope = 0f,
-                        IsBuildable = true
+                        Aspect = Vector2.zero,
+                        WaterFlow = 0f,
+                        FlowDirection = Vector2Int.zero,
+                        SolarPotential = 0f,
+                        WindPotential = 0f,
+                        Biome = BiomeType.Plains,
+                        IsWater = false,
+                        IsBuildable = true,
+                        OccupyingBuildingId = null
                     };
                     _cells[x, y] = cell;
                 }
@@ -132,6 +141,44 @@ namespace CleanEnergy.Grid
             var cell = GetCell(coordinate);
             cell.Slope = slopeDegrees;
             cell.IsBuildable = isBuildable;
+        }
+
+        public void SetAspect(GridCoordinate coordinate, Vector2 aspect)
+        {
+            GetCell(coordinate).Aspect = aspect;
+        }
+
+        public void SetWaterData(GridCoordinate coordinate, float waterFlow, Vector2Int flowDirection, bool isWater)
+        {
+            var cell = GetCell(coordinate);
+            cell.WaterFlow = waterFlow;
+            cell.FlowDirection = flowDirection;
+            cell.IsWater = isWater;
+        }
+
+        public void SetSolarPotential(GridCoordinate coordinate, float solarPotential)
+        {
+            GetCell(coordinate).SolarPotential = Mathf.Clamp01(solarPotential);
+        }
+
+        public void SetWindPotential(GridCoordinate coordinate, float windPotential)
+        {
+            GetCell(coordinate).WindPotential = Mathf.Clamp01(windPotential);
+        }
+
+        public void SetBiome(GridCoordinate coordinate, BiomeType biome)
+        {
+            GetCell(coordinate).Biome = biome;
+        }
+
+        public void SetBuildable(GridCoordinate coordinate, bool isBuildable)
+        {
+            GetCell(coordinate).IsBuildable = isBuildable;
+        }
+
+        public void SetOccupyingBuildingId(GridCoordinate coordinate, string buildingInstanceId)
+        {
+            GetCell(coordinate).OccupyingBuildingId = buildingInstanceId;
         }
     }
 }

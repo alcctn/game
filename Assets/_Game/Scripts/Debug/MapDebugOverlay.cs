@@ -1,17 +1,20 @@
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
+using CleanEnergy.Placement;
 using UnityEngine;
 
 namespace CleanEnergy.DebugTools
 {
     /// <summary>
-    /// Draws colored quads above cells for height/slope debug visualization.
+    /// Draws colored quads above cells for resource debug visualization.
     /// </summary>
     public sealed class MapDebugOverlay : MonoBehaviour
     {
         [SerializeField] private MapGenerator mapGenerator;
+        [SerializeField] private PlacementController placementController;
         [SerializeField] private float overlayHeightOffset = 0.5f;
         [SerializeField] private float maxSlopeForColor = 45f;
+        [SerializeField] private float maxWaterFlowForColor = 64f;
 
         private DebugViewMode _mode = DebugViewMode.Normal;
         private MeshFilter _meshFilter;
@@ -52,6 +55,11 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
+            if (placementController != null && placementController.IsPlacementActive)
+            {
+                return;
+            }
+
             if (Input.GetMouseButtonDown(0) && !IsPointerOverGui())
             {
                 TrySelectCellUnderCursor();
@@ -70,6 +78,11 @@ namespace CleanEnergy.DebugTools
             {
                 mapGenerator.Events.MapGenerated += OnMapGenerated;
             }
+        }
+
+        public void SetPlacementController(PlacementController controller)
+        {
+            placementController = controller;
         }
 
         public void SetMode(DebugViewMode mode)
@@ -113,17 +126,25 @@ namespace CleanEnergy.DebugTools
                 _meshRenderer = gameObject.AddComponent<MeshRenderer>();
             }
 
-            _mesh = new Mesh { name = "MapDebugOverlayMesh" };
+            if (_mesh == null)
+            {
+                _mesh = new Mesh { name = "MapDebugOverlayMesh" };
+            }
+
             _meshFilter.sharedMesh = _mesh;
 
-            var shader = Shader.Find("CleanEnergy/UnlitVertexColor")
-                         ?? Shader.Find("Sprites/Default")
-                         ?? Shader.Find("Unlit/Color");
-            _material = new Material(shader);
-            if (_material.HasProperty("_Color"))
+            if (_material == null)
             {
-                _material.SetColor("_Color", new Color(1f, 1f, 1f, 0.65f));
+                var shader = Shader.Find("CleanEnergy/UnlitVertexColor")
+                             ?? Shader.Find("Sprites/Default")
+                             ?? Shader.Find("Unlit/Color");
+                _material = new Material(shader);
+                if (_material.HasProperty("_Color"))
+                {
+                    _material.SetColor("_Color", new Color(1f, 1f, 1f, 0.65f));
+                }
             }
+
             _meshRenderer.sharedMaterial = _material;
             _meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _meshRenderer.receiveShadows = false;
@@ -187,15 +208,36 @@ namespace CleanEnergy.DebugTools
 
         private Color SampleColor(GridCellData cell)
         {
-            if (_mode == DebugViewMode.Height)
+            switch (_mode)
             {
-                var maxHeight = mapGenerator.Settings != null ? mapGenerator.Settings.MaxHeight : 40f;
-                var t = maxHeight > 0f ? Mathf.Clamp01(cell.Elevation / maxHeight) : 0f;
-                return Color.Lerp(new Color(0.1f, 0.25f, 0.55f), new Color(0.95f, 0.9f, 0.7f), t);
-            }
+                case DebugViewMode.Height:
+                {
+                    var maxHeight = mapGenerator.Settings != null ? mapGenerator.Settings.MaxHeight : 40f;
+                    var t = maxHeight > 0f ? Mathf.Clamp01(cell.Elevation / maxHeight) : 0f;
+                    return Color.Lerp(new Color(0.1f, 0.25f, 0.55f), new Color(0.95f, 0.9f, 0.7f), t);
+                }
+                case DebugViewMode.Slope:
+                {
+                    var slopeT = Mathf.Clamp01(cell.Slope / Mathf.Max(1f, maxSlopeForColor));
+                    return Color.Lerp(new Color(0.2f, 0.7f, 0.25f), new Color(0.85f, 0.15f, 0.1f), slopeT);
+                }
+                case DebugViewMode.Water:
+                {
+                    if (cell.IsWater)
+                    {
+                        return new Color(0.05f, 0.35f, 0.85f, 0.85f);
+                    }
 
-            var slopeT = Mathf.Clamp01(cell.Slope / Mathf.Max(1f, maxSlopeForColor));
-            return Color.Lerp(new Color(0.2f, 0.7f, 0.25f), new Color(0.85f, 0.15f, 0.1f), slopeT);
+                    var t = Mathf.Clamp01(cell.WaterFlow / Mathf.Max(1f, maxWaterFlowForColor));
+                    return Color.Lerp(new Color(0.85f, 0.8f, 0.6f), new Color(0.15f, 0.55f, 0.95f), t);
+                }
+                case DebugViewMode.Solar:
+                    return Color.Lerp(new Color(0.15f, 0.15f, 0.2f), new Color(1f, 0.85f, 0.2f), Mathf.Clamp01(cell.SolarPotential));
+                case DebugViewMode.Wind:
+                    return Color.Lerp(new Color(0.2f, 0.25f, 0.3f), new Color(0.55f, 0.85f, 1f), Mathf.Clamp01(cell.WindPotential));
+                default:
+                    return Color.white;
+            }
         }
 
         private void TrySelectCellUnderCursor()
@@ -214,7 +256,6 @@ namespace CleanEnergy.DebugTools
             var ray = cam.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit, 5000f))
             {
-                // Fallback: intersect y=average plane via terrain height approximation at xz.
                 var plane = new Plane(Vector3.up, Vector3.zero);
                 if (!plane.Raycast(ray, out var enter))
                 {

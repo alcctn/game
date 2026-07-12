@@ -1,4 +1,3 @@
-using System;
 using CleanEnergy.DebugTools;
 using CleanEnergy.Map;
 using UnityEngine;
@@ -10,11 +9,17 @@ namespace CleanEnergy.UI
     /// </summary>
     public sealed class MapDebugUI : MonoBehaviour
     {
+        private static readonly string[] ViewModeLabels =
+        {
+            "Normal", "Height", "Slope", "Water", "Solar", "Wind"
+        };
+
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private MapDebugOverlay debugOverlay;
 
         private string _seedInput = "12345";
         private DebugViewMode _viewMode = DebugViewMode.Normal;
+        private Vector2 _scroll;
 
         public void Configure(MapGenerator generator, MapDebugOverlay overlay)
         {
@@ -28,8 +33,10 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            const float width = 280f;
-            GUILayout.BeginArea(new Rect(12f, 12f, width, 260f), GUI.skin.box);
+            const float width = 300f;
+            GUILayout.BeginArea(new Rect(12f, 12f, width, 360f), GUI.skin.box);
+            _scroll = GUILayout.BeginScrollView(_scroll);
+
             GUILayout.Label("Terrain Debug");
 
             GUILayout.BeginHorizontal();
@@ -51,9 +58,10 @@ namespace CleanEnergy.UI
             GUILayout.EndHorizontal();
 
             GUILayout.Label("View Mode");
-            var newMode = (DebugViewMode)GUILayout.Toolbar(
+            var newMode = (DebugViewMode)GUILayout.SelectionGrid(
                 (int)_viewMode,
-                new[] { "Normal", "Height", "Slope" });
+                ViewModeLabels,
+                3);
             if (newMode != _viewMode)
             {
                 _viewMode = newMode;
@@ -64,6 +72,7 @@ namespace CleanEnergy.UI
             }
 
             DrawSelectedCell();
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
 
@@ -95,6 +104,11 @@ namespace CleanEnergy.UI
             GUILayout.Label($"Cell: ({cell.X}, {cell.Y})");
             GUILayout.Label($"Elevation: {cell.Elevation:F2}");
             GUILayout.Label($"Slope: {cell.Slope:F1}°");
+            GUILayout.Label($"WaterFlow: {cell.WaterFlow:F1}");
+            GUILayout.Label($"Solar: {cell.SolarPotential:F2}");
+            GUILayout.Label($"Wind: {cell.WindPotential:F2}");
+            GUILayout.Label($"Biome: {cell.Biome}");
+            GUILayout.Label($"Water: {cell.IsWater}");
             GUILayout.Label($"Buildable: {cell.IsBuildable}");
         }
     }

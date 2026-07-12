@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CleanEnergy.Map
 {
     /// <summary>
-    /// Orchestrates height map, terrain, grid, and slope generation.
+    /// Orchestrates height map, terrain, grid, slope and resource-layer generation.
     /// </summary>
     public sealed class MapGenerator : MonoBehaviour
     {
@@ -18,6 +18,11 @@ namespace CleanEnergy.Map
         private readonly HeightMapGenerator _heightMapGenerator = new HeightMapGenerator();
         private readonly TerrainBuilder _terrainBuilder = new TerrainBuilder();
         private readonly SlopeCalculator _slopeCalculator = new SlopeCalculator();
+        private readonly WaterFlowCalculator _waterFlowCalculator = new WaterFlowCalculator();
+        private readonly SolarPotentialCalculator _solarPotentialCalculator = new SolarPotentialCalculator();
+        private readonly WindPotentialCalculator _windPotentialCalculator = new WindPotentialCalculator();
+        private readonly BiomeGenerator _biomeGenerator = new BiomeGenerator();
+        private readonly BuildabilityCalculator _buildabilityCalculator = new BuildabilityCalculator();
         private readonly GridService _gridService = new GridService();
         private readonly EventBus _eventBus = new EventBus();
 
@@ -98,6 +103,12 @@ namespace CleanEnergy.Map
                 settings.MaxHeight,
                 settings.CellSize,
                 settings.MaxBuildableSlopeDegrees);
+
+            _waterFlowCalculator.Calculate(_lastHeightMap, _gridService, settings);
+            _solarPotentialCalculator.Calculate(_gridService, settings);
+            _windPotentialCalculator.Calculate(_lastHeightMap, _gridService, settings);
+            _biomeGenerator.Calculate(_gridService, settings);
+            _buildabilityCalculator.Calculate(_gridService, settings);
 
             _eventBus.Publish(new MapGeneratedEvent(settings.Seed, settings.GridWidth, settings.GridHeight));
             Debug.Log($"[Map] Generated map seed='{settings.Seed}' size={settings.GridWidth}x{settings.GridHeight}.");

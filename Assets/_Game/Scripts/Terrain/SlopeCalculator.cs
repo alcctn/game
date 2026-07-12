@@ -1,20 +1,17 @@
 using System;
 using CleanEnergy.Grid;
+using UnityEngine;
 
 namespace CleanEnergy.TerrainGeneration
 {
     /// <summary>
-    /// Computes per-cell slope in degrees from neighboring elevations.
+    /// Computes per-cell slope (degrees) and aspect from neighboring elevations.
     /// </summary>
     public sealed class SlopeCalculator
     {
         /// <summary>
-        /// Writes slope (degrees) and buildability into the grid.
+        /// Writes slope and aspect into the grid. Buildability is finalized later by BuildabilityCalculator.
         /// </summary>
-        /// <param name="heightMap">Normalized elevations matching grid size.</param>
-        /// <param name="maxHeight">World max height used to convert normalized elevation to meters.</param>
-        /// <param name="cellSize">World size of one cell edge.</param>
-        /// <param name="maxBuildableSlopeDegrees">Cells steeper than this are not buildable.</param>
         public void Calculate(
             float[,] heightMap,
             GridService grid,
@@ -42,15 +39,14 @@ namespace CleanEnergy.TerrainGeneration
                 for (var y = 0; y < height; y++)
                 {
                     var slope = CalculateCellSlopeDegrees(heightMap, x, y, width, height, maxHeight, cellSize);
-                    var buildable = slope <= maxBuildableSlopeDegrees;
-                    grid.SetSlope(new GridCoordinate(x, y), slope, buildable);
+                    var aspect = CalculateCellAspect(heightMap, x, y, width, height);
+                    var coordinate = new GridCoordinate(x, y);
+                    grid.SetSlope(coordinate, slope, slope <= maxBuildableSlopeDegrees);
+                    grid.SetAspect(coordinate, aspect);
                 }
             }
         }
 
-        /// <summary>
-        /// Central-difference slope in degrees. Edge cells use available neighbors.
-        /// </summary>
         public static float CalculateCellSlopeDegrees(
             float[,] heightMap,
             int x,
@@ -60,16 +56,7 @@ namespace CleanEnergy.TerrainGeneration
             float maxHeight,
             float cellSize)
         {
-            var xLeft = Math.Max(x - 1, 0);
-            var xRight = Math.Min(x + 1, width - 1);
-            var yDown = Math.Max(y - 1, 0);
-            var yUp = Math.Min(y + 1, height - 1);
-
-            var dzDx = (heightMap[xRight, y] - heightMap[xLeft, y]) * maxHeight /
-                       Math.Max(cellSize * (xRight - xLeft), 1e-6f);
-            var dzDy = (heightMap[x, yUp] - heightMap[x, yDown]) * maxHeight /
-                       Math.Max(cellSize * (yUp - yDown), 1e-6f);
-
+            SampleGradients(heightMap, x, y, width, height, maxHeight, cellSize, out var dzDx, out var dzDy);
             var gradient = Math.Sqrt(dzDx * dzDx + dzDy * dzDy);
             var degrees = (float)(Math.Atan(gradient) * (180.0 / Math.PI));
             if (float.IsNaN(degrees) || float.IsInfinity(degrees))
@@ -78,6 +65,43 @@ namespace CleanEnergy.TerrainGeneration
             }
 
             return degrees;
+        }
+
+        /// <summary>
+        /// Returns the downslope direction in XZ (normalized). Flat cells return zero.
+        /// </summary>
+        public static Vector2 CalculateCellAspect(float[,] heightMap, int x, int y, int width, int height)
+        {
+            SampleGradients(heightMap, x, y, width, height, 1f, 1f, out var dzDx, out var dzDy);
+            var down = new Vector2(-(float)dzDx, -(float)dzDy);
+            if (down.sqrMagnitude < 1e-8f)
+            {
+                return Vector2.zero;
+            }
+
+            return down.normalized;
+        }
+
+        private static void SampleGradients(
+            float[,] heightMap,
+            int x,
+            int y,
+            int width,
+            int height,
+            float maxHeight,
+            float cellSize,
+            out double dzDx,
+            out double dzDy)
+        {
+            var xLeft = Math.Max(x - 1, 0);
+            var xRight = Math.Min(x + 1, width - 1);
+            var yDown = Math.Max(y - 1, 0);
+            var yUp = Math.Min(y + 1, height - 1);
+
+            dzDx = (heightMap[xRight, y] - heightMap[xLeft, y]) * maxHeight /
+                   Math.Max(cellSize * (xRight - xLeft), 1e-6f);
+            dzDy = (heightMap[x, yUp] - heightMap[x, yDown]) * maxHeight /
+                   Math.Max(cellSize * (yUp - yDown), 1e-6f);
         }
     }
 }

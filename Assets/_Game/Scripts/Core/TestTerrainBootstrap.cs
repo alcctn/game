@@ -1,18 +1,22 @@
+using CleanEnergy.Buildings;
 using CleanEnergy.CameraSystem;
 using CleanEnergy.DebugTools;
 using CleanEnergy.Map;
+using CleanEnergy.Placement;
 using CleanEnergy.UI;
 using UnityEngine;
 
 namespace CleanEnergy.Core
 {
     /// <summary>
-    /// Wires Sprint 01 test scene objects at runtime if references are missing.
+    /// Wires Sprint 01–03 test scene objects at runtime if references are missing.
     /// </summary>
     public sealed class TestTerrainBootstrap : MonoBehaviour
     {
         [SerializeField] private MapGenerationSettings settings;
+        [SerializeField] private BuildingDefinition[] buildingDefinitions;
         [SerializeField] private bool createSettingsIfMissing = true;
+        [SerializeField] private float startingMoney = 1000f;
 
         private void Awake()
         {
@@ -20,6 +24,7 @@ namespace CleanEnergy.Core
             var settingsAsset = ResolveSettings();
             var mapRoot = EnsureChild("MapRoot");
             var terrainRoot = EnsureChild("TerrainRoot", mapRoot);
+            var buildingRoot = EnsureChild("BuildingRoot");
             var debugRoot = EnsureChild("DebugRoot");
             var cameraRoot = EnsureChild("CameraRoot");
 
@@ -34,6 +39,16 @@ namespace CleanEnergy.Core
             var uiGo = EnsureChild("MapDebugUI", debugRoot);
             var ui = FindOrAdd<MapDebugUI>(uiGo.gameObject);
             ui.Configure(mapGenerator, overlay);
+
+            var placementGo = EnsureChild("PlacementRoot");
+            var placement = FindOrAdd<PlacementController>(placementGo.gameObject);
+            var buildings = ResolveBuildings();
+            placement.Configure(mapGenerator, buildingRoot, buildings, startingMoney);
+            overlay.SetPlacementController(placement);
+
+            var placementUiGo = EnsureChild("BuildingPlacementUI", debugRoot);
+            var placementUi = FindOrAdd<BuildingPlacementUI>(placementUiGo.gameObject);
+            placementUi.Configure(placement);
 
             var camTransform = cameraRoot.Find("Main Camera");
             Camera cam;
@@ -71,6 +86,53 @@ namespace CleanEnergy.Core
             }
         }
 
+        private BuildingDefinition[] ResolveBuildings()
+        {
+            if (buildingDefinitions != null && buildingDefinitions.Length > 0)
+            {
+                return buildingDefinitions;
+            }
+
+            return new[]
+            {
+                CreateRuntimeBuilding(
+                    "water_wheel", "Water Wheel", "Starter hydro",
+                    80f, 8f, 25f, 8f, 0f, 0f, true, false,
+                    new Color(0.25f, 0.55f, 0.95f)),
+                CreateRuntimeBuilding(
+                    "small_solar", "Small Solar", "Daytime solar array",
+                    120f, 12f, 20f, 0f, 0.45f, 0f, false, true,
+                    new Color(0.95f, 0.8f, 0.2f)),
+                CreateRuntimeBuilding(
+                    "small_wind", "Small Wind", "Open-area turbine",
+                    150f, 14f, 28f, 0f, 0f, 0.4f, false, true,
+                    new Color(0.65f, 0.85f, 0.95f))
+            };
+        }
+
+        private static BuildingDefinition CreateRuntimeBuilding(
+            string id,
+            string name,
+            string description,
+            float cost,
+            float power,
+            float maxSlope,
+            float minWater,
+            float minSolar,
+            float minWind,
+            bool adjacentWater,
+            bool requireBuildable,
+            Color color)
+        {
+            var def = ScriptableObject.CreateInstance<BuildingDefinition>();
+            def.name = id;
+            def.Configure(
+                id, name, description, BuildingCategory.Energy,
+                cost, power, maxSlope, minWater, minSolar, minWind,
+                adjacentWater, requireBuildable, color);
+            return def;
+        }
+
         private MapGenerationSettings ResolveSettings()
         {
             if (settings != null)
@@ -92,7 +154,7 @@ namespace CleanEnergy.Core
 
         private static void EnsureLighting()
         {
-            if (Object.FindFirstObjectByType<Light>() != null)
+            if (Object.FindAnyObjectByType<Light>() != null)
             {
                 return;
             }
