@@ -8,6 +8,7 @@ namespace CleanEnergy.DebugTools
         Water = 3,
         Solar = 4,
         Wind = 5,
-        Network = 6
+        Network = 6,
+        Production = 7
     }
 }

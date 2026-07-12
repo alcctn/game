@@ -47,6 +47,11 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 32. [Sprint 28 — Pause Overlay](docs/SPRINT_28_PAUSE_OVERLAY.md)
 33. [Sprint 29 — Telemetry CSV](docs/SPRINT_29_TELEMETRY_CSV.md)
 34. [Sprint 30 — Şebeke Debug Katmanı](docs/SPRINT_30_NETWORK_DEBUG.md)
+35. [Sprint 31 — Üretim Debug Katmanı](docs/SPRINT_31_PRODUCTION_DEBUG.md)
+36. [Sprint 32 — Rüzgâr Wake Verimi](docs/SPRINT_32_WIND_WAKE.md)
+37. [Sprint 33 — Placement Beklenen Üretim](docs/SPRINT_33_PLACEMENT_YIELD.md)
+38. [Sprint 34 — Main Menu](docs/SPRINT_34_MAIN_MENU.md)
+39. [Sprint 35 — İkinci Senaryo](docs/SPRINT_35_SECOND_SCENARIO.md)
 
 ## İlk Uygulama Sırası
 

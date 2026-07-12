@@ -27,6 +27,9 @@ namespace CleanEnergy.Energy
         private readonly Dictionary<GridCoordinate, float> _hubUtilization =
             new Dictionary<GridCoordinate, float>();
         private readonly HashSet<GridCoordinate> _energyNodeCells = new HashSet<GridCoordinate>();
+        private readonly Dictionary<GridCoordinate, float> _productionRatios =
+            new Dictionary<GridCoordinate, float>();
+        private readonly HashSet<GridCoordinate> _occupiedNonProducerCells = new HashSet<GridCoordinate>();
         private EnergyBalanceResult _lastResult = new EnergyBalanceResult(0f, 0f, 0f, 0f, 0f);
 
         public EnergyBalanceResult LastResult => _lastResult;
@@ -97,6 +100,16 @@ namespace CleanEnergy.Energy
             return _energyNodeCells.Contains(coordinate);
         }
 
+        public bool TryGetProductionRatio(GridCoordinate coordinate, out float ratio)
+        {
+            return _productionRatios.TryGetValue(coordinate, out ratio);
+        }
+
+        public bool IsOccupiedNonProducer(GridCoordinate coordinate)
+        {
+            return _occupiedNonProducerCells.Contains(coordinate);
+        }
+
         private void OnTick(SimulationContext context)
         {
             if (networkService == null)
@@ -136,6 +149,8 @@ namespace CleanEnergy.Energy
         {
             _hubUtilization.Clear();
             _energyNodeCells.Clear();
+            _productionRatios.Clear();
+            _occupiedNonProducerCells.Clear();
 
             var production = 0f;
             var demand = 0f;
@@ -180,6 +195,8 @@ namespace CleanEnergy.Energy
                 }
             }
 
+            RefreshProductionSnapshot();
+
             _lastResult = new EnergyBalanceResult(
                 production,
                 demand,
@@ -190,6 +207,34 @@ namespace CleanEnergy.Energy
                 delivered,
                 hasFiniteCapacity ? capacitySum : 0f,
                 congested);
+        }
+
+        private void RefreshProductionSnapshot()
+        {
+            if (placementController == null)
+            {
+                return;
+            }
+
+            foreach (var pair in placementController.Occupancy.Occupied)
+            {
+                var building = pair.Value;
+                if (building?.Definition == null)
+                {
+                    continue;
+                }
+
+                if (building.Definition.IsProducer)
+                {
+                    _productionRatios[pair.Key] = ProductionUtilization.ComputeRatio(
+                        building.CurrentProduction,
+                        building.Definition.InstalledPower);
+                }
+                else
+                {
+                    _occupiedNonProducerCells.Add(pair.Key);
+                }
+            }
         }
 
         private void SubscribeMap()
@@ -213,6 +258,8 @@ namespace CleanEnergy.Energy
             _emergencyCredit.Reset();
             _hubUtilization.Clear();
             _energyNodeCells.Clear();
+            _productionRatios.Clear();
+            _occupiedNonProducerCells.Clear();
         }
     }
 }

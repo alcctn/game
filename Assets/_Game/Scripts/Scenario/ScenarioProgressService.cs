@@ -202,5 +202,26 @@ namespace CleanEnergy.Scenario
                 30f);
             return def;
         }
+
+        public static ScenarioDefinition CreateRuntimeSunRidge()
+        {
+            var def = ScriptableObject.CreateInstance<ScenarioDefinition>();
+            def.name = "RuntimeSunRidge";
+            def.Configure(
+                "sun_ridge",
+                "Sun Ridge",
+                0.9f,
+                45,
+                2,
+                100f,
+                2.5f,
+                0.3f,
+                25f,
+                researchNodeIds: new[] { "solar_basic" },
+                seed: "sun_ridge_42",
+                solarOverride: 0.95f,
+                streamOverride: 18f);
+            return def;
+        }
     }
 }

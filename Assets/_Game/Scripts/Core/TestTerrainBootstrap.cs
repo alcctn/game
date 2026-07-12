@@ -24,6 +24,7 @@ namespace CleanEnergy.Core
         [SerializeField] private MapGenerationSettings settings;
         [SerializeField] private BuildingDefinition[] buildingDefinitions;
         [SerializeField] private ScenarioDefinition scenarioDefinition;
+        [SerializeField] private ScenarioDefinition[] scenarioCatalog;
         [SerializeField] private ResearchTreeDefinition researchTreeDefinition;
         [SerializeField] private bool createSettingsIfMissing = true;
         [SerializeField] private float startingMoney = 1000f;
@@ -32,6 +33,8 @@ namespace CleanEnergy.Core
         {
             EnsureLighting();
             var settingsAsset = ResolveSettings();
+            var selectedScenario = ResolveScenario();
+            selectedScenario.ApplyToMapSettings(settingsAsset);
             var mapRoot = EnsureChild("MapRoot");
             var terrainRoot = EnsureChild("TerrainRoot", mapRoot);
             var buildingRoot = EnsureChild("BuildingRoot");
@@ -63,7 +66,6 @@ namespace CleanEnergy.Core
 
             var placementUiGo = EnsureChild("BuildingPlacementUI", debugRoot);
             var placementUi = FindOrAdd<BuildingPlacementUI>(placementUiGo.gameObject);
-            placementUi.Configure(placement);
 
             var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
             clock.BindMapGenerator(mapGenerator);
@@ -77,9 +79,10 @@ namespace CleanEnergy.Core
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
             var research = FindOrAdd<ResearchController>(simRoot.gameObject);
             research.Configure(ResolveResearchTree(), driver, network, scenario, mapGenerator);
-            scenario.Configure(ResolveScenario(), driver, network, clock, mapGenerator, research);
+            scenario.Configure(selectedScenario, driver, network, clock, mapGenerator, research);
             placement.SetBuildingUnlockQuery(research.Service);
             network.Configure(placement, mapGenerator, research.Service.GetEfficiencyBonus);
+            placementUi.Configure(placement, clock, research);
 
             var hudGo = EnsureChild("EnergyHudUI", debugRoot);
             var hud = FindOrAdd<EnergyHudUI>(hudGo.gameObject);
@@ -200,6 +203,31 @@ namespace CleanEnergy.Core
 
         private ScenarioDefinition ResolveScenario()
         {
+            var id = ScenarioSession.ResolveSelectedId();
+            if (scenarioCatalog != null)
+            {
+                for (var i = 0; i < scenarioCatalog.Length; i++)
+                {
+                    var candidate = scenarioCatalog[i];
+                    if (candidate != null && candidate.ScenarioId == id)
+                    {
+                        scenarioDefinition = candidate;
+                        return candidate;
+                    }
+                }
+            }
+
+            if (scenarioDefinition != null && scenarioDefinition.ScenarioId == id)
+            {
+                return scenarioDefinition;
+            }
+
+            if (id == "sun_ridge")
+            {
+                scenarioDefinition = ScenarioProgressService.CreateRuntimeSunRidge();
+                return scenarioDefinition;
+            }
+
             if (scenarioDefinition != null)
             {
                 return scenarioDefinition;

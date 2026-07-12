@@ -81,6 +81,11 @@ namespace CleanEnergy.Map
             seed = newSeed ?? string.Empty;
         }
 
+        public void SetBaseClimateSolar(float value)
+        {
+            baseClimateSolar = Mathf.Max(0f, value);
+        }
+
         /// <summary>
         /// Test/editor helper to override water classification thresholds.
         /// </summary>

@@ -66,6 +66,13 @@ namespace CleanEnergy.UI
                 if (def.IsProducer)
                 {
                     GUILayout.Label($"Production {building.CurrentProduction:F1}");
+                    if (WindWakeFactor.AppliesTo(def))
+                    {
+                        var wake = WindWakeFactor.Compute(
+                            def, coordinate, placementController.Occupancy, building.InstanceId);
+                        GUILayout.Label($"WakeFactor {wake:F2}");
+                    }
+
                     var hint = InspectionStatus.FormatEfficiencyHint(def, building.MaintenanceLevel);
                     if (!string.IsNullOrEmpty(hint))
                     {

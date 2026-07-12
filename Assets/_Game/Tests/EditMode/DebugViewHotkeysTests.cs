@@ -29,12 +29,15 @@ namespace CleanEnergy.Tests.EditMode
 
             Assert.IsTrue(DebugViewHotkeys.TryMapKey(KeyCode.F7, out var f7));
             Assert.AreEqual(DebugViewMode.Network, f7);
+
+            Assert.IsTrue(DebugViewHotkeys.TryMapKey(KeyCode.F8, out var f8));
+            Assert.AreEqual(DebugViewMode.Production, f8);
         }
 
         [Test]
         public void OtherKey_ReturnsFalse()
         {
-            Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.F8, out _));
+            Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.F9, out _));
             Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.A, out _));
             Assert.IsFalse(DebugViewHotkeys.TryMapKey(KeyCode.Escape, out _));
         }

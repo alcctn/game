@@ -105,7 +105,7 @@ namespace CleanEnergy.Energy
 
                 var def = instance.Definition;
                 var producer = BuildingEnergyFactory.TryCreateProducer(
-                    instance, grid, settings, _efficiencyBonusProvider);
+                    instance, grid, settings, _efficiencyBonusProvider, placementController.Occupancy);
                 var consumer = BuildingEnergyFactory.TryCreateConsumer(instance);
                 var storage = BuildingEnergyFactory.TryCreateStorage(instance);
                 var isHub = IsHubDefinition(def);

@@ -1,3 +1,4 @@
+using CleanEnergy.Map;
 using UnityEngine;
 
 namespace CleanEnergy.Scenario
@@ -17,6 +18,9 @@ namespace CleanEnergy.Scenario
         [SerializeField] private float shortageSatisfactionPenalty = 2f;
         [SerializeField] private float coverageSatisfactionRecovery = 0.25f;
         [SerializeField] private float riskSatisfactionThreshold = 30f;
+        [SerializeField] private string mapSeed = "";
+        [SerializeField] private float baseClimateSolarOverride = -1f;
+        [SerializeField] private float streamAccumulationOverride = -1f;
         [SerializeField] private string[] countedProducerTypeIds =
         {
             "water_wheel",
@@ -38,6 +42,9 @@ namespace CleanEnergy.Scenario
         public float ShortageSatisfactionPenalty => shortageSatisfactionPenalty;
         public float CoverageSatisfactionRecovery => coverageSatisfactionRecovery;
         public float RiskSatisfactionThreshold => riskSatisfactionThreshold;
+        public string MapSeed => mapSeed ?? string.Empty;
+        public float BaseClimateSolarOverride => baseClimateSolarOverride;
+        public float StreamAccumulationOverride => streamAccumulationOverride;
         public string[] CountedProducerTypeIds => countedProducerTypeIds ?? System.Array.Empty<string>();
         public string[] RequiredResearchNodeIds => requiredResearchNodeIds ?? System.Array.Empty<string>();
 
@@ -51,7 +58,10 @@ namespace CleanEnergy.Scenario
             float shortagePenalty,
             float recovery,
             float riskThreshold,
-            string[] researchNodeIds = null)
+            string[] researchNodeIds = null,
+            string seed = "",
+            float solarOverride = -1f,
+            float streamOverride = -1f)
         {
             scenarioId = id;
             displayName = name;
@@ -70,6 +80,33 @@ namespace CleanEnergy.Scenario
                 "small_wind"
             };
             requiredResearchNodeIds = researchNodeIds ?? new[] { "solar_basic" };
+            mapSeed = seed ?? string.Empty;
+            baseClimateSolarOverride = solarOverride;
+            streamAccumulationOverride = streamOverride;
+        }
+
+        public void ApplyToMapSettings(MapGenerationSettings settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(mapSeed))
+            {
+                settings.SetSeed(mapSeed);
+            }
+
+            if (baseClimateSolarOverride >= 0f)
+            {
+                settings.SetBaseClimateSolar(baseClimateSolarOverride);
+            }
+
+            if (streamAccumulationOverride > 0f)
+            {
+                var lake = Mathf.Max(settings.LakeAccumulationThreshold, streamAccumulationOverride * 3f);
+                settings.SetWaterThresholds(streamAccumulationOverride, lake);
+            }
         }
     }
 }

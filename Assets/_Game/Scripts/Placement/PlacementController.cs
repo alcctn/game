@@ -39,6 +39,8 @@ namespace CleanEnergy.Placement
         private IReadOnlyList<string> _lastFailures = Array.Empty<string>();
         private bool _placementArmed;
         private int _rotation;
+        private GridCoordinate? _hoverCoordinate;
+        private bool _hoverValid;
 
         public Wallet Wallet => _wallet;
         public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
@@ -47,7 +49,10 @@ namespace CleanEnergy.Placement
         public IReadOnlyList<string> LastFailureReasons => _lastFailures;
         public bool IsPlacementActive => _placementArmed && _selected != null;
         public int PlacementRotation => _rotation;
+        public GridCoordinate? HoverCoordinate => _hoverCoordinate;
+        public bool IsHoverValid => _hoverValid;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
+        public MapGenerator MapGenerator => mapGenerator;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
         public event Action PlacementRejected;
@@ -82,6 +87,8 @@ namespace CleanEnergy.Placement
             if (!IsPlacementActive || mapGenerator == null || !mapGenerator.Grid.IsInitialized)
             {
                 preview?.Hide();
+                _hoverCoordinate = null;
+                _hoverValid = false;
                 return;
             }
 
@@ -99,6 +106,8 @@ namespace CleanEnergy.Placement
             if (!TryGetHoveredCoordinate(out var coordinate))
             {
                 preview?.Hide();
+                _hoverCoordinate = null;
+                _hoverValid = false;
                 return;
             }
 
@@ -110,6 +119,8 @@ namespace CleanEnergy.Placement
                 _wallet,
                 _buildingUnlocks);
             _lastFailures = result.FailureReasons;
+            _hoverCoordinate = coordinate;
+            _hoverValid = result.IsValid;
 
             if (mapGenerator.Grid.TryGetCell(coordinate, out var cell))
             {
@@ -169,6 +180,8 @@ namespace CleanEnergy.Placement
             _selected = null;
             _rotation = 0;
             _lastFailures = Array.Empty<string>();
+            _hoverCoordinate = null;
+            _hoverValid = false;
             preview?.Hide();
         }
 

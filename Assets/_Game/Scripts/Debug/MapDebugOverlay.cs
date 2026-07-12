@@ -106,7 +106,7 @@ namespace CleanEnergy.DebugTools
 
         private void OnBalanceUpdated(EnergyBalanceResult _)
         {
-            if (_mode == DebugViewMode.Network)
+            if (_mode == DebugViewMode.Network || _mode == DebugViewMode.Production)
             {
                 Rebuild();
             }
@@ -295,6 +295,21 @@ namespace CleanEnergy.DebugTools
                     }
 
                     return NetworkUtilization.EmptyCellColor;
+                }
+                case DebugViewMode.Production:
+                {
+                    var coordinate = new GridCoordinate(cell.X, cell.Y);
+                    if (energyDriver != null && energyDriver.TryGetProductionRatio(coordinate, out var ratio))
+                    {
+                        return ProductionUtilization.ColorForRatio(ratio);
+                    }
+
+                    if (energyDriver != null && energyDriver.IsOccupiedNonProducer(coordinate))
+                    {
+                        return ProductionUtilization.NeutralCellColor;
+                    }
+
+                    return ProductionUtilization.EmptyCellColor;
                 }
                 default:
                     return Color.white;

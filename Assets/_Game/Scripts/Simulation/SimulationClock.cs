@@ -95,6 +95,17 @@ namespace CleanEnergy.Simulation
             DayCycle.SyncFromTickIndex(TickIndex);
         }
 
+        public SimulationContext CreateContextSnapshot()
+        {
+            DayCycle.SyncFromTickIndex(TickIndex);
+            return new SimulationContext(
+                TickIndex,
+                baseTickSeconds,
+                speed,
+                DayCycle.DayNormalized,
+                DayCycle.Phase);
+        }
+
         private void OnMapGenerated(Core.MapGeneratedEvent _)
         {
             ResetClock();

@@ -1,3 +1,4 @@
+using CleanEnergy.Core;
 using CleanEnergy.Placement;
 using CleanEnergy.Simulation;
 using UnityEngine;
@@ -73,6 +74,17 @@ namespace CleanEnergy.UI
             _overlayVisible = false;
         }
 
+        public void GoToMainMenu()
+        {
+            _overlayVisible = false;
+            if (clock != null)
+            {
+                clock.SetSpeed(SimulationSpeed.One);
+            }
+
+            SceneFlow.LoadMainMenu();
+        }
+
         private void OnGUI()
         {
             if (!_overlayVisible)
@@ -81,7 +93,7 @@ namespace CleanEnergy.UI
             }
 
             const float width = 280f;
-            const float height = 120f;
+            const float height = 160f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -91,6 +103,11 @@ namespace CleanEnergy.UI
             {
                 _speedBeforePause = SimulationSpeed.One;
                 Resume();
+            }
+
+            if (GUILayout.Button("Main Menu"))
+            {
+                GoToMainMenu();
             }
 
             GUILayout.EndArea();

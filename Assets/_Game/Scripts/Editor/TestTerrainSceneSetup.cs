@@ -27,8 +27,10 @@ namespace CleanEnergy.Editor
     {
         private const string SettingsPath = "Assets/_Game/Data/Map/MapGenerationSettings.asset";
         private const string ScenarioPath = "Assets/_Game/Data/Scenarios/green_valley.asset";
+        private const string SunRidgeScenarioPath = "Assets/_Game/Data/Scenarios/sun_ridge.asset";
         private const string ResearchPath = "Assets/_Game/Data/Research/green_valley_research.asset";
         private const string ScenePath = "Assets/_Game/Scenes/Test_Terrain.unity";
+        private const string MainMenuScenePath = "Assets/_Game/Scenes/MainMenu.unity";
         private const string BuildingsFolder = "Assets/_Game/Data/Buildings";
         private const string ScenariosFolder = "Assets/_Game/Data/Scenarios";
         private const string ResearchFolder = "Assets/_Game/Data/Research";
@@ -39,11 +41,24 @@ namespace CleanEnergy.Editor
             EnsureFolders();
             var settings = CreateOrLoadSettings();
             var scenario = CreateOrLoadScenario();
+            var sunRidge = CreateOrLoadSunRidgeScenario();
             var research = CreateOrLoadResearch();
             var buildings = CreateOrLoadBuildings();
-            CreateScene(settings, buildings, scenario, research);
+            CreateScene(settings, buildings, scenario, sunRidge, research);
+            EnsureMainMenuScene();
+            UpdateBuildSettings();
             AssetDatabase.SaveAssets();
             Debug.Log("[Setup] Test_Terrain scene and data assets are ready.");
+        }
+
+        [MenuItem("Clean Energy/Setup Main Menu Scene")]
+        public static void SetupMainMenuMenu()
+        {
+            EnsureFolders();
+            EnsureMainMenuScene();
+            UpdateBuildSettings();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Setup] MainMenu scene ready.");
         }
 
         [MenuItem("Clean Energy/Create Building Definitions")]
@@ -60,8 +75,9 @@ namespace CleanEnergy.Editor
         {
             EnsureFolders();
             CreateOrLoadScenario();
+            CreateOrLoadSunRidgeScenario();
             AssetDatabase.SaveAssets();
-            Debug.Log("[Setup] Scenario definition created/updated.");
+            Debug.Log("[Setup] Scenario definitions created/updated.");
         }
 
         [MenuItem("Clean Energy/Create Research Tree")]
@@ -115,6 +131,33 @@ namespace CleanEnergy.Editor
                 2f,
                 0.25f,
                 30f);
+            EditorUtility.SetDirty(existing);
+            return existing;
+        }
+
+        private static ScenarioDefinition CreateOrLoadSunRidgeScenario()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<ScenarioDefinition>(SunRidgeScenarioPath);
+            if (existing == null)
+            {
+                existing = ScriptableObject.CreateInstance<ScenarioDefinition>();
+                AssetDatabase.CreateAsset(existing, SunRidgeScenarioPath);
+            }
+
+            existing.Configure(
+                "sun_ridge",
+                "Sun Ridge",
+                0.9f,
+                45,
+                2,
+                100f,
+                2.5f,
+                0.3f,
+                25f,
+                researchNodeIds: new[] { "solar_basic" },
+                seed: "sun_ridge_42",
+                solarOverride: 0.95f,
+                streamOverride: 18f);
             EditorUtility.SetDirty(existing);
             return existing;
         }
@@ -223,6 +266,7 @@ namespace CleanEnergy.Editor
             MapGenerationSettings settings,
             BuildingDefinition[] buildings,
             ScenarioDefinition scenario,
+            ScenarioDefinition sunRidge,
             ResearchTreeDefinition research)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -234,6 +278,10 @@ namespace CleanEnergy.Editor
             so.FindProperty("scenarioDefinition").objectReferenceValue = scenario;
             so.FindProperty("researchTreeDefinition").objectReferenceValue = research;
             so.FindProperty("startingMoney").floatValue = 1000f;
+            var catalogProp = so.FindProperty("scenarioCatalog");
+            catalogProp.arraySize = 2;
+            catalogProp.GetArrayElementAtIndex(0).objectReferenceValue = scenario;
+            catalogProp.GetArrayElementAtIndex(1).objectReferenceValue = sunRidge;
             var buildingsProp = so.FindProperty("buildingDefinitions");
             buildingsProp.arraySize = buildings.Length;
             for (var i = 0; i < buildings.Length; i++)
@@ -299,7 +347,7 @@ namespace CleanEnergy.Editor
             var placementUiGo = new GameObject("BuildingPlacementUI");
             placementUiGo.transform.SetParent(debugRoot.transform, false);
             var placementUi = placementUiGo.AddComponent<BuildingPlacementUI>();
-            placementUi.Configure(placement);
+            placementUi.Configure(placement, clock, researchController);
 
             var hudGo = new GameObject("EnergyHudUI");
             hudGo.transform.SetParent(debugRoot.transform, false);
@@ -382,8 +430,24 @@ namespace CleanEnergy.Editor
             saveHud.Configure(saveLoad);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
+        }
+
+        public static void EnsureMainMenuScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+            var menuGo = new GameObject("MainMenuUI");
+            var menu = menuGo.AddComponent<MainMenuUI>();
+            menu.ConfigureScenarios(
+                new[] { "green_valley", "sun_ridge" },
+                new[] { "Yeşil Vadi", "Güneş Sırtı" });
+            EditorSceneManager.SaveScene(scene, MainMenuScenePath);
+        }
+
+        public static void UpdateBuildSettings()
+        {
             EditorBuildSettings.scenes = new[]
             {
+                new EditorBuildSettingsScene(MainMenuScenePath, true),
                 new EditorBuildSettingsScene(ScenePath, true)
             };
         }
