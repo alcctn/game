@@ -19,39 +19,71 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            if (saveLoadController == null)
+            var controller = saveLoadController;
+            if (controller == null)
             {
                 return;
             }
 
+            // #region agent log
+            // One-shot per play session when drawing succeeds after prior NRE risk.
+            // #endregion
+
+            GuiScale.Apply();
             const float width = 220f;
-            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, Screen.height - 150f, width, 140f), GUI.skin.box);
-            GUILayout.Label("Save / Load");
-            _selectedSlot = GUILayout.SelectionGrid(_selectedSlot - 1, SlotLabels, 3) + 1;
-            saveLoadController.SetActiveSlot(_selectedSlot);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Save"))
+            var x = Screen.width / GuiScale.Current - width - 12f;
+            var y = Screen.height / GuiScale.Current - 150f;
+            var began = false;
+            try
             {
-                saveLoadController.SaveSlot(_selectedSlot);
-            }
+                GUILayout.BeginArea(new Rect(x, y, width, 140f), GUI.skin != null ? GUI.skin.box : GUIStyle.none);
+                began = true;
+                GUILayout.Label("Save / Load");
+                var selectedIndex = Mathf.Clamp(_selectedSlot - 1, 0, SlotLabels.Length - 1);
+                selectedIndex = GUILayout.SelectionGrid(selectedIndex, SlotLabels, 3);
+                _selectedSlot = selectedIndex + 1;
+                controller.SetActiveSlot(_selectedSlot);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Save"))
+                {
+                    controller.SaveSlot(_selectedSlot);
+                }
 
-            if (GUILayout.Button("Load"))
+                if (GUILayout.Button("Load"))
+                {
+                    controller.LoadSlot(_selectedSlot);
+                }
+
+                GUILayout.EndHorizontal();
+                if (GUILayout.Button("Delete"))
+                {
+                    controller.DeleteSlot(_selectedSlot);
+                }
+
+                var msg = controller.LastMessage;
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    GUILayout.Label(msg);
+                }
+            }
+            catch (System.Exception ex)
             {
-                saveLoadController.LoadSlot(_selectedSlot);
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "G",
+                    "SaveLoadHudUI.OnGUI",
+                    "caught_exception",
+                    "{\"type\":\"" + ex.GetType().Name +
+                    "\",\"msg\":\"" + (ex.Message ?? string.Empty).Replace("\"", "'") + "\"}");
+                // #endregion
             }
-
-            GUILayout.EndHorizontal();
-            if (GUILayout.Button("Delete"))
+            finally
             {
-                saveLoadController.DeleteSlot(_selectedSlot);
+                if (began)
+                {
+                    GUILayout.EndArea();
+                }
             }
-
-            if (!string.IsNullOrEmpty(saveLoadController.LastMessage))
-            {
-                GUILayout.Label(saveLoadController.LastMessage);
-            }
-
-            GUILayout.EndArea();
         }
     }
 }
