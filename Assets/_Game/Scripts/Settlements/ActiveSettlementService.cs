@@ -7,6 +7,7 @@ namespace CleanEnergy.Settlements
         bool HasActiveSettlement { get; }
         GridCoordinate Coordinate { get; }
         int PlacementRadius { get; }
+        bool IsInsideRadius(GridCoordinate other);
     }
 
     /// <summary>Active Level 1 village anchor for radius and auto-grid.</summary>

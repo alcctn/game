@@ -135,7 +135,6 @@ namespace CleanEnergy.Scenario
                 && _state.CoverageComplete)
             {
                 _state.HasCompletedLevel = true;
-                _state.ProgressPercent = 100f;
                 StateChanged?.Invoke(_state);
                 LevelCompleted?.Invoke();
             }
