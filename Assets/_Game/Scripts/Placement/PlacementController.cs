@@ -258,6 +258,17 @@ namespace CleanEnergy.Placement
             _factory.ResetIds();
         }
 
+        public float GetHoverEffectiveCost()
+        {
+            if (_selected == null || !_hoverCoordinate.HasValue)
+            {
+                return _selected != null ? _selected.Cost : 0f;
+            }
+
+            return PowerLinePlacementCost.ComputeEffectiveCost(
+                _selected, _hoverCoordinate.Value, _occupancy);
+        }
+
         public PlacementValidationResult TryPlace(GridCoordinate coordinate)
         {
             if (_selected == null || mapGenerator == null)
@@ -300,7 +311,8 @@ namespace CleanEnergy.Placement
                 return PlacementValidationResult.Failure(new[] { "Cell became occupied." });
             }
 
-            if (!_wallet.TrySpend(_selected.Cost))
+            if (!_wallet.TrySpend(PowerLinePlacementCost.ComputeEffectiveCost(
+                    _selected, coordinate, _occupancy)))
             {
                 _occupancy.Release(coordinate);
                 if (instance.GameObject != null)

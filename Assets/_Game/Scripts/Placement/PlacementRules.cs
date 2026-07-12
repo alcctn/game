@@ -276,13 +276,13 @@ namespace CleanEnergy.Placement
 
         public bool Evaluate(PlacementContext context, List<string> failureReasons)
         {
-            if (context.Wallet != null && context.Wallet.CanAfford(context.Definition.Cost))
+            if (context.Wallet != null && context.Wallet.CanAfford(context.EffectiveCost))
             {
                 return true;
             }
 
             failureReasons.Add(
-                $"Not enough money (need {context.Definition.Cost:F0}, have {context.Wallet?.Money:F0}).");
+                $"Not enough money (need {context.EffectiveCost:F0}, have {context.Wallet?.Money:F0}).");
             return false;
         }
     }

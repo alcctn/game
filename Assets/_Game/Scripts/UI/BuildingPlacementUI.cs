@@ -92,7 +92,7 @@ namespace CleanEnergy.UI
 
         private void DrawYieldPreview(BuildingDefinition def)
         {
-            GUILayout.Label($"Cost: {def.Cost:F0}");
+            GUILayout.Label($"Cost: {placementController.GetHoverEffectiveCost():F0}");
             if (!def.IsProducer)
             {
                 return;

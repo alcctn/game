@@ -6,13 +6,16 @@ using UnityEngine;
 namespace CleanEnergy.UI
 {
     /// <summary>
-    /// IMGUI main menu: New Game / Continue / Quit.
+    /// IMGUI main menu: New Game / Continue (slots 1–3) / Delete / Quit.
     /// </summary>
     public sealed class MainMenuUI : MonoBehaviour
     {
+        private static readonly string[] SlotLabels = { "1", "2", "3" };
+
         [SerializeField] private string[] scenarioIds = { "green_valley" };
         [SerializeField] private string[] scenarioLabels = { "Yeşil Vadi" };
         private int _selectedScenarioIndex;
+        private int _selectedSlot = 1;
         private SaveGameService _saveService;
 
         public void ConfigureScenarios(string[] ids, string[] labels)
@@ -30,7 +33,7 @@ namespace CleanEnergy.UI
         private void OnGUI()
         {
             const float width = 320f;
-            const float height = 260f;
+            const float height = 320f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -44,12 +47,22 @@ namespace CleanEnergy.UI
                     _selectedScenarioIndex, scenarioLabels, 1);
             }
 
-            var canContinue = _saveService != null && _saveService.SlotExists();
+            GUILayout.Label("Save slot");
+            _selectedSlot = GUILayout.SelectionGrid(_selectedSlot - 1, SlotLabels, 3) + 1;
+
+            var canContinue = _saveService != null && _saveService.SlotExists(_selectedSlot);
             GUI.enabled = canContinue;
             if (GUILayout.Button("Continue", GUILayout.Height(32f)) && canContinue)
             {
+                ScenarioSession.ContinueSlot = _selectedSlot;
                 ScenarioSession.LoadSaveOnPlay = true;
                 SceneFlow.LoadPlayScene();
+            }
+
+            GUI.enabled = canContinue;
+            if (GUILayout.Button("Delete Slot", GUILayout.Height(28f)) && canContinue)
+            {
+                _saveService.DeleteSlot(_selectedSlot);
             }
 
             GUI.enabled = true;

@@ -99,6 +99,19 @@ namespace CleanEnergy.Save
             _saveService.SetActiveSlot(slot);
         }
 
+        public bool DeleteSlot(int slot)
+        {
+            _saveService.SetActiveSlot(slot);
+            if (!_saveService.DeleteSlot(slot))
+            {
+                LastMessage = $"No save in slot{SaveGameService.ClampSlot(slot)}.";
+                return false;
+            }
+
+            LastMessage = $"Deleted slot{SaveGameService.ClampSlot(slot)}.";
+            return true;
+        }
+
         public GameSaveData Collect()
         {
             if (mapGenerator?.Settings == null || placementController == null)

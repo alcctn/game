@@ -88,9 +88,20 @@ namespace CleanEnergy.Energy
             }
 
             var production = 0f;
+            var hasLoad = NetworkLoadFactor.ComponentHasLoad(component);
             for (var i = 0; i < producers.Count; i++)
             {
-                production += producers[i].GetAvailableProduction(context);
+                var amount = producers[i].GetAvailableProduction(context);
+                if (!hasLoad)
+                {
+                    amount = 0f;
+                    if (producers[i] is ResourceProducerAdapter adapter)
+                    {
+                        adapter.ClearReportedProduction();
+                    }
+                }
+
+                production += amount;
             }
 
             var demand = 0f;

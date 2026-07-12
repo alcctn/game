@@ -8,6 +8,7 @@ namespace CleanEnergy.Scenario
         public const string DefaultId = "green_valley";
         public static string SelectedId { get; set; } = DefaultId;
         public static bool LoadSaveOnPlay { get; set; }
+        public static int ContinueSlot { get; set; } = 1;
 
         public static string ResolveSelectedId()
         {
@@ -23,6 +24,11 @@ namespace CleanEnergy.Scenario
 
             LoadSaveOnPlay = false;
             return true;
+        }
+
+        public static int ResolveContinueSlot()
+        {
+            return ContinueSlot < 1 ? 1 : (ContinueSlot > 3 ? 3 : ContinueSlot);
         }
     }
 }

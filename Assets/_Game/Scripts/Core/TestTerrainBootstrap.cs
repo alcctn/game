@@ -174,7 +174,7 @@ namespace CleanEnergy.Core
 
             if (ScenarioSession.ConsumeLoadSaveOnPlay())
             {
-                saveLoad.LoadSlot();
+                saveLoad.LoadSlot(ScenarioSession.ResolveContinueSlot());
             }
         }
 

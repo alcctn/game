@@ -91,6 +91,27 @@ namespace CleanEnergy.UI
                     }
                 }
 
+                if (def.Id == MaintenanceService.DepotBuildingId)
+                {
+                    if (GUILayout.Button("Repair All In Range"))
+                    {
+                        if (MaintenanceService.TryBulkRepairInDepotRange(
+                                building,
+                                placementController.Occupancy.Occupied,
+                                placementController.Wallet,
+                                out var count,
+                                out var cost,
+                                out var fail))
+                        {
+                            _actionMessage = $"Repaired {count} for {cost:F0}.";
+                        }
+                        else
+                        {
+                            _actionMessage = fail;
+                        }
+                    }
+                }
+
                 if (def.IsStorage)
                 {
                     GUILayout.Label($"Stored {building.StoredEnergy:F1} / {def.StorageCapacity:F0}");
@@ -152,6 +173,8 @@ namespace CleanEnergy.UI
             var bonus = researchController != null
                 ? researchController.Service.GetEfficiencyBonus(def.Id)
                 : 0f;
+            var networkFactor = NetworkLoadFactor.ResolveForBuilding(
+                building, networkService != null ? networkService.Graph : null);
             var breakdown = ProductionEstimate.BreakDown(
                 def,
                 coordinate,
@@ -161,7 +184,8 @@ namespace CleanEnergy.UI
                 placementController.Occupancy,
                 bonus,
                 building.MaintenanceLevel,
-                building.InstanceId);
+                building.InstanceId,
+                networkFactor);
 
             GUILayout.Label($"Potential {breakdown.ResourcePotential:F2}");
             GUILayout.Label($"Phase {breakdown.PhaseFactor:F2}");
@@ -172,6 +196,7 @@ namespace CleanEnergy.UI
                 GUILayout.Label($"WakeFactor {breakdown.WakeFactor:F2}");
             }
 
+            GUILayout.Label($"NetworkFactor {breakdown.NetworkFactor:F0}");
             GUILayout.Label($"= Production {breakdown.Production:F1}");
         }
     }

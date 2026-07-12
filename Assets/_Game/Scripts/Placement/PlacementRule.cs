@@ -25,6 +25,9 @@ namespace CleanEnergy.Placement
         public Wallet Wallet { get; }
         public IBuildingUnlockQuery BuildingUnlocks { get; }
 
+        public float EffectiveCost => PowerLinePlacementCost.ComputeEffectiveCost(
+            Definition, Coordinate, Occupancy);
+
         public PlacementContext(
             BuildingDefinition definition,
             GridCoordinate coordinate,

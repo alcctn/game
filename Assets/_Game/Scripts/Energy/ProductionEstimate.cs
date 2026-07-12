@@ -14,6 +14,7 @@ namespace CleanEnergy.Energy
         public float Efficiency { get; }
         public float Maintenance { get; }
         public float WakeFactor { get; }
+        public float NetworkFactor { get; }
         public float Production { get; }
 
         public ProductionBreakdown(
@@ -22,13 +23,15 @@ namespace CleanEnergy.Energy
             float efficiency,
             float maintenance,
             float wakeFactor,
-            float production)
+            float production,
+            float networkFactor = 1f)
         {
             ResourcePotential = resourcePotential;
             PhaseFactor = phaseFactor;
             Efficiency = efficiency;
             Maintenance = maintenance;
             WakeFactor = wakeFactor;
+            NetworkFactor = networkFactor;
             Production = production;
         }
     }
@@ -63,11 +66,12 @@ namespace CleanEnergy.Energy
             GridOccupancyService occupancy = null,
             float efficiencyBonus = 0f,
             float maintenanceLevel = 1f,
-            string excludeInstanceId = null)
+            string excludeInstanceId = null,
+            float networkFactor = 1f)
         {
             if (definition == null || definition.InstalledPower <= 0f || grid == null)
             {
-                return new ProductionBreakdown(0f, 0f, 0f, 0f, 1f, 0f);
+                return new ProductionBreakdown(0f, 0f, 0f, 0f, 1f, 0f, networkFactor);
             }
 
             SampleResourceAndPhase(
@@ -77,10 +81,11 @@ namespace CleanEnergy.Energy
             var maintenance = Mathf.Clamp01(maintenanceLevel);
             var wake = WindWakeFactor.Compute(
                 definition, coordinate, occupancy, excludeInstanceId);
+            var factor = Mathf.Clamp01(networkFactor);
             var production = Mathf.Max(
                 0f,
-                definition.InstalledPower * resource * phase * efficiency * maintenance * wake);
-            return new ProductionBreakdown(resource, phase, efficiency, maintenance, wake, production);
+                definition.InstalledPower * resource * phase * efficiency * maintenance * wake * factor);
+            return new ProductionBreakdown(resource, phase, efficiency, maintenance, wake, production, factor);
         }
 
         public static float SamplePotential(

@@ -57,7 +57,7 @@ namespace CleanEnergy.Buildings
 
             go.name = $"{definition.Id}_{coordinate.X}_{coordinate.Y}";
             var position = cell.WorldPosition;
-            var halfHeight = EstimateHalfHeight(definition);
+            var halfHeight = definition.Prefab == null ? EstimateHalfHeight(definition) : 0f;
             go.transform.position = new Vector3(position.x, position.y + halfHeight, position.z);
             go.transform.rotation = Quaternion.Euler(0f, rotation * 90f, 0f);
 

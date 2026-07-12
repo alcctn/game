@@ -56,6 +56,11 @@ namespace CleanEnergy.Energy
             _instance.CurrentProduction = production;
             return _instance.CurrentProduction;
         }
+
+        public void ClearReportedProduction()
+        {
+            _instance.CurrentProduction = 0f;
+        }
     }
 
     public sealed class VillageConsumerAdapter : IEnergyConsumer

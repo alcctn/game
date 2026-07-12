@@ -101,5 +101,20 @@ namespace CleanEnergy.Save
 
             return data;
         }
+
+        public bool DeleteSlot(int slot)
+        {
+            var path = GetSlotPath(slot);
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+
+            File.Delete(path);
+            Debug.Log($"[Save] Deleted {path}");
+            return true;
+        }
+
+        public bool DeleteSlot() => DeleteSlot(ActiveSlot);
     }
 }

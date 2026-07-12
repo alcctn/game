@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CleanEnergy.DebugTools
 {
     /// <summary>
-    /// Focuses the isometric camera when a map cell is selected.
+    /// Focuses the isometric camera on selection and placement hover cells.
     /// </summary>
     public sealed class SelectionCameraFocus : MonoBehaviour
     {
@@ -16,6 +16,9 @@ namespace CleanEnergy.DebugTools
         [SerializeField] private PlacementController placementController;
         [SerializeField] private IsometricCameraController cameraController;
         [SerializeField] private float focusDuration = 0.35f;
+        [SerializeField] private float placementFocusDuration = 0.25f;
+
+        private GridCoordinate? _lastPlacementHover;
 
         public void Configure(
             MapDebugOverlay overlay,
@@ -36,6 +39,11 @@ namespace CleanEnergy.DebugTools
         private void OnEnable() => Subscribe();
 
         private void OnDisable() => Unsubscribe();
+
+        private void Update()
+        {
+            UpdatePlacementHoverFocus();
+        }
 
         private void Subscribe()
         {
@@ -68,12 +76,59 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            if (!mapGenerator.Grid.TryGetCell(coordinate.Value, out var cell))
+            FocusCell(coordinate.Value, focusDuration);
+        }
+
+        private void UpdatePlacementHoverFocus()
+        {
+            if (placementController == null
+                || cameraController == null
+                || mapGenerator == null
+                || !mapGenerator.Grid.IsInitialized
+                || !placementController.IsPlacementActive)
+            {
+                _lastPlacementHover = null;
+                return;
+            }
+
+            if (!placementController.HoverCoordinate.HasValue)
+            {
+                _lastPlacementHover = null;
+                return;
+            }
+
+            var hover = placementController.HoverCoordinate.Value;
+            if (_lastPlacementHover.HasValue && _lastPlacementHover.Value.Equals(hover))
             {
                 return;
             }
 
-            cameraController.FocusOn(cell.WorldPosition, focusDuration);
+            _lastPlacementHover = hover;
+            FocusCell(hover, placementFocusDuration);
+        }
+
+        private void FocusCell(GridCoordinate coordinate, float duration)
+        {
+            if (!mapGenerator.Grid.TryGetCell(coordinate, out var cell))
+            {
+                return;
+            }
+
+            cameraController.FocusOn(cell.WorldPosition, duration);
+        }
+
+        /// <summary>Pure helper for tests: whether a hover change should trigger focus.</summary>
+        public static bool ShouldFocusPlacementHover(
+            bool placementActive,
+            GridCoordinate? hover,
+            GridCoordinate? lastHover)
+        {
+            if (!placementActive || !hover.HasValue)
+            {
+                return false;
+            }
+
+            return !lastHover.HasValue || !lastHover.Value.Equals(hover.Value);
         }
     }
 }

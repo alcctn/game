@@ -62,6 +62,11 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 47. [Sprint 43 — Üretim Breakdown](docs/SPRINT_43_PRODUCTION_BREAKDOWN.md)
 48. [Sprint 44 — Multi-Slot Save](docs/SPRINT_44_MULTI_SLOT_SAVE.md)
 49. [Sprint 45 — Building Demolish](docs/SPRINT_45_DEMOLISH.md)
+50. [Sprint 46 — Main Menu Multi-Slot](docs/SPRINT_46_MENU_SLOTS.md)
+51. [Sprint 47 — Toplu Repair](docs/SPRINT_47_BULK_REPAIR.md)
+52. [Sprint 48 — Mesafe Hat Maliyeti](docs/SPRINT_48_LINE_COST.md)
+53. [Sprint 49 — İzole Üretim](docs/SPRINT_49_ISOLATED_PRODUCTION.md)
+54. [Sprint 50 — Placement Kamera Odak](docs/SPRINT_50_PLACEMENT_FOCUS.md)
 
 ## İlk Uygulama Sırası
 
