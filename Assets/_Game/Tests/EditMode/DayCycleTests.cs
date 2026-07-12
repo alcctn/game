@@ -99,6 +99,51 @@ namespace CleanEnergy.Tests.EditMode
             Assert.AreEqual(DayPhase.Night, DayCycleService.PhaseFromNormalized(0.75f));
         }
 
+        [Test]
+        public void WindFactor_TableMatchesSpec()
+        {
+            Assert.AreEqual(0.85f, DayCycleService.GetWindFactor(DayPhase.Morning), 0.001f);
+            Assert.AreEqual(0.55f, DayCycleService.GetWindFactor(DayPhase.Noon), 0.001f);
+            Assert.AreEqual(1.15f, DayCycleService.GetWindFactor(DayPhase.Evening), 0.001f);
+            Assert.AreEqual(1.35f, DayCycleService.GetWindFactor(DayPhase.Night), 0.001f);
+        }
+
+        [Test]
+        public void Wind_NightGreaterThanNoon()
+        {
+            var grid = CreateGrid(4);
+            grid.SetWindPotential(new GridCoordinate(1, 1), 1f);
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            var def = CreateDef("small_wind", BuildingCategory.Energy, power: 10f, efficiency: 0.8f);
+            var instance = new BuildingInstance("w1", def, new GridCoordinate(1, 1), 0, null);
+            var producer = new ResourceProducerAdapter(instance, grid, settings);
+
+            var noon = new SimulationContext(1, 0.5f, SimulationSpeed.One, 0.3f, DayPhase.Noon);
+            var night = new SimulationContext(2, 0.5f, SimulationSpeed.One, 0.8f, DayPhase.Night);
+            var noonProd = producer.GetAvailableProduction(noon);
+            var nightProd = producer.GetAvailableProduction(night);
+
+            Assert.AreEqual(10f * 0.8f * 0.55f, noonProd, 0.001f);
+            Assert.AreEqual(10f * 0.8f * 1.35f, nightProd, 0.001f);
+            Assert.Greater(nightProd, noonProd);
+        }
+
+        [Test]
+        public void Solar_StillZeroAtNight()
+        {
+            var grid = CreateGrid(4);
+            grid.SetSolarPotential(new GridCoordinate(1, 1), 1f);
+            var settings = ScriptableObject.CreateInstance<MapGenerationSettings>();
+            var def = CreateDef("small_solar", BuildingCategory.Energy, power: 10f, efficiency: 0.8f);
+            var instance = new BuildingInstance("s1", def, new GridCoordinate(1, 1), 0, null);
+            var producer = new ResourceProducerAdapter(instance, grid, settings);
+
+            var night = new SimulationContext(1, 0.5f, SimulationSpeed.One, 0.8f, DayPhase.Night);
+            Assert.AreEqual(0f, producer.GetAvailableProduction(night), 0.001f);
+            Assert.AreEqual(0f, new SimulationContext(1, 0.5f, SimulationSpeed.One, 0.8f, DayPhase.Night).DaylightFactor, 0.001f);
+            Assert.AreEqual(1.35f, new SimulationContext(1, 0.5f, SimulationSpeed.One, 0.8f, DayPhase.Night).WindFactor, 0.001f);
+        }
+
         private static GridService CreateGrid(int size)
         {
             var grid = new GridService();

@@ -109,7 +109,23 @@ namespace CleanEnergy.Simulation
             }
         }
 
+        /// <summary>
+        /// Complementary wind curve: stronger at night/evening, weaker at noon.
+        /// </summary>
+        public static float GetWindFactor(DayPhase phase)
+        {
+            switch (phase)
+            {
+                case DayPhase.Morning: return 0.85f;
+                case DayPhase.Noon: return 0.55f;
+                case DayPhase.Evening: return 1.15f;
+                case DayPhase.Night: return 1.35f;
+                default: return 1f;
+            }
+        }
+
         public float CurrentDemandMultiplier => GetDemandMultiplier(Phase);
         public float CurrentDaylightFactor => GetDaylightFactor(Phase);
+        public float CurrentWindFactor => GetWindFactor(Phase);
     }
 }

@@ -13,6 +13,7 @@ namespace CleanEnergy.Simulation
 
         public float DemandMultiplier => DayCycleService.GetDemandMultiplier(DayPhase);
         public float DaylightFactor => DayCycleService.GetDaylightFactor(DayPhase);
+        public float WindFactor => DayCycleService.GetWindFactor(DayPhase);
 
         public SimulationContext(
             int tickIndex,

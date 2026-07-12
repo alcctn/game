@@ -62,7 +62,7 @@ namespace CleanEnergy.Energy
                 case "small_solar":
                     return Mathf.Clamp01(cell.SolarPotential) * Mathf.Clamp01(context.DaylightFactor);
                 case "small_wind":
-                    return Mathf.Clamp01(cell.WindPotential);
+                    return Mathf.Clamp01(cell.WindPotential) * Mathf.Max(0f, context.WindFactor);
                 default:
                     return 1f;
             }

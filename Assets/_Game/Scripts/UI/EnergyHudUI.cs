@@ -83,6 +83,7 @@ namespace CleanEnergy.UI
             var stored = result?.Stored ?? 0f;
             var phase = clock != null ? clock.DayCycle.Phase : DayPhase.Noon;
             var demandMul = DayCycleService.GetDemandMultiplier(phase);
+            var windMul = DayCycleService.GetWindFactor(phase);
             var lowMaint = maintenanceController != null ? maintenanceController.LowMaintenanceCount : 0;
             var upkeep = driver != null ? driver.LastUpkeepTotal : 0f;
             var upkeepBroke = driver != null && driver.CouldNotAffordFullUpkeep;
@@ -100,7 +101,7 @@ namespace CleanEnergy.UI
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"{phase} (x{demandMul:F2})");
+            GUILayout.Label($"{phase} (x{demandMul:F2}) Wind x{windMul:F2}");
             DrawSpeedButton(SimulationSpeed.Paused, "||");
             DrawSpeedButton(SimulationSpeed.One, "1x");
             DrawSpeedButton(SimulationSpeed.Two, "2x");
