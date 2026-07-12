@@ -68,6 +68,16 @@ namespace CleanEnergy.CameraSystem
             {
                 CancelFocusTween();
                 CameraInputUsed?.Invoke();
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "B",
+                    "IsometricCameraController.Update",
+                    "cam_input",
+                    "{\"scroll\":" + Input.mouseScrollDelta.y.ToString("F3") +
+                    ",\"ortho\":" + (_camera != null ? _camera.orthographicSize.ToString("F2") : "0") +
+                    ",\"tween\":" + (_focusTweenActive ? "true" : "false") +
+                    ",\"zoomSpd\":" + zoomSpeed.ToString("F1") + "}");
+                // #endregion
             }
             else
             {
@@ -253,6 +263,16 @@ namespace CleanEnergy.CameraSystem
             {
                 return false;
             }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "B",
+                "IsometricCameraController.HandleZoom",
+                "scroll_zoom",
+                "{\"scroll\":" + scroll.ToString("F3") +
+                ",\"before\":" + _camera.orthographicSize.ToString("F2") +
+                ",\"zoomSpd\":" + zoomSpeed.ToString("F1") + "}");
+            // #endregion
 
             _camera.orthographicSize = Mathf.Clamp(
                 _camera.orthographicSize - scroll * zoomSpeed,

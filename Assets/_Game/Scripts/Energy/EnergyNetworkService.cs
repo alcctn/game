@@ -182,7 +182,6 @@ namespace CleanEnergy.Energy
 
             _dirty = false;
             NetworkChanged?.Invoke(new NetworkChangedEvent());
-            Debug.Log($"[EnergyNetwork] Rebuilt nodes={_graph.Nodes.Count} components={_graph.Components.Count}");
         }
 
         private void OnBuildingPlaced(BuildingPlacedEvent _)
