@@ -20,6 +20,14 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 5. [Sprint 01 — Arazi Sistemi](docs/SPRINT_01_TERRAIN.md)
 6. [Sprint 02 — Kaynak Katmanları](docs/SPRINT_02_RESOURCES.md)
 7. [Sprint 03 — Bina Yerleştirme](docs/SPRINT_03_PLACEMENT.md)
+8. [Sprint 04 — Enerji Şebekesi](docs/SPRINT_04_ENERGY.md)
+9. [Sprint 05 — Senaryo Hedefleri](docs/SPRINT_05_SCENARIO.md)
+10. [Sprint 06 — Araştırma Ağacı](docs/SPRINT_06_RESEARCH.md)
+11. [Sprint 07 — Gün Döngüsü](docs/SPRINT_07_DAYCYCLE.md)
+12. [Sprint 08 — Kayıt / Yükleme](docs/SPRINT_08_SAVELOAD.md)
+13. [Sprint 09 — Eğitim Görevleri](docs/SPRINT_09_TUTORIAL.md)
+14. [Sprint 10 — Bakım Sistemi](docs/SPRINT_10_MAINTENANCE.md)
+15. [Sprint 11 — Dağıtım Noktası](docs/SPRINT_11_DISTRIBUTION.md)
 
 ## İlk Uygulama Sırası
 

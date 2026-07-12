@@ -250,8 +250,18 @@ namespace CleanEnergy.Placement
 
         public bool Evaluate(PlacementContext context, List<string> failureReasons)
         {
-            // Sprint 03: all prototype buildings are unlocked.
-            return true;
+            if (context.BuildingUnlocks == null)
+            {
+                return true;
+            }
+
+            if (context.BuildingUnlocks.IsBuildingUnlocked(context.Definition.Id))
+            {
+                return true;
+            }
+
+            failureReasons.Add($"Technology locked: {context.Definition.DisplayName}.");
+            return false;
         }
     }
 }

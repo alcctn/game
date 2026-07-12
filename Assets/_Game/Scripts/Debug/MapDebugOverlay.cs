@@ -87,9 +87,17 @@ namespace CleanEnergy.DebugTools
 
         public void SetMode(DebugViewMode mode)
         {
+            if (_mode == mode)
+            {
+                return;
+            }
+
             _mode = mode;
             Rebuild();
+            ModeChanged?.Invoke(_mode);
         }
+
+        public event System.Action<DebugViewMode> ModeChanged;
 
         public void ClearSelection()
         {

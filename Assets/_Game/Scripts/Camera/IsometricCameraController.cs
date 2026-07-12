@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace CleanEnergy.CameraSystem
@@ -23,6 +24,7 @@ namespace CleanEnergy.CameraSystem
         private float _yaw;
 
         public CameraBounds Bounds => bounds;
+        public event Action CameraInputUsed;
 
         private void Awake()
         {
@@ -39,9 +41,15 @@ namespace CleanEnergy.CameraSystem
         private void Update()
         {
             var dt = Time.deltaTime;
-            HandleMove(dt);
-            HandleRotate(dt);
-            HandleZoom();
+            var used = false;
+            used |= HandleMove(dt);
+            used |= HandleRotate(dt);
+            used |= HandleZoom();
+            if (used)
+            {
+                CameraInputUsed?.Invoke();
+            }
+
             ApplyTransform();
         }
 
@@ -55,7 +63,7 @@ namespace CleanEnergy.CameraSystem
             }
         }
 
-        private void HandleMove(float dt)
+        private bool HandleMove(float dt)
         {
             var input = Vector3.zero;
             if (Input.GetKey(KeyCode.W)) input.z += 1f;
@@ -65,7 +73,7 @@ namespace CleanEnergy.CameraSystem
 
             if (input.sqrMagnitude < 1e-6f)
             {
-                return;
+                return false;
             }
 
             input.Normalize();
@@ -74,28 +82,36 @@ namespace CleanEnergy.CameraSystem
             var zoomFactor = _camera.orthographicSize / maxOrthographicSize;
             _focusPoint += worldMove * (moveSpeed * Mathf.Max(0.25f, zoomFactor) * dt);
             _focusPoint = bounds.Clamp(_focusPoint);
+            return true;
         }
 
-        private void HandleRotate(float dt)
+        private bool HandleRotate(float dt)
         {
             var rotate = 0f;
             if (Input.GetKey(KeyCode.Q)) rotate -= 1f;
             if (Input.GetKey(KeyCode.E)) rotate += 1f;
+            if (Mathf.Abs(rotate) < 1e-6f)
+            {
+                return false;
+            }
+
             _yaw += rotate * rotateSpeed * dt;
+            return true;
         }
 
-        private void HandleZoom()
+        private bool HandleZoom()
         {
             var scroll = Input.mouseScrollDelta.y;
             if (Mathf.Abs(scroll) < 1e-4f)
             {
-                return;
+                return false;
             }
 
             _camera.orthographicSize = Mathf.Clamp(
                 _camera.orthographicSize - scroll * zoomSpeed,
                 minOrthographicSize,
                 maxOrthographicSize);
+            return true;
         }
 
         private void ApplyTransform()

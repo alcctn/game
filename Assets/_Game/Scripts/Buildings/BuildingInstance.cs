@@ -15,6 +15,7 @@ namespace CleanEnergy.Buildings
         public GameObject GameObject { get; }
         public float MaintenanceLevel { get; set; } = 1f;
         public float CurrentProduction { get; set; }
+        public float StoredEnergy { get; set; }
 
         public BuildingInstance(
             string instanceId,

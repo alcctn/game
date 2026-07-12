@@ -24,7 +24,7 @@ namespace CleanEnergy.UI
             }
 
             const float width = 280f;
-            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, 12f, width, 340f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, 12f, width, 360f), GUI.skin.box);
             GUILayout.Label("Buildings");
             GUILayout.Label($"Money: {placementController.Wallet.Money:F0}");
 
@@ -39,12 +39,19 @@ namespace CleanEnergy.UI
                         continue;
                     }
 
+                    var unlocked = placementController.BuildingUnlocks == null
+                                   || placementController.BuildingUnlocks.IsBuildingUnlocked(def.Id);
                     var selected = placementController.SelectedBuilding == def;
-                    var label = $"{def.DisplayName} ({def.Cost:F0})";
-                    if (GUILayout.Toggle(selected, label, "Button") && !selected)
+                    var label = unlocked
+                        ? $"{def.DisplayName} ({def.Cost:F0})"
+                        : $"{def.DisplayName} (Locked)";
+                    GUI.enabled = unlocked;
+                    if (GUILayout.Toggle(selected, label, "Button") && unlocked && !selected)
                     {
                         placementController.SelectBuilding(def);
                     }
+
+                    GUI.enabled = true;
                 }
             }
 

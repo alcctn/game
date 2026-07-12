@@ -24,7 +24,8 @@ namespace CleanEnergy.Placement
             GridCoordinate coordinate,
             GridService grid,
             GridOccupancyService occupancy,
-            Wallet wallet)
+            Wallet wallet,
+            IBuildingUnlockQuery buildingUnlocks = null)
         {
             var reasons = new List<string>();
             if (definition == null)
@@ -45,7 +46,8 @@ namespace CleanEnergy.Placement
                 return PlacementValidationResult.Failure(reasons);
             }
 
-            var context = new PlacementContext(definition, coordinate, grid, occupancy, wallet);
+            var context = new PlacementContext(
+                definition, coordinate, grid, occupancy, wallet, buildingUnlocks);
             var allPassed = true;
             for (var i = 0; i < _rules.Count; i++)
             {

@@ -29,3 +29,9 @@ MonoBehaviour:
   requiresAdjacentWater: 1
   requireBuildableCell: 0
   gizmoColor: {r: 0.25, g: 0.55, b: 0.95, a: 1}
+  baseDemand: 0
+  storageCapacity: 0
+  chargeRate: 20
+  dischargeRate: 20
+  connectionRange: 4
+  isNetworkHub: 0

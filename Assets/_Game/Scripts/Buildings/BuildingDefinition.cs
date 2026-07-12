@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CleanEnergy.Buildings
 {
     /// <summary>
-    /// Data-driven building definition for placement and economy.
+    /// Data-driven building definition for placement, economy and energy roles.
     /// </summary>
     [CreateAssetMenu(fileName = "BuildingDefinition", menuName = "Clean Energy/Building Definition")]
     public sealed class BuildingDefinition : ScriptableObject
@@ -25,6 +25,13 @@ namespace CleanEnergy.Buildings
         [SerializeField] private bool requiresAdjacentWater;
         [SerializeField] private bool requireBuildableCell = true;
         [SerializeField] private Color gizmoColor = new Color(0.3f, 0.75f, 0.9f, 1f);
+        [Header("Energy Network")]
+        [SerializeField] private float baseDemand;
+        [SerializeField] private float storageCapacity;
+        [SerializeField] private float chargeRate = 20f;
+        [SerializeField] private float dischargeRate = 20f;
+        [SerializeField] private int connectionRange = 4;
+        [SerializeField] private bool isNetworkHub;
 
         public string Id => id;
         public string DisplayName => displayName;
@@ -43,6 +50,16 @@ namespace CleanEnergy.Buildings
         public bool RequiresAdjacentWater => requiresAdjacentWater;
         public bool RequireBuildableCell => requireBuildableCell;
         public Color GizmoColor => gizmoColor;
+        public float BaseDemand => baseDemand;
+        public float StorageCapacity => storageCapacity;
+        public float ChargeRate => chargeRate;
+        public float DischargeRate => dischargeRate;
+        public int ConnectionRange => connectionRange;
+        public bool IsNetworkHub => isNetworkHub;
+
+        public bool IsProducer => installedPower > 0f && category == BuildingCategory.Energy;
+        public bool IsConsumer => baseDemand > 0f;
+        public bool IsStorage => storageCapacity > 0f;
 
         public void Configure(
             string buildingId,
@@ -57,7 +74,14 @@ namespace CleanEnergy.Buildings
             float windMin,
             bool adjacentWater,
             bool buildableRequired,
-            Color color)
+            Color color,
+            float demand = 0f,
+            float capacity = 0f,
+            float charge = 20f,
+            float discharge = 20f,
+            int linkRange = 4,
+            bool hub = false,
+            float buildingEfficiency = 0.8f)
         {
             id = buildingId;
             displayName = name;
@@ -73,7 +97,13 @@ namespace CleanEnergy.Buildings
             requireBuildableCell = buildableRequired;
             gizmoColor = color;
             size = Vector2Int.one;
-            efficiency = 0.8f;
+            efficiency = buildingEfficiency;
+            baseDemand = demand;
+            storageCapacity = capacity;
+            chargeRate = charge;
+            dischargeRate = discharge;
+            connectionRange = linkRange;
+            isNetworkHub = hub;
         }
     }
 }

@@ -6,6 +6,14 @@ using CleanEnergy.Grid;
 namespace CleanEnergy.Placement
 {
     /// <summary>
+    /// Query used by TechnologyUnlockedRule to gate buildings behind research.
+    /// </summary>
+    public interface IBuildingUnlockQuery
+    {
+        bool IsBuildingUnlocked(string buildingId);
+    }
+
+    /// <summary>
     /// Context passed to every placement rule.
     /// </summary>
     public sealed class PlacementContext
@@ -15,19 +23,22 @@ namespace CleanEnergy.Placement
         public GridService Grid { get; }
         public GridOccupancyService Occupancy { get; }
         public Wallet Wallet { get; }
+        public IBuildingUnlockQuery BuildingUnlocks { get; }
 
         public PlacementContext(
             BuildingDefinition definition,
             GridCoordinate coordinate,
             GridService grid,
             GridOccupancyService occupancy,
-            Wallet wallet)
+            Wallet wallet,
+            IBuildingUnlockQuery buildingUnlocks = null)
         {
             Definition = definition;
             Coordinate = coordinate;
             Grid = grid;
             Occupancy = occupancy;
             Wallet = wallet;
+            BuildingUnlocks = buildingUnlocks;
         }
     }
 

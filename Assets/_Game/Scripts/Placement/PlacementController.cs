@@ -34,11 +34,13 @@ namespace CleanEnergy.Placement
         private readonly PlacementValidator _validator = new PlacementValidator();
         private readonly GridOccupancyService _occupancy = new GridOccupancyService();
         private Wallet _wallet;
+        private IBuildingUnlockQuery _buildingUnlocks;
         private BuildingDefinition _selected;
         private IReadOnlyList<string> _lastFailures = Array.Empty<string>();
         private bool _placementArmed;
 
         public Wallet Wallet => _wallet;
+        public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
         public GridOccupancyService Occupancy => _occupancy;
         public BuildingDefinition SelectedBuilding => _selected;
         public IReadOnlyList<string> LastFailureReasons => _lastFailures;
@@ -97,7 +99,8 @@ namespace CleanEnergy.Placement
                 coordinate,
                 mapGenerator.Grid,
                 _occupancy,
-                _wallet);
+                _wallet,
+                _buildingUnlocks);
             _lastFailures = result.FailureReasons;
 
             if (mapGenerator.Grid.TryGetCell(coordinate, out var cell))
@@ -115,7 +118,8 @@ namespace CleanEnergy.Placement
             MapGenerator generator,
             Transform buildingsParent,
             BuildingDefinition[] buildings,
-            float money)
+            float money,
+            IBuildingUnlockQuery buildingUnlocks = null)
         {
             if (mapGenerator != null)
             {
@@ -127,10 +131,16 @@ namespace CleanEnergy.Placement
             availableBuildings = buildings;
             startingMoney = money;
             _wallet = new Wallet(money);
+            _buildingUnlocks = buildingUnlocks;
             if (mapGenerator != null)
             {
                 mapGenerator.Events.MapGenerated += OnMapGenerated;
             }
+        }
+
+        public void SetBuildingUnlockQuery(IBuildingUnlockQuery buildingUnlocks)
+        {
+            _buildingUnlocks = buildingUnlocks;
         }
 
         public void SelectBuilding(BuildingDefinition definition)
@@ -152,6 +162,72 @@ namespace CleanEnergy.Placement
             preview?.Hide();
         }
 
+        public BuildingDefinition FindDefinition(string definitionId)
+        {
+            if (availableBuildings == null || string.IsNullOrEmpty(definitionId))
+            {
+                return null;
+            }
+
+            for (var i = 0; i < availableBuildings.Length; i++)
+            {
+                var def = availableBuildings[i];
+                if (def != null && def.Id == definitionId)
+                {
+                    return def;
+                }
+            }
+
+            return null;
+        }
+
+        public bool TryPlaceFromSave(
+            string definitionId,
+            GridCoordinate coordinate,
+            int rotation,
+            float storedEnergy,
+            float maintenanceLevel = 1f)
+        {
+            var definition = FindDefinition(definitionId);
+            if (definition == null || mapGenerator == null || !mapGenerator.Grid.IsInitialized)
+            {
+                return false;
+            }
+
+            if (_occupancy.IsOccupied(coordinate))
+            {
+                return false;
+            }
+
+            var parent = buildingRoot != null ? buildingRoot : transform;
+            var instance = _factory.Create(definition, coordinate, mapGenerator.Grid, parent, rotation);
+            if (instance == null)
+            {
+                return false;
+            }
+
+            instance.StoredEnergy = Mathf.Max(0f, storedEnergy);
+            instance.MaintenanceLevel = Mathf.Clamp(maintenanceLevel, 0.4f, 1f);
+            if (!_occupancy.TryOccupy(instance))
+            {
+                if (instance.GameObject != null)
+                {
+                    Destroy(instance.GameObject);
+                }
+
+                return false;
+            }
+
+            mapGenerator.Grid.SetOccupyingBuildingId(coordinate, instance.InstanceId);
+            BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
+            return true;
+        }
+
+        public void ResetFactoryIds()
+        {
+            _factory.ResetIds();
+        }
+
         public PlacementValidationResult TryPlace(GridCoordinate coordinate)
         {
             if (_selected == null || mapGenerator == null)
@@ -166,7 +242,8 @@ namespace CleanEnergy.Placement
                 coordinate,
                 mapGenerator.Grid,
                 _occupancy,
-                _wallet);
+                _wallet,
+                _buildingUnlocks);
             _lastFailures = result.FailureReasons;
             if (!result.IsValid)
             {
@@ -241,9 +318,10 @@ namespace CleanEnergy.Placement
 
         private static bool IsPointerOverImgui()
         {
-            // Rough guard: left UI panels occupy the left ~320px.
-            return Input.mousePosition.x < 320f && Input.mousePosition.y > Screen.height - 420f
-                   || Input.mousePosition.x > Screen.width - 320f;
+            // Rough guard: left UI panels and right building menu.
+            return Input.mousePosition.x < 320f
+                   || Input.mousePosition.x > Screen.width - 320f
+                   || (Input.mousePosition.x > Screen.width - 180f && Input.mousePosition.y < 100f);
         }
     }
 }

@@ -231,6 +231,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b0a833409b508474eb00896344b74d63, type: 2}
   - {fileID: 11400000, guid: 9a1ae7acb78323548861493732ed77bb, type: 2}
   - {fileID: 11400000, guid: 753d9dbea51470c47b3a79c20552a92f, type: 2}
+  - {fileID: 11400000, guid: 4f8e2a1c9b3d4e5f6a7b8c9d0e1f2a3b, type: 2}
+  - {fileID: 11400000, guid: 5a9f3b2d0c4e5f6a7b8c9d0e1f2a3b4c, type: 2}
+  - {fileID: 11400000, guid: 7c1d5e6f8a9b0c1d2e3f4a5b6c7d8e9f, type: 2}
+  - {fileID: 11400000, guid: 6b0a4c3e1d5f6a7b8c9d0e1f2a3b4c5d, type: 2}
+  - {fileID: 11400000, guid: 8d2e6f7a9b0c1d2e3f4a5b6c7d8e9f0a, type: 2}
+  scenarioDefinition: {fileID: 11400000, guid: 8d2e9f3a4b5c6d7e8f9a0b1c2d3e4f5a, type: 2}
+  researchTreeDefinition: {fileID: 11400000, guid: af4b1c5d6e7f8a9b0c1d2e3f4a5b6c7d, type: 2}
   createSettingsIfMissing: 1
   startingMoney: 1000
 --- !u!4 &75366290

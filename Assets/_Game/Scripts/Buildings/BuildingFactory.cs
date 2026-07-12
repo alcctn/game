@@ -10,6 +10,18 @@ namespace CleanEnergy.Buildings
     {
         private int _nextId = 1;
 
+        public int PeekNextId() => _nextId;
+
+        public void SetNextId(int nextId)
+        {
+            _nextId = Mathf.Max(1, nextId);
+        }
+
+        public void ResetIds()
+        {
+            _nextId = 1;
+        }
+
         public BuildingInstance Create(
             BuildingDefinition definition,
             GridCoordinate coordinate,
@@ -70,6 +82,26 @@ namespace CleanEnergy.Buildings
                 case "small_wind":
                     type = PrimitiveType.Cylinder;
                     scale = new Vector3(0.25f, 1.4f, 0.25f);
+                    break;
+                case "village":
+                    type = PrimitiveType.Cube;
+                    scale = new Vector3(1.6f, 0.8f, 1.6f);
+                    break;
+                case "battery":
+                    type = PrimitiveType.Cube;
+                    scale = new Vector3(0.9f, 0.9f, 0.9f);
+                    break;
+                case "maintenance_depot":
+                    type = PrimitiveType.Cylinder;
+                    scale = new Vector3(1.1f, 0.55f, 1.1f);
+                    break;
+                case "power_line":
+                    type = PrimitiveType.Cylinder;
+                    scale = new Vector3(0.15f, 1.1f, 0.15f);
+                    break;
+                case "distribution_hub":
+                    type = PrimitiveType.Cube;
+                    scale = new Vector3(1.2f, 0.7f, 1.2f);
                     break;
                 default:
                     type = PrimitiveType.Cube;
