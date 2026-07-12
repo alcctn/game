@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleanEnergy.Energy;
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
@@ -11,10 +12,13 @@ namespace CleanEnergy.DebugTools
     /// </summary>
     public sealed class MapDebugOverlay : MonoBehaviour
     {
+        public const int MaxMultiSelection = 8;
+
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private PlacementController placementController;
         [SerializeField] private EnergySimulationDriver energyDriver;
         [SerializeField] private NetworkEdgeOverlay edgeOverlay;
+        [SerializeField] private NetworkEdgeParticles edgeParticles;
         [SerializeField] private float overlayHeightOffset = 0.5f;
         [SerializeField] private float maxSlopeForColor = 45f;
         [SerializeField] private float maxWaterFlowForColor = 64f;
@@ -25,12 +29,15 @@ namespace CleanEnergy.DebugTools
         private Mesh _mesh;
         private Material _material;
         private GridCoordinate? _selectedCell;
+        private readonly List<GridCoordinate> _multiSelection = new List<GridCoordinate>();
 
         public DebugViewMode Mode => _mode;
         public GridCoordinate? SelectedCell => _selectedCell;
+        public IReadOnlyList<GridCoordinate> MultiSelectedCells => _multiSelection;
 
         public event System.Action<DebugViewMode> ModeChanged;
         public event System.Action<GridCoordinate?> SelectionChanged;
+        public event System.Action MultiSelectionChanged;
 
         private void Awake()
         {
@@ -113,6 +120,12 @@ namespace CleanEnergy.DebugTools
             SyncEdgeOverlay();
         }
 
+        public void SetNetworkEdgeParticles(NetworkEdgeParticles particles)
+        {
+            edgeParticles = particles;
+            SyncEdgeOverlay();
+        }
+
         private void OnBalanceUpdated(EnergyBalanceResult _)
         {
             if (_mode == DebugViewMode.Network
@@ -123,9 +136,10 @@ namespace CleanEnergy.DebugTools
                 Rebuild();
             }
 
-            if (_mode == DebugViewMode.Network && edgeOverlay != null)
+            if (_mode == DebugViewMode.Network)
             {
-                edgeOverlay.Rebuild();
+                edgeOverlay?.Rebuild();
+                edgeParticles?.Rebuild();
             }
         }
 
@@ -144,12 +158,9 @@ namespace CleanEnergy.DebugTools
 
         private void SyncEdgeOverlay()
         {
-            if (edgeOverlay == null)
-            {
-                return;
-            }
-
-            edgeOverlay.SetVisible(_mode == DebugViewMode.Network);
+            var networkVisible = _mode == DebugViewMode.Network;
+            edgeOverlay?.SetVisible(networkVisible);
+            edgeParticles?.SetVisible(networkVisible);
         }
 
         public void SetSelection(GridCoordinate? coordinate)
@@ -167,7 +178,44 @@ namespace CleanEnergy.DebugTools
         public void ClearSelection()
         {
             SetSelection(null);
+            ClearMultiSelection();
         }
+
+        public void ClearMultiSelection()
+        {
+            if (_multiSelection.Count == 0)
+            {
+                return;
+            }
+
+            _multiSelection.Clear();
+            MultiSelectionChanged?.Invoke();
+        }
+
+        /// <summary>Adds or removes a cell from the multi-select set (max 8).</summary>
+        public bool ToggleMultiSelect(GridCoordinate coordinate)
+        {
+            for (var i = 0; i < _multiSelection.Count; i++)
+            {
+                if (_multiSelection[i].Equals(coordinate))
+                {
+                    _multiSelection.RemoveAt(i);
+                    MultiSelectionChanged?.Invoke();
+                    return true;
+                }
+            }
+
+            if (_multiSelection.Count >= MaxMultiSelection)
+            {
+                return false;
+            }
+
+            _multiSelection.Add(coordinate);
+            MultiSelectionChanged?.Invoke();
+            return true;
+        }
+
+        public static bool ShouldToggleMultiSelect(bool shiftHeld) => shiftHeld;
 
         public bool TryGetSelectedCellData(out GridCellData cell)
         {
@@ -398,7 +446,17 @@ namespace CleanEnergy.DebugTools
 
             if (mapGenerator.Grid.TryWorldToGrid(hit.point, out var coordinate))
             {
-                SetSelection(coordinate);
+                var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                if (ShouldToggleMultiSelect(shift))
+                {
+                    ToggleMultiSelect(coordinate);
+                    SetSelection(coordinate);
+                }
+                else
+                {
+                    ClearMultiSelection();
+                    SetSelection(coordinate);
+                }
             }
         }
 

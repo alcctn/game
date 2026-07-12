@@ -20,6 +20,7 @@ namespace CleanEnergy.UI
 
         private string _shortageText = string.Empty;
         private float _shortageTimer;
+        private string _repairMessage = string.Empty;
 
         public void Configure(
             EnergySimulationDriver energyDriver,
@@ -70,9 +71,9 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            const float width = 520f;
+            const float width = 560f;
             var x = (Screen.width - width) * 0.5f;
-            GUILayout.BeginArea(new Rect(x, 8f, width, 108f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(x, 8f, width, 132f), GUI.skin.box);
 
             var result = driver != null ? driver.LastResult : null;
             var money = placementController != null ? placementController.Wallet.Money : 0f;
@@ -88,6 +89,8 @@ namespace CleanEnergy.UI
             var upkeep = driver != null ? driver.LastUpkeepTotal : 0f;
             var upkeepBroke = driver != null && driver.CouldNotAffordFullUpkeep;
             var congested = result != null && result.IsCongested;
+            var debt = driver != null ? driver.EmergencyCredit.RemainingDebt : 0f;
+            var weather = clock != null ? clock.Weather.ActiveKind : WeatherEventKind.None;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(congested
@@ -96,12 +99,22 @@ namespace CleanEnergy.UI
             GUILayout.Label($"Demand {demand:F1}");
             GUILayout.Label($"Stored {stored:F1}");
             GUILayout.Label($"Money {money:F0}");
+            if (debt > 0.0001f)
+            {
+                GUILayout.Label($"Debt {debt:F0}");
+            }
+
             GUILayout.Label($"RP {rp:F0}");
             GUILayout.Label($"Upkeep {upkeep:F0}/tick");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{phase} (x{demandMul:F2}) Wind x{windMul:F2}");
+            if (weather != WeatherEventKind.None)
+            {
+                GUILayout.Label($"{weather} ({clock.Weather.RemainingTicks})");
+            }
+
             DrawSpeedButton(SimulationSpeed.Paused, "||");
             DrawSpeedButton(SimulationSpeed.One, "1x");
             DrawSpeedButton(SimulationSpeed.Two, "2x");
@@ -124,6 +137,31 @@ namespace CleanEnergy.UI
             if (!string.IsNullOrEmpty(_shortageText))
             {
                 GUILayout.Label(_shortageText);
+            }
+
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (placementController != null && GUILayout.Button("Repair All", GUILayout.Width(90f)))
+            {
+                if (MaintenanceService.TryGlobalRepairAllProducers(
+                        placementController.Occupancy.Occupied,
+                        placementController.Wallet,
+                        out var count,
+                        out var cost,
+                        out var fail))
+                {
+                    _repairMessage = $"Repaired {count} for {cost:F0}.";
+                }
+                else
+                {
+                    _repairMessage = fail;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_repairMessage))
+            {
+                GUILayout.Label(_repairMessage);
             }
 
             GUILayout.EndHorizontal();

@@ -70,7 +70,7 @@ namespace CleanEnergy.Placement
         private int _rotation;
         private GridCoordinate? _hoverCoordinate;
         private bool _hoverValid;
-        private DemolishUndoSnapshot _demolishUndo;
+        private readonly List<DemolishUndoSnapshot> _demolishUndoGroup = new List<DemolishUndoSnapshot>();
 
         public Wallet Wallet => _wallet;
         public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
@@ -83,7 +83,9 @@ namespace CleanEnergy.Placement
         public bool IsHoverValid => _hoverValid;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
         public MapGenerator MapGenerator => mapGenerator;
-        public bool HasDemolishUndo => _demolishUndo != null;
+        public bool HasDemolishUndo => _demolishUndoGroup.Count > 0;
+        public int DemolishUndoCount => _demolishUndoGroup.Count;
+        public IReadOnlyList<DemolishUndoSnapshot> DemolishUndoGroup => _demolishUndoGroup;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
         public event Action<BuildingPlacedEvent> BuildingRemoved;
@@ -357,66 +359,120 @@ namespace CleanEnergy.Placement
 
         public void ClearDemolishUndo()
         {
-            _demolishUndo = null;
+            _demolishUndoGroup.Clear();
         }
 
         public bool TryUndoLastDemolish()
         {
-            if (_demolishUndo == null || _wallet == null)
+            if (_demolishUndoGroup.Count == 0 || _wallet == null)
             {
                 return false;
             }
 
-            var snap = _demolishUndo;
-            if (!_wallet.TrySpend(snap.RefundAmount))
+            var totalRefund = 0f;
+            for (var i = 0; i < _demolishUndoGroup.Count; i++)
+            {
+                totalRefund += _demolishUndoGroup[i].RefundAmount;
+            }
+
+            if (!_wallet.TrySpend(totalRefund))
             {
                 return false;
             }
 
-            if (!TryPlaceFromSave(
-                    snap.DefinitionId,
-                    snap.Coordinate,
-                    snap.Rotation,
-                    snap.StoredEnergy,
-                    snap.MaintenanceLevel))
+            var snaps = new List<DemolishUndoSnapshot>(_demolishUndoGroup);
+            _demolishUndoGroup.Clear();
+
+            for (var i = 0; i < snaps.Count; i++)
             {
-                _wallet.Add(snap.RefundAmount);
-                return false;
+                var snap = snaps[i];
+                if (!TryPlaceFromSave(
+                        snap.DefinitionId,
+                        snap.Coordinate,
+                        snap.Rotation,
+                        snap.StoredEnergy,
+                        snap.MaintenanceLevel))
+                {
+                    // Restore remaining refund for buildings that did not come back.
+                    var restored = 0f;
+                    for (var j = 0; j < i; j++)
+                    {
+                        restored += snaps[j].RefundAmount;
+                    }
+
+                    _wallet.Add(totalRefund - restored);
+                    _demolishUndoGroup.Clear();
+                    _demolishUndoGroup.AddRange(snaps);
+                    return false;
+                }
             }
 
-            // TryPlaceFromSave clears undo; keep cleared.
-            _demolishUndo = null;
-            Debug.Log($"[Placement] Undo demolish '{snap.DefinitionId}' at {snap.Coordinate}.");
+            Debug.Log($"[Placement] Undo demolish group ({snaps.Count}).");
             return true;
         }
 
         public bool TryDemolish(GridCoordinate coordinate, out float refund)
         {
+            return TryDemolishMany(new[] { coordinate }, out refund);
+        }
+
+        /// <summary>
+        /// Demolishes buildings at the given cells as one undo group (max 8).
+        /// </summary>
+        public bool TryDemolishMany(IReadOnlyList<GridCoordinate> coordinates, out float refund)
+        {
             refund = 0f;
-            if (!_occupancy.TryGet(coordinate, out var building) || building?.Definition == null)
+            if (coordinates == null || coordinates.Count == 0)
             {
                 return false;
             }
 
-            refund = Mathf.Max(0f, building.Definition.Cost * 0.5f);
-            _demolishUndo = new DemolishUndoSnapshot(
-                building.Definition.Id,
-                building.Coordinate,
-                building.Rotation,
-                building.StoredEnergy,
-                building.MaintenanceLevel,
-                refund);
-            _wallet?.Add(refund);
-            _occupancy.ReleaseInstance(building);
-            SetFootprintOccupyingIds(building, null);
-
-            if (building.GameObject != null)
+            var targets = new List<BuildingInstance>();
+            var seen = new HashSet<string>();
+            var limit = Mathf.Min(coordinates.Count, 8);
+            for (var i = 0; i < limit; i++)
             {
-                Destroy(building.GameObject);
+                if (!_occupancy.TryGet(coordinates[i], out var building)
+                    || building?.Definition == null
+                    || !seen.Add(building.InstanceId))
+                {
+                    continue;
+                }
+
+                targets.Add(building);
             }
 
-            BuildingRemoved?.Invoke(new BuildingPlacedEvent(building));
-            Debug.Log($"[Placement] Demolished '{building.Definition.Id}' at {coordinate}. Refund={refund:F0}");
+            if (targets.Count == 0)
+            {
+                return false;
+            }
+
+            _demolishUndoGroup.Clear();
+            for (var i = 0; i < targets.Count; i++)
+            {
+                var building = targets[i];
+                var amount = Mathf.Max(0f, building.Definition.Cost * 0.5f);
+                _demolishUndoGroup.Add(new DemolishUndoSnapshot(
+                    building.Definition.Id,
+                    building.Coordinate,
+                    building.Rotation,
+                    building.StoredEnergy,
+                    building.MaintenanceLevel,
+                    amount));
+                refund += amount;
+                _wallet?.Add(amount);
+                _occupancy.ReleaseInstance(building);
+                SetFootprintOccupyingIds(building, null);
+
+                if (building.GameObject != null)
+                {
+                    Destroy(building.GameObject);
+                }
+
+                BuildingRemoved?.Invoke(new BuildingPlacedEvent(building));
+            }
+
+            Debug.Log($"[Placement] Demolished group ({targets.Count}). Refund={refund:F0}");
             return true;
         }
 

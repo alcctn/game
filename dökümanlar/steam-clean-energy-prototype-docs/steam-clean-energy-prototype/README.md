@@ -82,6 +82,21 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 67. [Sprint 63 — Third Scenario](docs/SPRINT_63_THIRD_SCENARIO.md)
 68. [Sprint 64 — Play Hotkeys](docs/SPRINT_64_PLAY_HOTKEYS.md)
 69. [Sprint 65 — Storage Research](docs/SPRINT_65_STORAGE_RESEARCH.md)
+70. [Sprint 66 — Placement Expected Loss](docs/SPRINT_66_PLACEMENT_LOSS.md)
+71. [Sprint 67 — Build Menu Category Tabs](docs/SPRINT_67_BUILD_TABS.md)
+72. [Sprint 68 — Prefab Static Pass](docs/SPRINT_68_PREFABS.md)
+73. [Sprint 69 — Music + Ambience](docs/SPRINT_69_MUSIC.md)
+74. [Sprint 70 — Rotating Visual](docs/SPRINT_70_ROTATING_VISUAL.md)
+75. [Sprint 71 — Fourth Scenario](docs/SPRINT_71_FOURTH_SCENARIO.md)
+76. [Sprint 72 — Day-Cycle Lighting](docs/SPRINT_72_DAY_LIGHTING.md)
+77. [Sprint 73 — Global Map Repair](docs/SPRINT_73_GLOBAL_REPAIR.md)
+78. [Sprint 74 — Emergency Credit Interest](docs/SPRINT_74_CREDIT_INTEREST.md)
+79. [Sprint 75 — Multi-Select Demolish Undo](docs/SPRINT_75_MULTI_DEMOLISH.md)
+80. [Sprint 76 — Production Sparkline](docs/SPRINT_76_SPARKLINE.md)
+81. [Sprint 77 — Weather Micro-Events](docs/SPRINT_77_WEATHER.md)
+82. [Sprint 78 — Edge Particles](docs/SPRINT_78_EDGE_PARTICLES.md)
+83. [Sprint 79 — Keybind Remap](docs/SPRINT_79_KEYBINDS.md)
+84. [Sprint 80 — Bootstrap Scene](docs/SPRINT_80_BOOTSTRAP.md)
 
 ## İlk Uygulama Sırası
 

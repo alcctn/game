@@ -111,13 +111,15 @@ Once kolay ve statik yapilarla basla:
 2. `battery`
 3. `distribution_hub`
 4. `village`
+5. `power_line`
+
+**Sprint 68:** Bu bes id icin `Assets/_Game/Prefabs/Buildings/{id}.prefab` placeholder'lari editor setup ile olusturulur ve ilgili `BuildingDefinition.prefab` alanina atanir. Gercek art ile degistirmek icin ayni path'i overwrite etmek yeterlidir; data baglantisi korunur.
 
 Daha sonra hareketli veya yon duyarliligi olan yapilara gec:
 
 1. `small_wind`
 2. `water_wheel`
 3. `small_hydro`
-4. `power_line`
 
 ## 7. Animasyon notlari
 
@@ -127,7 +129,7 @@ Sonraki iyilestirme:
 
 - Ruzgar turbin kanatlari kendi child objesi olarak ayrilmali.
 - Su carki kendi child objesi olarak ayrilmali.
-- Donen parcalar icin basit bir `RotatingVisual` script'i eklenebilir.
+- Donen parcalar icin basit bir `RotatingVisual` script'i eklenebilir (Sprint 70).
 
 ## 8. Test kontrol listesi
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleanEnergy.Buildings;
 using CleanEnergy.Energy;
 using CleanEnergy.Placement;
@@ -12,9 +13,42 @@ namespace CleanEnergy.UI
     /// </summary>
     public sealed class BuildingPlacementUI : MonoBehaviour
     {
+        public const string BuildTabPrefsKey = "ce_build_tab";
+
+        private static readonly BuildingCategory[] TabOrder =
+        {
+            BuildingCategory.Energy,
+            BuildingCategory.Network,
+            BuildingCategory.Storage,
+            BuildingCategory.Settlement,
+            BuildingCategory.Service
+        };
+
+        private static readonly string[] TabLabels =
+        {
+            "Energy",
+            "Network",
+            "Storage",
+            "Settlement",
+            "Service"
+        };
+
         [SerializeField] private PlacementController placementController;
         [SerializeField] private SimulationClock simulationClock;
         [SerializeField] private ResearchController researchController;
+
+        private BuildingCategory _activeCategory = BuildingCategory.Energy;
+        private bool _tabLoaded;
+
+        /// <summary>Currently selected build-menu category tab.</summary>
+        public BuildingCategory ActiveCategory
+        {
+            get
+            {
+                EnsureTabLoaded();
+                return _activeCategory;
+            }
+        }
 
         public void Configure(
             PlacementController controller,
@@ -26,6 +60,78 @@ namespace CleanEnergy.UI
             researchController = research;
         }
 
+        /// <summary>Sets the active tab and persists it to PlayerPrefs.</summary>
+        public void SetActiveCategory(BuildingCategory category)
+        {
+            _activeCategory = category;
+            _tabLoaded = true;
+            SaveActiveCategory(category);
+        }
+
+        /// <summary>Loads the last build tab from PlayerPrefs (default Energy).</summary>
+        public static BuildingCategory LoadActiveCategory()
+        {
+            var raw = PlayerPrefs.GetInt(BuildTabPrefsKey, (int)BuildingCategory.Energy);
+            if (!IsKnownCategory(raw))
+            {
+                return BuildingCategory.Energy;
+            }
+
+            return (BuildingCategory)raw;
+        }
+
+        /// <summary>Persists the active build tab.</summary>
+        public static void SaveActiveCategory(BuildingCategory category)
+        {
+            PlayerPrefs.SetInt(BuildTabPrefsKey, (int)category);
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>True when the definition belongs to the active category tab.</summary>
+        public static bool MatchesCategory(BuildingDefinition definition, BuildingCategory category)
+        {
+            return definition != null && definition.Category == category;
+        }
+
+        /// <summary>
+        /// Returns unlocked buildings in <paramref name="category"/> (null unlock query = all unlocked).
+        /// </summary>
+        public static List<BuildingDefinition> FilterForTab(
+            IReadOnlyList<BuildingDefinition> buildings,
+            BuildingCategory category,
+            IBuildingUnlockQuery unlocks = null)
+        {
+            var result = new List<BuildingDefinition>();
+            if (buildings == null)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var def = buildings[i];
+                if (!MatchesCategory(def, category))
+                {
+                    continue;
+                }
+
+                var unlocked = unlocks == null || unlocks.IsBuildingUnlocked(def.Id);
+                if (unlocked)
+                {
+                    result.Add(def);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>Deletes the build-tab prefs key (tests).</summary>
+        public static void ClearTabPrefs()
+        {
+            PlayerPrefs.DeleteKey(BuildTabPrefsKey);
+            PlayerPrefs.Save();
+        }
+
         private void OnGUI()
         {
             if (placementController == null)
@@ -33,10 +139,14 @@ namespace CleanEnergy.UI
                 return;
             }
 
+            EnsureTabLoaded();
+
             const float width = 280f;
-            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, 12f, width, 400f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, 12f, width, 460f), GUI.skin.box);
             GUILayout.Label("Buildings");
             GUILayout.Label($"Money: {placementController.Wallet.Money:F0}");
+
+            DrawCategoryTabs();
 
             var buildings = placementController.AvailableBuildings;
             if (buildings != null)
@@ -44,24 +154,24 @@ namespace CleanEnergy.UI
                 for (var i = 0; i < buildings.Count; i++)
                 {
                     var def = buildings[i];
-                    if (def == null)
+                    if (!MatchesCategory(def, _activeCategory))
                     {
                         continue;
                     }
 
                     var unlocked = placementController.BuildingUnlocks == null
                                    || placementController.BuildingUnlocks.IsBuildingUnlocked(def.Id);
+                    if (!unlocked)
+                    {
+                        continue;
+                    }
+
                     var selected = placementController.SelectedBuilding == def;
-                    var label = unlocked
-                        ? $"{def.DisplayName} ({def.Cost:F0})"
-                        : $"{def.DisplayName} (Locked)";
-                    GUI.enabled = unlocked;
-                    if (GUILayout.Toggle(selected, label, "Button") && unlocked && !selected)
+                    var label = $"{def.DisplayName} ({def.Cost:F0})";
+                    if (GUILayout.Toggle(selected, label, "Button") && !selected)
                     {
                         placementController.SelectBuilding(def);
                     }
-
-                    GUI.enabled = true;
                 }
             }
 
@@ -88,6 +198,50 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.EndArea();
+        }
+
+        private void DrawCategoryTabs()
+        {
+            var selectedIndex = IndexOfCategory(_activeCategory);
+            var next = GUILayout.SelectionGrid(selectedIndex, TabLabels, 3);
+            if (next != selectedIndex && next >= 0 && next < TabOrder.Length)
+            {
+                SetActiveCategory(TabOrder[next]);
+                if (placementController.SelectedBuilding != null
+                    && placementController.SelectedBuilding.Category != _activeCategory)
+                {
+                    placementController.CancelPlacement();
+                }
+            }
+        }
+
+        private void EnsureTabLoaded()
+        {
+            if (_tabLoaded)
+            {
+                return;
+            }
+
+            _activeCategory = LoadActiveCategory();
+            _tabLoaded = true;
+        }
+
+        private static int IndexOfCategory(BuildingCategory category)
+        {
+            for (var i = 0; i < TabOrder.Length; i++)
+            {
+                if (TabOrder[i] == category)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
+        private static bool IsKnownCategory(int raw)
+        {
+            return raw >= (int)BuildingCategory.Energy && raw <= (int)BuildingCategory.Settlement;
         }
 
         private void DrawYieldPreview(BuildingDefinition def)
@@ -127,6 +281,9 @@ namespace CleanEnergy.UI
                 placementController.HoverCoordinate.Value,
                 def,
                 placementController.Occupancy);
+            var deliveryFactor = TransmissionLoss.ResolveDeliveryFactorForPlacement(
+                placementController.HoverCoordinate.Value,
+                placementController.Occupancy);
             var expected = ProductionEstimate.BreakDown(
                 def,
                 placementController.HoverCoordinate.Value,
@@ -135,7 +292,8 @@ namespace CleanEnergy.UI
                 context,
                 placementController.Occupancy,
                 bonus,
-                networkFactor: networkFactor).Production;
+                networkFactor: networkFactor,
+                deliveryFactor: deliveryFactor).Production;
             GUILayout.Label($"Expected: {expected:F1}");
         }
     }

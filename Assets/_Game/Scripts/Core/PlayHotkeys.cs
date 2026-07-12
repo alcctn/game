@@ -6,7 +6,7 @@ using UnityEngine;
 namespace CleanEnergy.Core
 {
     /// <summary>
-    /// Space/1/2/3 speed and Ctrl+Z demolish undo hotkeys.
+    /// Remappable pause/speed and Ctrl+Undo demolish hotkeys.
     /// </summary>
     public sealed class PlayHotkeys : MonoBehaviour
     {
@@ -36,28 +36,31 @@ namespace CleanEnergy.Core
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Pause)))
             {
                 TogglePause();
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+            if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Speed1))
+                || Input.GetKeyDown(KeyCode.Keypad1))
             {
                 SetSpeed(SimulationSpeed.One);
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+            if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Speed2))
+                || Input.GetKeyDown(KeyCode.Keypad2))
             {
                 SetSpeed(SimulationSpeed.Two);
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+            if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Speed3))
+                || Input.GetKeyDown(KeyCode.Keypad3))
             {
                 SetSpeed(SimulationSpeed.Four);
             }
 
             if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-                && Input.GetKeyDown(KeyCode.Z))
+                && Input.GetKeyDown(KeybindService.Get(RemappableAction.Undo)))
             {
                 placementController?.TryUndoLastDemolish();
             }

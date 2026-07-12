@@ -9,7 +9,7 @@ namespace CleanEnergy.UI
     public static class SettingsPanelUI
     {
         /// <summary>
-        /// Draws volume, SFX mute, and zoom sensitivity. Applies changes immediately.
+        /// Draws volume, SFX mute, music volume, and zoom sensitivity. Applies changes immediately.
         /// </summary>
         public static void Draw(IsometricCameraController camera = null)
         {
@@ -31,6 +31,16 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.Space(4f);
+            GUILayout.Label("Music Volume");
+            var music = SettingsService.MusicVolume;
+            var newMusic = GUILayout.HorizontalSlider(music, 0f, 1f);
+            GUILayout.Label($"{newMusic:P0}");
+            if (!Mathf.Approximately(newMusic, music))
+            {
+                SettingsService.SetMusicVolume(newMusic);
+            }
+
+            GUILayout.Space(4f);
             GUILayout.Label("Scroll Zoom Sensitivity");
             var zoom = SettingsService.ZoomSpeed;
             var newZoom = GUILayout.HorizontalSlider(
@@ -40,6 +50,49 @@ namespace CleanEnergy.UI
             {
                 SettingsService.SetZoomSpeed(newZoom, camera);
             }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("Keybinds");
+            DrawKeybind(RemappableAction.Pause, "Pause");
+            DrawKeybind(RemappableAction.Speed1, "Speed 1x");
+            DrawKeybind(RemappableAction.Speed2, "Speed 2x");
+            DrawKeybind(RemappableAction.Speed3, "Speed 4x");
+            DrawKeybind(RemappableAction.Undo, "Undo (with Ctrl)");
+            DrawKeybind(RemappableAction.Home, "Home Fit");
+        }
+
+        private static RemappableAction? _listening;
+
+        private static void DrawKeybind(RemappableAction action, string label)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(120f));
+            var current = KeybindService.Get(action);
+            var buttonLabel = _listening == action ? "Press key..." : current.ToString();
+            if (GUILayout.Button(buttonLabel, GUILayout.Width(120f)))
+            {
+                _listening = action;
+            }
+
+            GUILayout.EndHorizontal();
+
+            if (_listening != action)
+            {
+                return;
+            }
+
+            var e = Event.current;
+            if (e == null || e.type != EventType.KeyDown || e.keyCode == KeyCode.None)
+            {
+                return;
+            }
+
+            if (KeybindService.TrySet(action, e.keyCode))
+            {
+                _listening = null;
+            }
+
+            e.Use();
         }
     }
 }

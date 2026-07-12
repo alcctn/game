@@ -93,7 +93,20 @@ namespace CleanEnergy.Tests.EditMode
         {
             Assert.AreEqual("ce_master_volume", SettingsService.MasterVolumeKey);
             Assert.AreEqual("ce_sfx_mute", SettingsService.SfxMuteKey);
+            Assert.AreEqual("ce_music_volume", SettingsService.MusicVolumeKey);
             Assert.AreEqual("ce_zoom_speed", SettingsService.ZoomSpeedKey);
+        }
+
+        [Test]
+        public void SetMusicVolume_PersistsAndDoesNotRequireSfxUnmute()
+        {
+            SettingsService.ClearPrefs();
+            SettingsService.SetSfxMute(true);
+            SettingsService.SetMusicVolume(0.33f);
+
+            Assert.AreEqual(0.33f, SettingsService.MusicVolume, 0.001f);
+            Assert.AreEqual(0.33f, PlayerPrefs.GetFloat(SettingsService.MusicVolumeKey), 0.001f);
+            Assert.IsTrue(SettingsService.SfxMute);
         }
     }
 }

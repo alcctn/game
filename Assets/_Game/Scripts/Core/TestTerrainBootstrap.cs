@@ -47,6 +47,11 @@ namespace CleanEnergy.Core
             mapGenerator.SetSettings(settingsAsset);
             mapGenerator.SetTerrainRoot(terrainRoot);
 
+            var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
+            clock.BindMapGenerator(mapGenerator);
+            var dayLighting = FindOrAdd<DayCycleLighting>(simRoot.gameObject);
+            dayLighting.Configure(clock, Object.FindAnyObjectByType<Light>());
+
             var overlayGo = EnsureChild("MapDebugOverlay", debugRoot);
             var overlay = FindOrAdd<MapDebugOverlay>(overlayGo.gameObject);
             overlay.SetMapGenerator(mapGenerator);
@@ -68,8 +73,6 @@ namespace CleanEnergy.Core
             var placementUiGo = EnsureChild("BuildingPlacementUI", debugRoot);
             var placementUi = FindOrAdd<BuildingPlacementUI>(placementUiGo.gameObject);
 
-            var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
-            clock.BindMapGenerator(mapGenerator);
             var network = FindOrAdd<EnergyNetworkService>(simRoot.gameObject);
             var maintenance = FindOrAdd<MaintenanceController>(simRoot.gameObject);
             maintenance.Configure(placement);
@@ -81,6 +84,11 @@ namespace CleanEnergy.Core
             var edgeOverlay = FindOrAdd<NetworkEdgeOverlay>(edgeGo.gameObject);
             edgeOverlay.Configure(mapGenerator, network, driver);
             overlay.SetNetworkEdgeOverlay(edgeOverlay);
+
+            var particlesGo = EnsureChild("NetworkEdgeParticles", overlayGo);
+            var edgeParticles = FindOrAdd<NetworkEdgeParticles>(particlesGo.gameObject);
+            edgeParticles.Configure(mapGenerator, network, driver);
+            overlay.SetNetworkEdgeParticles(edgeParticles);
 
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
             var research = FindOrAdd<ResearchController>(simRoot.gameObject);
@@ -101,13 +109,15 @@ namespace CleanEnergy.Core
 
             var inspectionGo = EnsureChild("InspectionPanelUI", debugRoot);
             var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
-            inspection.Configure(overlay, mapGenerator, placement, network, clock, research, scenario);
+            inspection.Configure(overlay, mapGenerator, placement, network, clock, research, scenario, driver);
 
             var notification = FindOrAdd<NotificationController>(simRoot.gameObject);
-            notification.Configure(driver, research, maintenance, network, scenario);
+            notification.Configure(driver, research, maintenance, network, scenario, clock);
             var sfxGo = EnsureChild("SfxService", debugRoot);
             var sfx = FindOrAdd<SfxService>(sfxGo.gameObject);
             sfx.Configure(placement, notification);
+            var musicGo = EnsureChild("MusicService", debugRoot);
+            FindOrAdd<MusicService>(musicGo.gameObject);
             var notificationHudGo = EnsureChild("NotificationHudUI", debugRoot);
             var notificationHud = FindOrAdd<NotificationHudUI>(notificationHudGo.gameObject);
             notificationHud.Configure(notification, sfx);
@@ -254,6 +264,12 @@ namespace CleanEnergy.Core
             if (id == "wind_coast")
             {
                 scenarioDefinition = ScenarioProgressService.CreateRuntimeWindCoast();
+                return scenarioDefinition;
+            }
+
+            if (id == "pine_basin")
+            {
+                scenarioDefinition = ScenarioProgressService.CreateRuntimePineBasin();
                 return scenarioDefinition;
             }
 

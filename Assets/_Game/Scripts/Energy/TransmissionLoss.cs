@@ -1,5 +1,6 @@
 using CleanEnergy.Buildings;
 using CleanEnergy.Grid;
+using CleanEnergy.Placement;
 using UnityEngine;
 
 namespace CleanEnergy.Energy
@@ -31,6 +32,42 @@ namespace CleanEnergy.Energy
                 }
 
                 var d = Manhattan(producerCoordinate, node.Coordinate);
+                if (d < best)
+                {
+                    best = d;
+                }
+            }
+
+            if (best == int.MaxValue)
+            {
+                return 1f;
+            }
+
+            return Mathf.Clamp(1f - LossPerHop * best, MinDeliveryFactor, 1f);
+        }
+
+        /// <summary>
+        /// Placement ghost: hops to nearest consumer/storage in occupancy (hub alone ignored).
+        /// </summary>
+        public static float ResolveDeliveryFactorForPlacement(
+            GridCoordinate coordinate,
+            GridOccupancyService occupancy)
+        {
+            if (occupancy == null)
+            {
+                return 1f;
+            }
+
+            var best = int.MaxValue;
+            foreach (var pair in occupancy.Occupied)
+            {
+                var def = pair.Value?.Definition;
+                if (def == null || (!def.IsConsumer && !def.IsStorage))
+                {
+                    continue;
+                }
+
+                var d = Manhattan(coordinate, pair.Key);
                 if (d < best)
                 {
                     best = d;

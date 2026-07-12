@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleanEnergy.DebugTools;
 using CleanEnergy.Energy;
 using CleanEnergy.Maintenance;
@@ -22,8 +23,10 @@ namespace CleanEnergy.UI
         [SerializeField] private SimulationClock simulationClock;
         [SerializeField] private ResearchController researchController;
         [SerializeField] private ScenarioController scenarioController;
+        [SerializeField] private EnergySimulationDriver energyDriver;
 
         private string _actionMessage = string.Empty;
+        private readonly List<float> _sparklineScratch = new List<float>(20);
 
         public void Configure(
             MapDebugOverlay overlay,
@@ -32,7 +35,8 @@ namespace CleanEnergy.UI
             EnergyNetworkService network,
             SimulationClock clock = null,
             ResearchController research = null,
-            ScenarioController scenario = null)
+            ScenarioController scenario = null,
+            EnergySimulationDriver driver = null)
         {
             debugOverlay = overlay;
             mapGenerator = generator;
@@ -41,18 +45,42 @@ namespace CleanEnergy.UI
             simulationClock = clock;
             researchController = research;
             scenarioController = scenario;
+            energyDriver = driver;
         }
 
         private void OnGUI()
         {
             const float width = 280f;
             var x = Screen.width - width - 12f;
-            GUILayout.BeginArea(new Rect(x, 12f, width, 520f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(x, 12f, width, 560f), GUI.skin.box);
             GUILayout.Label("Inspection");
+
+            DrawDebtAndRepay();
+
+            if (debugOverlay != null && debugOverlay.MultiSelectedCells.Count > 0)
+            {
+                GUILayout.Label($"Multi-select {debugOverlay.MultiSelectedCells.Count}/{MapDebugOverlay.MaxMultiSelection}");
+                if (placementController != null
+                    && !placementController.IsPlacementActive
+                    && GUILayout.Button("Demolish Selected"))
+                {
+                    if (placementController.TryDemolishMany(
+                            debugOverlay.MultiSelectedCells, out var refund))
+                    {
+                        _actionMessage = $"Demolished group (+{refund:F0})";
+                        debugOverlay.ClearSelection();
+                    }
+                    else
+                    {
+                        _actionMessage = "Demolish selected failed.";
+                    }
+                }
+            }
 
             if (debugOverlay == null || !debugOverlay.SelectedCell.HasValue)
             {
                 GUILayout.Label("Click a cell on the map.");
+                DrawUndoAndMessage();
                 GUILayout.EndArea();
                 return;
             }
@@ -81,6 +109,7 @@ namespace CleanEnergy.UI
                 if (def.IsProducer)
                 {
                     DrawProductionBreakdown(building, coordinate);
+                    DrawSparkline(building.InstanceId);
                     if (GUILayout.Button("Repair"))
                     {
                         if (MaintenanceService.TryManualRepair(
@@ -163,6 +192,72 @@ namespace CleanEnergy.UI
                 GUILayout.Label($"Network: {InspectionStatus.NetworkLabel(InspectionNetworkStatus.NoBuilding)}");
             }
 
+            DrawUndoAndMessage();
+            GUILayout.EndArea();
+        }
+
+        private void DrawDebtAndRepay()
+        {
+            if (energyDriver == null)
+            {
+                return;
+            }
+
+            var debt = energyDriver.EmergencyCredit.RemainingDebt;
+            if (debt <= 0.0001f)
+            {
+                return;
+            }
+
+            GUILayout.Label($"Debt {debt:F0}");
+            if (placementController != null && GUILayout.Button("Repay"))
+            {
+                if (energyDriver.EmergencyCredit.TryRepay(placementController.Wallet))
+                {
+                    _actionMessage = "Debt repaid.";
+                }
+                else
+                {
+                    _actionMessage = "Cannot repay debt.";
+                }
+            }
+        }
+
+        private void DrawSparkline(string instanceId)
+        {
+            if (energyDriver == null
+                || !energyDriver.TryGetSparklineSamples(instanceId, _sparklineScratch)
+                || _sparklineScratch.Count == 0)
+            {
+                return;
+            }
+
+            GUILayout.Label("Production (20)");
+            var max = 0.001f;
+            for (var i = 0; i < _sparklineScratch.Count; i++)
+            {
+                if (_sparklineScratch[i] > max)
+                {
+                    max = _sparklineScratch[i];
+                }
+            }
+
+            var rect = GUILayoutUtility.GetRect(240f, 28f);
+            var barWidth = rect.width / ProductionSparklineTracker.SampleCapacity;
+            for (var i = 0; i < _sparklineScratch.Count; i++)
+            {
+                var h = Mathf.Clamp01(_sparklineScratch[i] / max) * rect.height;
+                var bar = new Rect(
+                    rect.x + i * barWidth,
+                    rect.y + rect.height - h,
+                    Mathf.Max(1f, barWidth - 1f),
+                    h);
+                GUI.Box(bar, GUIContent.none);
+            }
+        }
+
+        private void DrawUndoAndMessage()
+        {
             if (!string.IsNullOrEmpty(_actionMessage))
             {
                 GUILayout.Space(4f);
@@ -174,7 +269,10 @@ namespace CleanEnergy.UI
                 && !placementController.IsPlacementActive)
             {
                 GUILayout.Space(6f);
-                if (GUILayout.Button("Undo Demolish"))
+                var label = placementController.DemolishUndoCount > 1
+                    ? $"Undo Demolish ({placementController.DemolishUndoCount})"
+                    : "Undo Demolish";
+                if (GUILayout.Button(label))
                 {
                     if (placementController.TryUndoLastDemolish())
                     {
@@ -186,8 +284,6 @@ namespace CleanEnergy.UI
                     }
                 }
             }
-
-            GUILayout.EndArea();
         }
 
         private void DrawProductionBreakdown(Buildings.BuildingInstance building, Grid.GridCoordinate coordinate)

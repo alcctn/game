@@ -216,6 +216,75 @@ namespace CleanEnergy.Maintenance
             return true;
         }
 
+        /// <summary>
+        /// Atomically repairs every producer below max maintenance (no depot required).
+        /// </summary>
+        public static bool TryGlobalRepairAllProducers(
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
+            Economy.Wallet wallet,
+            out int repairedCount,
+            out float totalCost,
+            out string failure)
+        {
+            repairedCount = 0;
+            totalCost = 0f;
+            failure = null;
+            if (occupied == null)
+            {
+                failure = "No buildings.";
+                return false;
+            }
+
+            var targets = new List<BuildingInstance>();
+            var seen = new HashSet<string>();
+            foreach (var pair in occupied)
+            {
+                var instance = pair.Value;
+                if (instance?.Definition == null
+                    || !instance.Definition.IsProducer
+                    || !seen.Add(instance.InstanceId))
+                {
+                    continue;
+                }
+
+                if (instance.MaintenanceLevel >= MaxLevel - 0.001f)
+                {
+                    continue;
+                }
+
+                targets.Add(instance);
+                totalCost += ManualRepairCost(instance);
+            }
+
+            if (targets.Count == 0)
+            {
+                failure = "No producers need repair.";
+                return false;
+            }
+
+            if (wallet == null || wallet.Money + 0.0001f < totalCost)
+            {
+                failure = $"Need {totalCost:F0} money.";
+                totalCost = 0f;
+                return false;
+            }
+
+            if (!wallet.TrySpend(totalCost))
+            {
+                failure = $"Need {totalCost:F0} money.";
+                totalCost = 0f;
+                return false;
+            }
+
+            for (var i = 0; i < targets.Count; i++)
+            {
+                targets[i].MaintenanceLevel = MaxLevel;
+            }
+
+            repairedCount = targets.Count;
+            return true;
+        }
+
         private static int Manhattan(GridCoordinate a, GridCoordinate b)
         {
             return Mathf.Abs(a.X - b.X) + Mathf.Abs(a.Y - b.Y);

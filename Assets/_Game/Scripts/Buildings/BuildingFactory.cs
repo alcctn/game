@@ -60,9 +60,27 @@ namespace CleanEnergy.Buildings
             var halfHeight = definition.Prefab == null ? EstimateHalfHeight(definition) : 0f;
             go.transform.position = new Vector3(position.x, position.y + halfHeight, position.z);
             go.transform.rotation = Quaternion.Euler(0f, rotation * 90f, 0f);
+            AttachRotatingVisual(go, definition);
 
             var instanceId = $"{definition.Id}_{_nextId++}";
             return new BuildingInstance(instanceId, definition, coordinate, rotation, go);
+        }
+
+        private static void AttachRotatingVisual(GameObject go, BuildingDefinition definition)
+        {
+            var rpm = RotatingVisual.ResolveRpmForBuildingId(definition.Id);
+            if (rpm <= 0f)
+            {
+                return;
+            }
+
+            var rotating = go.GetComponent<RotatingVisual>();
+            if (rotating == null)
+            {
+                rotating = go.AddComponent<RotatingVisual>();
+            }
+
+            rotating.Configure(rpm);
         }
 
         private static GameObject CreatePrimitive(BuildingDefinition definition)

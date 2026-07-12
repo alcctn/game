@@ -33,11 +33,13 @@ namespace CleanEnergy.Energy
             new Dictionary<GridCoordinate, float>();
         private readonly HashSet<GridCoordinate> _occupiedNonProducerCells = new HashSet<GridCoordinate>();
         private readonly HashSet<GridCoordinate> _producerCells = new HashSet<GridCoordinate>();
+        private readonly ProductionSparklineTracker _sparklines = new ProductionSparklineTracker();
         private EnergyBalanceResult _lastResult = new EnergyBalanceResult(0f, 0f, 0f, 0f, 0f);
 
         public EnergyBalanceResult LastResult => _lastResult;
         public UpkeepService Upkeep => _upkeepService;
         public EmergencyCreditService EmergencyCredit => _emergencyCredit;
+        public ProductionSparklineTracker Sparklines => _sparklines;
         public float LastUpkeepTotal => _upkeepService.LastUpkeepTotal;
         public bool CouldNotAffordFullUpkeep => _upkeepService.CouldNotAffordFullUpkeep;
 
@@ -123,6 +125,33 @@ namespace CleanEnergy.Energy
             return _producerCells.Contains(coordinate);
         }
 
+        public bool TryGetSparklineSamples(string instanceId, List<float> into)
+        {
+            return _sparklines.TryGetSamples(instanceId, into);
+        }
+
+        private void RecordSparklines()
+        {
+            if (placementController == null)
+            {
+                return;
+            }
+
+            var seen = new HashSet<string>();
+            foreach (var pair in placementController.Occupancy.Occupied)
+            {
+                var building = pair.Value;
+                if (building?.Definition == null
+                    || !building.Definition.IsProducer
+                    || !seen.Add(building.InstanceId))
+                {
+                    continue;
+                }
+
+                _sparklines.Record(building.InstanceId, building.CurrentProduction);
+            }
+        }
+
         private void OnTick(SimulationContext context)
         {
             if (networkService == null)
@@ -149,8 +178,11 @@ namespace CleanEnergy.Energy
                 {
                     EmergencyCreditGranted?.Invoke();
                 }
+
+                _emergencyCredit.ProcessInterestTick(placementController.Wallet);
             }
 
+            RecordSparklines();
             BalanceUpdated?.Invoke(_lastResult);
             if (_lastResult.HasShortage)
             {
@@ -281,6 +313,7 @@ namespace CleanEnergy.Energy
         private void OnMapGenerated(Core.MapGeneratedEvent _)
         {
             _emergencyCredit.Reset();
+            _sparklines.Clear();
             _hubUtilization.Clear();
             _energyNodeCells.Clear();
             _productionRatios.Clear();

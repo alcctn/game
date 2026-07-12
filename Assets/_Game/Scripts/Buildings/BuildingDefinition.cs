@@ -120,5 +120,11 @@ namespace CleanEnergy.Buildings
             linkCapacity = hubLinkCapacity;
             minSameTypeSpacing = Mathf.Max(0, sameTypeSpacing);
         }
+
+        /// <summary>Assigns the visual prefab used by <see cref="BuildingFactory"/>.</summary>
+        public void SetPrefab(GameObject buildingPrefab)
+        {
+            prefab = buildingPrefab;
+        }
     }
 }

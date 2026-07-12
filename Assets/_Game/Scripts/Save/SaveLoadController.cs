@@ -134,6 +134,9 @@ namespace CleanEnergy.Save
                     : 0f,
                 emergencyCreditUsed = energyDriver != null
                     && energyDriver.EmergencyCredit.HasBeenUsed,
+                creditDebt = energyDriver != null
+                    ? energyDriver.EmergencyCredit.RemainingDebt
+                    : 0f,
                 tutorialStep = tutorialController?.Progress != null
                     ? (int)tutorialController.Progress.CurrentStep
                     : 0,
@@ -232,7 +235,7 @@ namespace CleanEnergy.Save
             if (energyDriver != null)
             {
                 // Generate already reset the flag via MapGenerated; restore from save.
-                energyDriver.EmergencyCredit.Restore(data.emergencyCreditUsed);
+                energyDriver.EmergencyCredit.Restore(data.emergencyCreditUsed, data.creditDebt);
             }
 
             if (scenarioController != null && data.scenario != null)

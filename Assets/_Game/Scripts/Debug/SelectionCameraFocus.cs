@@ -43,7 +43,7 @@ namespace CleanEnergy.DebugTools
         private void Update()
         {
             UpdatePlacementHoverFocus();
-            if (Input.GetKeyDown(KeyCode.Home))
+            if (Input.GetKeyDown(CleanEnergy.UI.KeybindService.Get(CleanEnergy.UI.RemappableAction.Home)))
             {
                 FitHome();
             }

@@ -24,11 +24,13 @@ namespace CleanEnergy.Simulation
 
         private float _accumulator;
         private DayCycleService _dayCycle;
+        private readonly WeatherEventService _weather = new WeatherEventService();
 
         public float BaseTickSeconds => baseTickSeconds;
         public SimulationSpeed Speed => speed;
         public int TickIndex { get; private set; }
         public DayCycleService DayCycle => _dayCycle ??= new DayCycleService(ticksPerDay);
+        public WeatherEventService Weather => _weather;
         public event Action<SimulationContext> Ticked;
 
         private void Awake()
@@ -66,12 +68,8 @@ namespace CleanEnergy.Simulation
                 _accumulator -= baseTickSeconds;
                 TickIndex++;
                 DayCycle.SyncFromTickIndex(TickIndex);
-                var context = new SimulationContext(
-                    TickIndex,
-                    baseTickSeconds,
-                    speed,
-                    DayCycle.DayNormalized,
-                    DayCycle.Phase);
+                _weather.Advance(TickIndex, ResolveSeedHash());
+                var context = CreateContextSnapshot();
                 Ticked?.Invoke(context);
             }
         }
@@ -86,6 +84,7 @@ namespace CleanEnergy.Simulation
             TickIndex = 0;
             _accumulator = 0f;
             DayCycle.Reset();
+            _weather.Reset();
         }
 
         public void RestoreTick(int tickIndex)
@@ -103,7 +102,17 @@ namespace CleanEnergy.Simulation
                 baseTickSeconds,
                 speed,
                 DayCycle.DayNormalized,
-                DayCycle.Phase);
+                DayCycle.Phase,
+                _weather.SolarMultiplier,
+                _weather.WindMultiplier);
+        }
+
+        private int ResolveSeedHash()
+        {
+            var seed = mapGenerator != null && mapGenerator.Settings != null
+                ? mapGenerator.Settings.Seed
+                : string.Empty;
+            return WeatherEventService.HashSeed(seed);
         }
 
         private void OnMapGenerated(Core.MapGeneratedEvent _)

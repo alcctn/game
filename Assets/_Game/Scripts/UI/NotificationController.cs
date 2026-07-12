@@ -3,6 +3,7 @@ using CleanEnergy.Energy;
 using CleanEnergy.Maintenance;
 using CleanEnergy.Research;
 using CleanEnergy.Scenario;
+using CleanEnergy.Simulation;
 using UnityEngine;
 
 namespace CleanEnergy.UI
@@ -17,6 +18,7 @@ namespace CleanEnergy.UI
         [SerializeField] private MaintenanceController maintenanceController;
         [SerializeField] private EnergyNetworkService networkService;
         [SerializeField] private ScenarioController scenarioController;
+        [SerializeField] private SimulationClock simulationClock;
 
         private readonly NotificationService _service = new NotificationService();
         private int _previousLowMaintenance;
@@ -39,7 +41,8 @@ namespace CleanEnergy.UI
             ResearchController research,
             MaintenanceController maintenance,
             EnergyNetworkService network,
-            ScenarioController scenario = null)
+            ScenarioController scenario = null,
+            SimulationClock clock = null)
         {
             Unsubscribe();
             energyDriver = driver;
@@ -47,6 +50,7 @@ namespace CleanEnergy.UI
             maintenanceController = maintenance;
             networkService = network;
             scenarioController = scenario;
+            simulationClock = clock;
             Subscribe();
         }
 
@@ -85,6 +89,11 @@ namespace CleanEnergy.UI
             {
                 scenarioController.Failed += OnScenarioFailed;
             }
+
+            if (simulationClock != null)
+            {
+                simulationClock.Weather.EventStarted += OnWeatherStarted;
+            }
         }
 
         private void Unsubscribe()
@@ -104,6 +113,11 @@ namespace CleanEnergy.UI
             if (scenarioController != null)
             {
                 scenarioController.Failed -= OnScenarioFailed;
+            }
+
+            if (simulationClock != null)
+            {
+                simulationClock.Weather.EventStarted -= OnWeatherStarted;
             }
         }
 
@@ -174,6 +188,16 @@ namespace CleanEnergy.UI
         private void OnScenarioFailed(ScenarioFailedEvent _)
         {
             _service.Push("Scenario failed", Time.unscaledTime);
+        }
+
+        private void OnWeatherStarted(WeatherEventKind kind)
+        {
+            if (kind == WeatherEventKind.None)
+            {
+                return;
+            }
+
+            _service.Push($"Weather: {kind}", Time.unscaledTime);
         }
 
         private bool HasFullBattery()

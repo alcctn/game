@@ -246,5 +246,28 @@ namespace CleanEnergy.Scenario
                 windOverride: 0.85f);
             return def;
         }
+
+        public static ScenarioDefinition CreateRuntimePineBasin()
+        {
+            var def = ScriptableObject.CreateInstance<ScenarioDefinition>();
+            def.name = "RuntimePineBasin";
+            def.Configure(
+                "pine_basin",
+                "Pine Basin",
+                0.9f,
+                55,
+                2,
+                100f,
+                2.0f,
+                0.3f,
+                28f,
+                researchNodeIds: new[] { "hydro_turbine" },
+                seed: "pine_basin_55",
+                solarOverride: 0.55f,
+                streamOverride: 6f,
+                population: 100f,
+                windOverride: 0.2f);
+            return def;
+        }
     }
 }

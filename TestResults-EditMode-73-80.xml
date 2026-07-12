@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="43" result="Passed" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0,1738611">
+  <test-suite type="TestSuite" id="1000" name="Clean Energy Prototype" fullname="Clean Energy Prototype" runstate="Runnable" testcasecount="262" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.173861" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1342" name="CleanEnergy.Tests.EditMode.dll" fullname="E:/CURSOL PROJELER/game/Library/ScriptAssemblies/CleanEnergy.Tests.EditMode.dll" runstate="Runnable" testcasecount="262" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.156673" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="14156" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1343" name="CleanEnergy" fullname="CleanEnergy" runstate="Runnable" testcasecount="262" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.143798" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1344" name="Tests" fullname="CleanEnergy.Tests" runstate="Runnable" testcasecount="262" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.132010" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1345" name="EditMode" fullname="CleanEnergy.Tests.EditMode" runstate="Runnable" testcasecount="262" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.126573" total="43" passed="43" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1001" name="BootstrapFlowTests" fullname="CleanEnergy.Tests.EditMode.BootstrapFlowTests" classname="CleanEnergy.Tests.EditMode.BootstrapFlowTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.029690" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1003" name="IsBootstrapScene_MatchesName" fullname="CleanEnergy.Tests.EditMode.BootstrapFlowTests.IsBootstrapScene_MatchesName" methodname="IsBootstrapScene_MatchesName" classname="CleanEnergy.Tests.EditMode.BootstrapFlowTests" runstate="Runnable" seed="1167748720" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.011735" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1002" name="SceneNames_IncludeBootstrapFirst" fullname="CleanEnergy.Tests.EditMode.BootstrapFlowTests.SceneNames_IncludeBootstrapFirst" methodname="SceneNames_IncludeBootstrapFirst" classname="CleanEnergy.Tests.EditMode.BootstrapFlowTests" runstate="Runnable" seed="1594471486" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.003795" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1021" name="CreditInterestTests" fullname="CleanEnergy.Tests.EditMode.CreditInterestTests" classname="CleanEnergy.Tests.EditMode.CreditInterestTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.004170" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1023" name="Interest_CeilOnePercent_MinOne_DoesNotChangePrincipal" fullname="CleanEnergy.Tests.EditMode.CreditInterestTests.Interest_CeilOnePercent_MinOne_DoesNotChangePrincipal" methodname="Interest_CeilOnePercent_MinOne_DoesNotChangePrincipal" classname="CleanEnergy.Tests.EditMode.CreditInterestTests" runstate="Runnable" seed="82536117" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001243" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1025" name="SaveData_RoundTripsCreditDebt" fullname="CleanEnergy.Tests.EditMode.CreditInterestTests.SaveData_RoundTripsCreditDebt" methodname="SaveData_RoundTripsCreditDebt" classname="CleanEnergy.Tests.EditMode.CreditInterestTests" runstate="Runnable" seed="566076108" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001292" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1022" name="TryGrant_OpensDebtOfCreditAmount" fullname="CleanEnergy.Tests.EditMode.CreditInterestTests.TryGrant_OpensDebtOfCreditAmount" methodname="TryGrant_OpensDebtOfCreditAmount" classname="CleanEnergy.Tests.EditMode.CreditInterestTests" runstate="Runnable" seed="31602900" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000160" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1024" name="TryRepay_ClearsDebt" fullname="CleanEnergy.Tests.EditMode.CreditInterestTests.TryRepay_ClearsDebt" methodname="TryRepay_ClearsDebt" classname="CleanEnergy.Tests.EditMode.CreditInterestTests" runstate="Runnable" seed="172521447" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000220" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1030" name="DayCycleTests" fullname="CleanEnergy.Tests.EditMode.DayCycleTests" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.011946" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1033" name="DemandMultiplier_EveningGreaterThanNoon" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.DemandMultiplier_EveningGreaterThanNoon" methodname="DemandMultiplier_EveningGreaterThanNoon" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="361689970" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.002928" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1032" name="HalfDay_IsEvening" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.HalfDay_IsEvening" methodname="HalfDay_IsEvening" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1557125046" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001328" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1035" name="Hydro_UnchangedAcrossPhases" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.Hydro_UnchangedAcrossPhases" methodname="Hydro_UnchangedAcrossPhases" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1644748555" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.002846" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1037" name="PhaseFromNormalized_Boundaries" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.PhaseFromNormalized_Boundaries" methodname="PhaseFromNormalized_Boundaries" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="194231891" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000344" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1034" name="Solar_NightProductionIsZero" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.Solar_NightProductionIsZero" methodname="Solar_NightProductionIsZero" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1566862559" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000650" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="Solar_StillZeroAtNight" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.Solar_StillZeroAtNight" methodname="Solar_StillZeroAtNight" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="548813563" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000440" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1031" name="TickZero_IsMorning" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.TickZero_IsMorning" methodname="TickZero_IsMorning" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1911355408" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000164" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1036" name="VillageDemand_ScalesWithPhase" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.VillageDemand_ScalesWithPhase" methodname="VillageDemand_ScalesWithPhase" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="2116332475" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000504" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="Wind_NightGreaterThanNoon" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.Wind_NightGreaterThanNoon" methodname="Wind_NightGreaterThanNoon" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1376999583" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000358" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1038" name="WindFactor_TableMatchesSpec" fullname="CleanEnergy.Tests.EditMode.DayCycleTests.WindFactor_TableMatchesSpec" methodname="WindFactor_TableMatchesSpec" classname="CleanEnergy.Tests.EditMode.DayCycleTests" runstate="Runnable" seed="1046732193" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000125" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1050" name="DemolishUndoTests" fullname="CleanEnergy.Tests.EditMode.DemolishUndoTests" classname="CleanEnergy.Tests.EditMode.DemolishUndoTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.015221" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1052" name="ClearDemolishUndo_ClearsPending" fullname="CleanEnergy.Tests.EditMode.DemolishUndoTests.ClearDemolishUndo_ClearsPending" methodname="ClearDemolishUndo_ClearsPending" classname="CleanEnergy.Tests.EditMode.DemolishUndoTests" runstate="Runnable" seed="1679579681" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.009257" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (1). Refund=20
+]]></output>
+              </test-case>
+              <test-case id="1054" name="SecondDemolish_OverwritesSnapshot" fullname="CleanEnergy.Tests.EditMode.DemolishUndoTests.SecondDemolish_OverwritesSnapshot" methodname="SecondDemolish_OverwritesSnapshot" classname="CleanEnergy.Tests.EditMode.DemolishUndoTests" runstate="Runnable" seed="733249968" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001953" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (1). Refund=20
+[Placement] Demolished group (1). Refund=20
+]]></output>
+              </test-case>
+              <test-case id="1051" name="TryDemolish_StoresUndoSnapshot" fullname="CleanEnergy.Tests.EditMode.DemolishUndoTests.TryDemolish_StoresUndoSnapshot" methodname="TryDemolish_StoresUndoSnapshot" classname="CleanEnergy.Tests.EditMode.DemolishUndoTests" runstate="Runnable" seed="94633270" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001107" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (1). Refund=20
+]]></output>
+              </test-case>
+              <test-case id="1053" name="TryUndo_WithoutMap_FailsAndRestoresRefundSpend" fullname="CleanEnergy.Tests.EditMode.DemolishUndoTests.TryUndo_WithoutMap_FailsAndRestoresRefundSpend" methodname="TryUndo_WithoutMap_FailsAndRestoresRefundSpend" classname="CleanEnergy.Tests.EditMode.DemolishUndoTests" runstate="Runnable" seed="1910103411" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001408" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (1). Refund=20
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1061" name="EdgeParticleTests" fullname="CleanEnergy.Tests.EditMode.EdgeParticleTests" classname="CleanEnergy.Tests.EditMode.EdgeParticleTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001261" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1062" name="ClampEdgeCount_CapsAtSixtyFour" fullname="CleanEnergy.Tests.EditMode.EdgeParticleTests.ClampEdgeCount_CapsAtSixtyFour" methodname="ClampEdgeCount_CapsAtSixtyFour" classname="CleanEnergy.Tests.EditMode.EdgeParticleTests" runstate="Runnable" seed="1629114168" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000224" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1063" name="ParticlesForUtilization_CapsAtEight" fullname="CleanEnergy.Tests.EditMode.EdgeParticleTests.ParticlesForUtilization_CapsAtEight" methodname="ParticlesForUtilization_CapsAtEight" classname="CleanEnergy.Tests.EditMode.EdgeParticleTests" runstate="Runnable" seed="1274959411" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000225" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1064" name="EmergencyCreditTests" fullname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" classname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001661" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1067" name="Reset_AllowsGrantAgain" fullname="CleanEnergy.Tests.EditMode.EmergencyCreditTests.Reset_AllowsGrantAgain" methodname="Reset_AllowsGrantAgain" classname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" runstate="Runnable" seed="7936674" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000193" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1068" name="SaveData_RoundTripsEmergencyCreditUsed" fullname="CleanEnergy.Tests.EditMode.EmergencyCreditTests.SaveData_RoundTripsEmergencyCreditUsed" methodname="SaveData_RoundTripsEmergencyCreditUsed" classname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" runstate="Runnable" seed="187045629" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000238" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1065" name="TryGrant_WhenBroke_AddsCreditOnce" fullname="CleanEnergy.Tests.EditMode.EmergencyCreditTests.TryGrant_WhenBroke_AddsCreditOnce" methodname="TryGrant_WhenBroke_AddsCreditOnce" classname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" runstate="Runnable" seed="501773483" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000159" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1066" name="TryGrant_WhenHasMoney_DoesNothing" fullname="CleanEnergy.Tests.EditMode.EmergencyCreditTests.TryGrant_WhenHasMoney_DoesNothing" methodname="TryGrant_WhenHasMoney_DoesNothing" classname="CleanEnergy.Tests.EditMode.EmergencyCreditTests" runstate="Runnable" seed="2120998075" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000133" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1082" name="GlobalRepairTests" fullname="CleanEnergy.Tests.EditMode.GlobalRepairTests" classname="CleanEnergy.Tests.EditMode.GlobalRepairTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.002669" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1083" name="GlobalRepair_AtomicallyRepairsAllProducers" fullname="CleanEnergy.Tests.EditMode.GlobalRepairTests.GlobalRepair_AtomicallyRepairsAllProducers" methodname="GlobalRepair_AtomicallyRepairsAllProducers" classname="CleanEnergy.Tests.EditMode.GlobalRepairTests" runstate="Runnable" seed="2050376050" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001516" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1084" name="GlobalRepair_FailsWithoutSpending_WhenBroke" fullname="CleanEnergy.Tests.EditMode.GlobalRepairTests.GlobalRepair_FailsWithoutSpending_WhenBroke" methodname="GlobalRepair_FailsWithoutSpending_WhenBroke" classname="CleanEnergy.Tests.EditMode.GlobalRepairTests" runstate="Runnable" seed="1549522067" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000414" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1095" name="KeybindPrefsTests" fullname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" classname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.007866" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1096" name="Get_DefaultsWhenMissing" fullname="CleanEnergy.Tests.EditMode.KeybindPrefsTests.Get_DefaultsWhenMissing" methodname="Get_DefaultsWhenMissing" classname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" runstate="Runnable" seed="1243251596" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.004138" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="ParseOrDefault_FallsBackOnInvalid" fullname="CleanEnergy.Tests.EditMode.KeybindPrefsTests.ParseOrDefault_FallsBackOnInvalid" methodname="ParseOrDefault_FallsBackOnInvalid" classname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" runstate="Runnable" seed="188421728" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000599" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1099" name="TrySet_PersistsValidKey" fullname="CleanEnergy.Tests.EditMode.KeybindPrefsTests.TrySet_PersistsValidKey" methodname="TrySet_PersistsValidKey" classname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" runstate="Runnable" seed="1247489308" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000738" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="TrySet_RejectsFunctionKeys" fullname="CleanEnergy.Tests.EditMode.KeybindPrefsTests.TrySet_RejectsFunctionKeys" methodname="TrySet_RejectsFunctionKeys" classname="CleanEnergy.Tests.EditMode.KeybindPrefsTests" runstate="Runnable" seed="1701397073" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000463" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1112" name="MainMenuFlowTests" fullname="CleanEnergy.Tests.EditMode.MainMenuFlowTests" classname="CleanEnergy.Tests.EditMode.MainMenuFlowTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000689" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1113" name="SceneNames_AreStable" fullname="CleanEnergy.Tests.EditMode.MainMenuFlowTests.SceneNames_AreStable" methodname="SceneNames_AreStable" classname="CleanEnergy.Tests.EditMode.MainMenuFlowTests" runstate="Runnable" seed="2092020921" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000106" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1132" name="MultiDemolishUndoTests" fullname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests" classname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.004133" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1135" name="MultiSelect_ToggleRespectsMaxEight" fullname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests.MultiSelect_ToggleRespectsMaxEight" methodname="MultiSelect_ToggleRespectsMaxEight" classname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests" runstate="Runnable" seed="1048423161" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001036" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1134" name="Place_ClearsDemolishUndoGroup" fullname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests.Place_ClearsDemolishUndoGroup" methodname="Place_ClearsDemolishUndoGroup" classname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests" runstate="Runnable" seed="821857424" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001082" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (1). Refund=20
+]]></output>
+              </test-case>
+              <test-case id="1133" name="TryDemolishMany_StoresGroupUndo" fullname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests.TryDemolishMany_StoresGroupUndo" methodname="TryDemolishMany_StoresGroupUndo" classname="CleanEnergy.Tests.EditMode.MultiDemolishUndoTests" runstate="Runnable" seed="1928644013" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001174" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[Placement] Demolished group (2). Refund=40
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1195" name="ProductionSparklineTests" fullname="CleanEnergy.Tests.EditMode.ProductionSparklineTests" classname="CleanEnergy.Tests.EditMode.ProductionSparklineTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.002769" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1196" name="PushSample_WrapsAtCapacity" fullname="CleanEnergy.Tests.EditMode.ProductionSparklineTests.PushSample_WrapsAtCapacity" methodname="PushSample_WrapsAtCapacity" classname="CleanEnergy.Tests.EditMode.ProductionSparklineTests" runstate="Runnable" seed="873907960" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000493" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1197" name="Tracker_CapsTrackedBuildings" fullname="CleanEnergy.Tests.EditMode.ProductionSparklineTests.Tracker_CapsTrackedBuildings" methodname="Tracker_CapsTrackedBuildings" classname="CleanEnergy.Tests.EditMode.ProductionSparklineTests" runstate="Runnable" seed="995483159" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001300" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1327" name="WeatherEventTests" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.004253" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1332" name="Advance_ExpiresActiveEvent" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests.Advance_ExpiresActiveEvent" methodname="Advance_ExpiresActiveEvent" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" seed="1579880924" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000615" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1329" name="Cloudy_HalvesSolarMultiplier" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests.Cloudy_HalvesSolarMultiplier" methodname="Cloudy_HalvesSolarMultiplier" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" seed="674192829" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000195" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1331" name="Context_AppliesWeatherToDaylightAndWind" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests.Context_AppliesWeatherToDaylightAndWind" methodname="Context_AppliesWeatherToDaylightAndWind" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" seed="5452237" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000177" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1328" name="DeterministicRoll_IsXor" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests.DeterministicRoll_IsXor" methodname="DeterministicRoll_IsXor" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" seed="1576018792" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.001788" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1330" name="WindGust_BoostsWindMultiplier" fullname="CleanEnergy.Tests.EditMode.WeatherEventTests.WindGust_BoostsWindMultiplier" methodname="WindGust_BoostsWindMultiplier" classname="CleanEnergy.Tests.EditMode.WeatherEventTests" runstate="Runnable" seed="1880609672" result="Passed" start-time="2026-07-12 14:40:09Z" end-time="2026-07-12 14:40:09Z" duration="0.000155" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/Alercode/AppData/LocalLow/CleanEnergy/Clean Energy Prototype\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

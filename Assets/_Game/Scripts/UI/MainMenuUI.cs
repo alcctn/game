@@ -108,7 +108,7 @@ namespace CleanEnergy.UI
         private void DrawSettingsPanel()
         {
             const float width = 360f;
-            const float height = 280f;
+            const float height = 340f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
