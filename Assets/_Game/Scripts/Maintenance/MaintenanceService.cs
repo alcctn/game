@@ -103,6 +103,42 @@ namespace CleanEnergy.Maintenance
             return false;
         }
 
+        public static float ManualRepairCost(BuildingInstance building)
+        {
+            if (building?.Definition == null)
+            {
+                return 0f;
+            }
+
+            return Mathf.Max(25f, building.Definition.MaintenanceCost * 5f);
+        }
+
+        public static bool TryManualRepair(BuildingInstance building, Economy.Wallet wallet, out string failure)
+        {
+            failure = null;
+            if (building?.Definition == null || !building.Definition.IsProducer)
+            {
+                failure = "Not a producer.";
+                return false;
+            }
+
+            if (building.MaintenanceLevel >= MaxLevel - 0.001f)
+            {
+                failure = "Already at full maintenance.";
+                return false;
+            }
+
+            var cost = ManualRepairCost(building);
+            if (wallet == null || !wallet.TrySpend(cost))
+            {
+                failure = $"Need {cost:F0} money.";
+                return false;
+            }
+
+            building.MaintenanceLevel = MaxLevel;
+            return true;
+        }
+
         private static int Manhattan(GridCoordinate a, GridCoordinate b)
         {
             return Mathf.Abs(a.X - b.X) + Mathf.Abs(a.Y - b.Y);

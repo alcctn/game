@@ -29,7 +29,10 @@ namespace CleanEnergy.Energy
         private readonly HashSet<GridCoordinate> _energyNodeCells = new HashSet<GridCoordinate>();
         private readonly Dictionary<GridCoordinate, float> _productionRatios =
             new Dictionary<GridCoordinate, float>();
+        private readonly Dictionary<GridCoordinate, float> _demandRatios =
+            new Dictionary<GridCoordinate, float>();
         private readonly HashSet<GridCoordinate> _occupiedNonProducerCells = new HashSet<GridCoordinate>();
+        private readonly HashSet<GridCoordinate> _producerCells = new HashSet<GridCoordinate>();
         private EnergyBalanceResult _lastResult = new EnergyBalanceResult(0f, 0f, 0f, 0f, 0f);
 
         public EnergyBalanceResult LastResult => _lastResult;
@@ -110,6 +113,16 @@ namespace CleanEnergy.Energy
             return _occupiedNonProducerCells.Contains(coordinate);
         }
 
+        public bool TryGetDemandRatio(GridCoordinate coordinate, out float ratio)
+        {
+            return _demandRatios.TryGetValue(coordinate, out ratio);
+        }
+
+        public bool IsProducerCell(GridCoordinate coordinate)
+        {
+            return _producerCells.Contains(coordinate);
+        }
+
         private void OnTick(SimulationContext context)
         {
             if (networkService == null)
@@ -150,7 +163,9 @@ namespace CleanEnergy.Energy
             _hubUtilization.Clear();
             _energyNodeCells.Clear();
             _productionRatios.Clear();
+            _demandRatios.Clear();
             _occupiedNonProducerCells.Clear();
+            _producerCells.Clear();
 
             var production = 0f;
             var demand = 0f;
@@ -195,7 +210,7 @@ namespace CleanEnergy.Energy
                 }
             }
 
-            RefreshProductionSnapshot();
+            RefreshBuildingSnapshots(context);
 
             _lastResult = new EnergyBalanceResult(
                 production,
@@ -209,7 +224,7 @@ namespace CleanEnergy.Energy
                 congested);
         }
 
-        private void RefreshProductionSnapshot()
+        private void RefreshBuildingSnapshots(SimulationContext context)
         {
             if (placementController == null)
             {
@@ -226,6 +241,7 @@ namespace CleanEnergy.Energy
 
                 if (building.Definition.IsProducer)
                 {
+                    _producerCells.Add(pair.Key);
                     _productionRatios[pair.Key] = ProductionUtilization.ComputeRatio(
                         building.CurrentProduction,
                         building.Definition.InstalledPower);
@@ -233,6 +249,15 @@ namespace CleanEnergy.Energy
                 else
                 {
                     _occupiedNonProducerCells.Add(pair.Key);
+                }
+
+                if (building.Definition.IsConsumer)
+                {
+                    var currentDemand = building.Definition.BaseDemand
+                                        * Mathf.Max(0f, context.DemandMultiplier);
+                    _demandRatios[pair.Key] = DemandUtilization.ComputeRatio(
+                        currentDemand,
+                        building.Definition.BaseDemand);
                 }
             }
         }
@@ -259,7 +284,9 @@ namespace CleanEnergy.Energy
             _hubUtilization.Clear();
             _energyNodeCells.Clear();
             _productionRatios.Clear();
+            _demandRatios.Clear();
             _occupiedNonProducerCells.Clear();
+            _producerCells.Clear();
         }
     }
 }

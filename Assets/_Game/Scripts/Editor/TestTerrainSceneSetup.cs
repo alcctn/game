@@ -334,6 +334,12 @@ namespace CleanEnergy.Editor
             overlay.SetPlacementController(placement);
             overlay.SetEnergyDriver(driver);
 
+            var edgeGo = new GameObject("NetworkEdgeOverlay");
+            edgeGo.transform.SetParent(overlayGo.transform, false);
+            var edgeOverlay = edgeGo.AddComponent<NetworkEdgeOverlay>();
+            edgeOverlay.Configure(mapGenerator, network, driver);
+            overlay.SetNetworkEdgeOverlay(edgeOverlay);
+
             var highlightGo = new GameObject("SelectionHighlight");
             highlightGo.transform.SetParent(overlayGo.transform, false);
             var highlight = highlightGo.AddComponent<SelectionHighlight>();
@@ -357,7 +363,7 @@ namespace CleanEnergy.Editor
             var inspectionGo = new GameObject("InspectionPanelUI");
             inspectionGo.transform.SetParent(debugRoot.transform, false);
             var inspection = inspectionGo.AddComponent<InspectionPanelUI>();
-            inspection.Configure(overlay, mapGenerator, placement, network);
+            inspection.Configure(overlay, mapGenerator, placement, network, clock, researchController);
 
             var notification = simRoot.AddComponent<NotificationController>();
             notification.Configure(driver, researchController, maintenance, network, scenarioController);

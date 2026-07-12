@@ -52,6 +52,16 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 37. [Sprint 33 — Placement Beklenen Üretim](docs/SPRINT_33_PLACEMENT_YIELD.md)
 38. [Sprint 34 — Main Menu](docs/SPRINT_34_MAIN_MENU.md)
 39. [Sprint 35 — İkinci Senaryo](docs/SPRINT_35_SECOND_SCENARIO.md)
+40. [Sprint 36 — Talep Debug Katmanı](docs/SPRINT_36_DEMAND_DEBUG.md)
+41. [Sprint 37 — Network Edge Flow](docs/SPRINT_37_EDGE_FLOW.md)
+42. [Sprint 38 — Scenario Restart](docs/SPRINT_38_RESTART.md)
+43. [Sprint 39 — Main Menu Continue](docs/SPRINT_39_CONTINUE.md)
+44. [Sprint 40 — Manuel Repair](docs/SPRINT_40_MANUAL_REPAIR.md)
+45. [Sprint 41 — Research Tier-3](docs/SPRINT_41_RESEARCH_TIER3.md)
+46. [Sprint 42 — Upkeep × Bakım](docs/SPRINT_42_UPKEEP_MAINTENANCE.md)
+47. [Sprint 43 — Üretim Breakdown](docs/SPRINT_43_PRODUCTION_BREAKDOWN.md)
+48. [Sprint 44 — Multi-Slot Save](docs/SPRINT_44_MULTI_SLOT_SAVE.md)
+49. [Sprint 45 — Building Demolish](docs/SPRINT_45_DEMOLISH.md)
 
 ## İlk Uygulama Sırası
 

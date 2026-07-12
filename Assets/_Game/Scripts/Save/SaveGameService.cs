@@ -5,20 +5,44 @@ using UnityEngine;
 namespace CleanEnergy.Save
 {
     /// <summary>
-    /// Reads/writes GameSaveData JSON to a single slot file.
+    /// Reads/writes GameSaveData JSON to slot files (slot1–slot3).
     /// </summary>
     public sealed class SaveGameService
     {
         public const string DefaultSlotFileName = "slot1.json";
+        public const int MinSlot = 1;
+        public const int MaxSlot = 3;
 
         public string SlotDirectory { get; }
-        public string SlotPath => Path.Combine(SlotDirectory, DefaultSlotFileName);
+        public int ActiveSlot { get; private set; } = 1;
+        public string SlotPath => GetSlotPath(ActiveSlot);
 
         public SaveGameService(string slotDirectory = null)
         {
             SlotDirectory = string.IsNullOrEmpty(slotDirectory)
                 ? Path.Combine(Application.persistentDataPath, "saves")
                 : slotDirectory;
+        }
+
+        public static string SlotFileName(int slot)
+        {
+            var clamped = ClampSlot(slot);
+            return $"slot{clamped}.json";
+        }
+
+        public static int ClampSlot(int slot)
+        {
+            return Mathf.Clamp(slot, MinSlot, MaxSlot);
+        }
+
+        public string GetSlotPath(int slot)
+        {
+            return Path.Combine(SlotDirectory, SlotFileName(slot));
+        }
+
+        public void SetActiveSlot(int slot)
+        {
+            ActiveSlot = ClampSlot(slot);
         }
 
         public string ToJson(GameSaveData data)
@@ -42,25 +66,33 @@ namespace CleanEnergy.Save
             return JsonUtility.FromJson<GameSaveData>(json);
         }
 
-        public bool SlotExists() => File.Exists(SlotPath);
+        public bool SlotExists() => SlotExists(ActiveSlot);
 
-        public void Write(GameSaveData data)
+        public bool SlotExists(int slot) => File.Exists(GetSlotPath(slot));
+
+        public void Write(GameSaveData data) => Write(ActiveSlot, data);
+
+        public void Write(int slot, GameSaveData data)
         {
             Directory.CreateDirectory(SlotDirectory);
+            var path = GetSlotPath(slot);
             var json = ToJson(data);
-            File.WriteAllText(SlotPath, json);
-            Debug.Log($"[Save] Wrote {SlotPath}");
+            File.WriteAllText(path, json);
+            Debug.Log($"[Save] Wrote {path}");
         }
 
-        public GameSaveData Read()
+        public GameSaveData Read() => Read(ActiveSlot);
+
+        public GameSaveData Read(int slot)
         {
-            if (!SlotExists())
+            var path = GetSlotPath(slot);
+            if (!File.Exists(path))
             {
-                Debug.LogWarning($"[Save] No save at {SlotPath}");
+                Debug.LogWarning($"[Save] No save at {path}");
                 return null;
             }
 
-            var json = File.ReadAllText(SlotPath);
+            var json = File.ReadAllText(path);
             var data = FromJson(json);
             if (data == null)
             {

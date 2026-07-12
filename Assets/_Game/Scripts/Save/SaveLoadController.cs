@@ -51,6 +51,11 @@ namespace CleanEnergy.Save
 
         public bool SaveSlot()
         {
+            return SaveSlot(_saveService.ActiveSlot);
+        }
+
+        public bool SaveSlot(int slot)
+        {
             var data = Collect();
             if (data == null)
             {
@@ -58,13 +63,20 @@ namespace CleanEnergy.Save
                 return false;
             }
 
+            _saveService.SetActiveSlot(slot);
             _saveService.Write(data);
-            LastMessage = "Saved slot1.";
+            LastMessage = $"Saved slot{SaveGameService.ClampSlot(slot)}.";
             return true;
         }
 
         public bool LoadSlot()
         {
+            return LoadSlot(_saveService.ActiveSlot);
+        }
+
+        public bool LoadSlot(int slot)
+        {
+            _saveService.SetActiveSlot(slot);
             var data = _saveService.Read();
             if (data == null)
             {
@@ -78,8 +90,13 @@ namespace CleanEnergy.Save
                 return false;
             }
 
-            LastMessage = "Loaded slot1.";
+            LastMessage = $"Loaded slot{SaveGameService.ClampSlot(slot)}.";
             return true;
+        }
+
+        public void SetActiveSlot(int slot)
+        {
+            _saveService.SetActiveSlot(slot);
         }
 
         public GameSaveData Collect()

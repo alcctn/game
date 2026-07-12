@@ -150,6 +150,20 @@ namespace CleanEnergy.Energy
             }
         }
 
+        public IEnumerable<(string A, string B)> EnumerateUndirectedEdges()
+        {
+            foreach (var pair in _edges)
+            {
+                foreach (var neighbor in pair.Value)
+                {
+                    if (string.CompareOrdinal(pair.Key, neighbor) < 0)
+                    {
+                        yield return (pair.Key, neighbor);
+                    }
+                }
+            }
+        }
+
         public bool AreConnected(string a, string b)
         {
             if (a == b)

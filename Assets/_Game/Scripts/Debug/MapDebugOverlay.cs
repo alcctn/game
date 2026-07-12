@@ -14,6 +14,7 @@ namespace CleanEnergy.DebugTools
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private PlacementController placementController;
         [SerializeField] private EnergySimulationDriver energyDriver;
+        [SerializeField] private NetworkEdgeOverlay edgeOverlay;
         [SerializeField] private float overlayHeightOffset = 0.5f;
         [SerializeField] private float maxSlopeForColor = 45f;
         [SerializeField] private float maxWaterFlowForColor = 64f;
@@ -102,13 +103,28 @@ namespace CleanEnergy.DebugTools
             {
                 energyDriver.BalanceUpdated += OnBalanceUpdated;
             }
+
+            SyncEdgeOverlay();
+        }
+
+        public void SetNetworkEdgeOverlay(NetworkEdgeOverlay overlay)
+        {
+            edgeOverlay = overlay;
+            SyncEdgeOverlay();
         }
 
         private void OnBalanceUpdated(EnergyBalanceResult _)
         {
-            if (_mode == DebugViewMode.Network || _mode == DebugViewMode.Production)
+            if (_mode == DebugViewMode.Network
+                || _mode == DebugViewMode.Production
+                || _mode == DebugViewMode.Demand)
             {
                 Rebuild();
+            }
+
+            if (_mode == DebugViewMode.Network && edgeOverlay != null)
+            {
+                edgeOverlay.Rebuild();
             }
         }
 
@@ -121,7 +137,18 @@ namespace CleanEnergy.DebugTools
 
             _mode = mode;
             Rebuild();
+            SyncEdgeOverlay();
             ModeChanged?.Invoke(_mode);
+        }
+
+        private void SyncEdgeOverlay()
+        {
+            if (edgeOverlay == null)
+            {
+                return;
+            }
+
+            edgeOverlay.SetVisible(_mode == DebugViewMode.Network);
         }
 
         public void SetSelection(GridCoordinate? coordinate)
@@ -310,6 +337,26 @@ namespace CleanEnergy.DebugTools
                     }
 
                     return ProductionUtilization.EmptyCellColor;
+                }
+                case DebugViewMode.Demand:
+                {
+                    var coordinate = new GridCoordinate(cell.X, cell.Y);
+                    if (energyDriver != null && energyDriver.TryGetDemandRatio(coordinate, out var ratio))
+                    {
+                        return DemandUtilization.ColorForRatio(ratio);
+                    }
+
+                    if (energyDriver != null && energyDriver.IsProducerCell(coordinate))
+                    {
+                        return DemandUtilization.NeutralCellColor;
+                    }
+
+                    if (energyDriver != null && energyDriver.IsOccupiedNonProducer(coordinate))
+                    {
+                        return DemandUtilization.NeutralCellColor;
+                    }
+
+                    return DemandUtilization.EmptyCellColor;
                 }
                 default:
                     return Color.white;

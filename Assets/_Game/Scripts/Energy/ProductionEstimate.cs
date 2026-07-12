@@ -7,6 +7,32 @@ using UnityEngine;
 
 namespace CleanEnergy.Energy
 {
+    public readonly struct ProductionBreakdown
+    {
+        public float ResourcePotential { get; }
+        public float PhaseFactor { get; }
+        public float Efficiency { get; }
+        public float Maintenance { get; }
+        public float WakeFactor { get; }
+        public float Production { get; }
+
+        public ProductionBreakdown(
+            float resourcePotential,
+            float phaseFactor,
+            float efficiency,
+            float maintenance,
+            float wakeFactor,
+            float production)
+        {
+            ResourcePotential = resourcePotential;
+            PhaseFactor = phaseFactor;
+            Efficiency = efficiency;
+            Maintenance = maintenance;
+            WakeFactor = wakeFactor;
+            Production = production;
+        }
+    }
+
     /// <summary>
     /// Shared production estimate used by adapters and placement yield UI.
     /// </summary>
@@ -23,17 +49,38 @@ namespace CleanEnergy.Energy
             float maintenanceLevel = 1f,
             string excludeInstanceId = null)
         {
+            return BreakDown(
+                definition, coordinate, grid, settings, context,
+                occupancy, efficiencyBonus, maintenanceLevel, excludeInstanceId).Production;
+        }
+
+        public static ProductionBreakdown BreakDown(
+            BuildingDefinition definition,
+            GridCoordinate coordinate,
+            GridService grid,
+            MapGenerationSettings settings,
+            SimulationContext context,
+            GridOccupancyService occupancy = null,
+            float efficiencyBonus = 0f,
+            float maintenanceLevel = 1f,
+            string excludeInstanceId = null)
+        {
             if (definition == null || definition.InstalledPower <= 0f || grid == null)
             {
-                return 0f;
+                return new ProductionBreakdown(0f, 0f, 0f, 0f, 1f, 0f);
             }
 
-            var potential = SamplePotential(definition.Id, coordinate, grid, settings, context);
+            SampleResourceAndPhase(
+                definition.Id, coordinate, grid, settings, context,
+                out var resource, out var phase);
             var efficiency = Mathf.Max(0f, definition.Efficiency + efficiencyBonus);
             var maintenance = Mathf.Clamp01(maintenanceLevel);
             var wake = WindWakeFactor.Compute(
                 definition, coordinate, occupancy, excludeInstanceId);
-            return Mathf.Max(0f, definition.InstalledPower * potential * efficiency * maintenance * wake);
+            var production = Mathf.Max(
+                0f,
+                definition.InstalledPower * resource * phase * efficiency * maintenance * wake);
+            return new ProductionBreakdown(resource, phase, efficiency, maintenance, wake, production);
         }
 
         public static float SamplePotential(
@@ -43,22 +90,45 @@ namespace CleanEnergy.Energy
             MapGenerationSettings settings,
             SimulationContext context)
         {
+            SampleResourceAndPhase(buildingId, coordinate, grid, settings, context, out var resource, out var phase);
+            return resource * phase;
+        }
+
+        public static void SampleResourceAndPhase(
+            string buildingId,
+            GridCoordinate coordinate,
+            GridService grid,
+            MapGenerationSettings settings,
+            SimulationContext context,
+            out float resourcePotential,
+            out float phaseFactor)
+        {
+            resourcePotential = 0f;
+            phaseFactor = 1f;
             if (grid == null || !grid.TryGetCell(coordinate, out var cell))
             {
-                return 0f;
+                return;
             }
 
             switch (buildingId)
             {
                 case "water_wheel":
                 case "small_hydro":
-                    return SampleHydroPotential(coordinate, cell, grid, settings);
+                    resourcePotential = SampleHydroPotential(coordinate, cell, grid, settings);
+                    phaseFactor = 1f;
+                    break;
                 case "small_solar":
-                    return Mathf.Clamp01(cell.SolarPotential) * Mathf.Clamp01(context.DaylightFactor);
+                    resourcePotential = Mathf.Clamp01(cell.SolarPotential);
+                    phaseFactor = Mathf.Clamp01(context.DaylightFactor);
+                    break;
                 case "small_wind":
-                    return Mathf.Clamp01(cell.WindPotential) * Mathf.Max(0f, context.WindFactor);
+                    resourcePotential = Mathf.Clamp01(cell.WindPotential);
+                    phaseFactor = Mathf.Max(0f, context.WindFactor);
+                    break;
                 default:
-                    return 1f;
+                    resourcePotential = 1f;
+                    phaseFactor = 1f;
+                    break;
             }
         }
 

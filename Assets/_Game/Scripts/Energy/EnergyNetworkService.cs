@@ -171,6 +171,12 @@ namespace CleanEnergy.Energy
             Rebuild();
         }
 
+        private void OnBuildingRemoved(BuildingPlacedEvent _)
+        {
+            MarkDirty();
+            Rebuild();
+        }
+
         private void OnMapGenerated(Core.MapGeneratedEvent _)
         {
             _graph.Clear();
@@ -183,6 +189,7 @@ namespace CleanEnergy.Energy
             if (placementController != null)
             {
                 placementController.BuildingPlaced += OnBuildingPlaced;
+                placementController.BuildingRemoved += OnBuildingRemoved;
             }
 
             if (mapGenerator != null)
@@ -196,6 +203,7 @@ namespace CleanEnergy.Energy
             if (placementController != null)
             {
                 placementController.BuildingPlaced -= OnBuildingPlaced;
+                placementController.BuildingRemoved -= OnBuildingRemoved;
             }
 
             if (mapGenerator != null)

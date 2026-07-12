@@ -129,27 +129,42 @@ namespace CleanEnergy.UI
         private void DrawWinOverlay()
         {
             var width = 360f;
-            var height = 110f;
+            var height = 150f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label("Scenario complete");
             GUILayout.Label("Village demand sustained with a diversified network.");
             GUILayout.Label("Press Generate to play again.");
+            if (GUILayout.Button("Restart"))
+            {
+                RestartScenario();
+            }
+
             GUILayout.EndArea();
         }
 
         private void DrawLoseOverlay()
         {
             var width = 360f;
-            var height = 110f;
+            var height = 150f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label("Scenario failed");
             GUILayout.Label("Village satisfaction collapsed from prolonged shortages.");
             GUILayout.Label("Press Generate to try again.");
+            if (GUILayout.Button("Restart"))
+            {
+                RestartScenario();
+            }
+
             GUILayout.EndArea();
+        }
+
+        public void RestartScenario()
+        {
+            CleanEnergy.Core.SceneFlow.LoadPlayScene();
         }
 
         private static string Mark(bool done) => done ? "[x]" : "[ ]";

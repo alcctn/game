@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CleanEnergy.DebugTools
 {
     /// <summary>
-    /// Maps F1–F8 to debug view modes (GDD §3).
+    /// Maps F1–F9 to debug view modes (GDD §3 / §5).
     /// </summary>
     public static class DebugViewHotkeys
     {
@@ -34,6 +34,9 @@ namespace CleanEnergy.DebugTools
                     return true;
                 case KeyCode.F8:
                     mode = DebugViewMode.Production;
+                    return true;
+                case KeyCode.F9:
+                    mode = DebugViewMode.Demand;
                     return true;
                 default:
                     mode = DebugViewMode.Normal;

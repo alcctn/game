@@ -9,6 +9,7 @@ namespace CleanEnergy.DebugTools
         Solar = 4,
         Wind = 5,
         Network = 6,
-        Production = 7
+        Production = 7,
+        Demand = 8
     }
 }

@@ -76,6 +76,11 @@ namespace CleanEnergy.Core
             driver.Configure(clock, network, placement, maintenance, mapGenerator);
             overlay.SetEnergyDriver(driver);
 
+            var edgeGo = EnsureChild("NetworkEdgeOverlay", overlayGo);
+            var edgeOverlay = FindOrAdd<NetworkEdgeOverlay>(edgeGo.gameObject);
+            edgeOverlay.Configure(mapGenerator, network, driver);
+            overlay.SetNetworkEdgeOverlay(edgeOverlay);
+
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
             var research = FindOrAdd<ResearchController>(simRoot.gameObject);
             research.Configure(ResolveResearchTree(), driver, network, scenario, mapGenerator);
@@ -90,7 +95,7 @@ namespace CleanEnergy.Core
 
             var inspectionGo = EnsureChild("InspectionPanelUI", debugRoot);
             var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
-            inspection.Configure(overlay, mapGenerator, placement, network);
+            inspection.Configure(overlay, mapGenerator, placement, network, clock, research);
 
             var notification = FindOrAdd<NotificationController>(simRoot.gameObject);
             notification.Configure(driver, research, maintenance, network, scenario);
@@ -166,6 +171,11 @@ namespace CleanEnergy.Core
             var saveHudGo = EnsureChild("SaveLoadHudUI", debugRoot);
             var saveHud = FindOrAdd<SaveLoadHudUI>(saveHudGo.gameObject);
             saveHud.Configure(saveLoad);
+
+            if (ScenarioSession.ConsumeLoadSaveOnPlay())
+            {
+                saveLoad.LoadSlot();
+            }
         }
 
         private BuildingDefinition[] ResolveBuildings()

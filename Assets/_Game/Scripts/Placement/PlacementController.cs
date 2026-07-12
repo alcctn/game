@@ -55,6 +55,7 @@ namespace CleanEnergy.Placement
         public MapGenerator MapGenerator => mapGenerator;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
+        public event Action<BuildingPlacedEvent> BuildingRemoved;
         public event Action PlacementRejected;
 
         private void Awake()
@@ -314,6 +315,32 @@ namespace CleanEnergy.Placement
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
             return PlacementValidationResult.Success();
+        }
+
+        public bool TryDemolish(GridCoordinate coordinate, out float refund)
+        {
+            refund = 0f;
+            if (!_occupancy.TryGet(coordinate, out var building) || building?.Definition == null)
+            {
+                return false;
+            }
+
+            refund = Mathf.Max(0f, building.Definition.Cost * 0.5f);
+            _wallet?.Add(refund);
+            _occupancy.Release(coordinate);
+            if (mapGenerator != null && mapGenerator.Grid.IsInitialized)
+            {
+                mapGenerator.Grid.SetOccupyingBuildingId(coordinate, null);
+            }
+
+            if (building.GameObject != null)
+            {
+                Destroy(building.GameObject);
+            }
+
+            BuildingRemoved?.Invoke(new BuildingPlacedEvent(building));
+            Debug.Log($"[Placement] Demolished '{building.Definition.Id}' at {coordinate}. Refund={refund:F0}");
+            return true;
         }
 
         private void OnMapGenerated(MapGeneratedEvent _)

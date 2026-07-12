@@ -30,10 +30,16 @@ namespace CleanEnergy.Economy
                     continue;
                 }
 
-                total += Mathf.Max(0f, instance.Definition.MaintenanceCost);
+                total += Mathf.Max(0f, instance.Definition.MaintenanceCost)
+                         * MaintenanceMultiplier(instance.MaintenanceLevel);
             }
 
             return total;
+        }
+
+        public static float MaintenanceMultiplier(float maintenanceLevel)
+        {
+            return Mathf.Clamp(2f - Mathf.Clamp01(maintenanceLevel), 1f, 2f);
         }
 
         public void ProcessTick(

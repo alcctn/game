@@ -1,7 +1,10 @@
 using CleanEnergy.DebugTools;
 using CleanEnergy.Energy;
+using CleanEnergy.Maintenance;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
+using CleanEnergy.Research;
+using CleanEnergy.Simulation;
 using UnityEngine;
 
 namespace CleanEnergy.UI
@@ -15,24 +18,32 @@ namespace CleanEnergy.UI
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private PlacementController placementController;
         [SerializeField] private EnergyNetworkService networkService;
+        [SerializeField] private SimulationClock simulationClock;
+        [SerializeField] private ResearchController researchController;
+
+        private string _actionMessage = string.Empty;
 
         public void Configure(
             MapDebugOverlay overlay,
             MapGenerator generator,
             PlacementController placement,
-            EnergyNetworkService network)
+            EnergyNetworkService network,
+            SimulationClock clock = null,
+            ResearchController research = null)
         {
             debugOverlay = overlay;
             mapGenerator = generator;
             placementController = placement;
             networkService = network;
+            simulationClock = clock;
+            researchController = research;
         }
 
         private void OnGUI()
         {
             const float width = 280f;
             var x = Screen.width - width - 12f;
-            GUILayout.BeginArea(new Rect(x, 12f, width, 420f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(x, 12f, width, 520f), GUI.skin.box);
             GUILayout.Label("Inspection");
 
             if (debugOverlay == null || !debugOverlay.SelectedCell.HasValue)
@@ -65,18 +76,18 @@ namespace CleanEnergy.UI
                 GUILayout.Label($"Building: {def.DisplayName}");
                 if (def.IsProducer)
                 {
-                    GUILayout.Label($"Production {building.CurrentProduction:F1}");
-                    if (WindWakeFactor.AppliesTo(def))
+                    DrawProductionBreakdown(building, coordinate);
+                    if (GUILayout.Button("Repair"))
                     {
-                        var wake = WindWakeFactor.Compute(
-                            def, coordinate, placementController.Occupancy, building.InstanceId);
-                        GUILayout.Label($"WakeFactor {wake:F2}");
-                    }
-
-                    var hint = InspectionStatus.FormatEfficiencyHint(def, building.MaintenanceLevel);
-                    if (!string.IsNullOrEmpty(hint))
-                    {
-                        GUILayout.Label(hint);
+                        if (MaintenanceService.TryManualRepair(
+                                building, placementController.Wallet, out var fail))
+                        {
+                            _actionMessage = "Repaired.";
+                        }
+                        else
+                        {
+                            _actionMessage = fail;
+                        }
                     }
                 }
 
@@ -103,6 +114,19 @@ namespace CleanEnergy.UI
                 var graph = networkService != null ? networkService.Graph : null;
                 var status = InspectionStatus.ResolveNetwork(building, graph);
                 GUILayout.Label($"Network: {InspectionStatus.NetworkLabel(status)}");
+
+                if (GUILayout.Button("Demolish"))
+                {
+                    if (placementController.TryDemolish(coordinate, out var refund))
+                    {
+                        _actionMessage = $"Demolished (+{refund:F0})";
+                        debugOverlay.ClearSelection();
+                    }
+                    else
+                    {
+                        _actionMessage = "Demolish failed.";
+                    }
+                }
             }
             else
             {
@@ -110,7 +134,45 @@ namespace CleanEnergy.UI
                 GUILayout.Label($"Network: {InspectionStatus.NetworkLabel(InspectionNetworkStatus.NoBuilding)}");
             }
 
+            if (!string.IsNullOrEmpty(_actionMessage))
+            {
+                GUILayout.Space(4f);
+                GUILayout.Label(_actionMessage);
+            }
+
             GUILayout.EndArea();
+        }
+
+        private void DrawProductionBreakdown(Buildings.BuildingInstance building, Grid.GridCoordinate coordinate)
+        {
+            var def = building.Definition;
+            var context = simulationClock != null
+                ? simulationClock.CreateContextSnapshot()
+                : new SimulationContext(0, 0.5f, SimulationSpeed.One, 0.3f, DayPhase.Noon);
+            var bonus = researchController != null
+                ? researchController.Service.GetEfficiencyBonus(def.Id)
+                : 0f;
+            var breakdown = ProductionEstimate.BreakDown(
+                def,
+                coordinate,
+                mapGenerator.Grid,
+                mapGenerator.Settings,
+                context,
+                placementController.Occupancy,
+                bonus,
+                building.MaintenanceLevel,
+                building.InstanceId);
+
+            GUILayout.Label($"Potential {breakdown.ResourcePotential:F2}");
+            GUILayout.Label($"Phase {breakdown.PhaseFactor:F2}");
+            GUILayout.Label($"Efficiency {breakdown.Efficiency:F2}");
+            GUILayout.Label($"Maintenance {breakdown.Maintenance:F2}");
+            if (WindWakeFactor.AppliesTo(def))
+            {
+                GUILayout.Label($"WakeFactor {breakdown.WakeFactor:F2}");
+            }
+
+            GUILayout.Label($"= Production {breakdown.Production:F1}");
         }
     }
 }

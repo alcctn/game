@@ -56,6 +56,11 @@ namespace CleanEnergy.Research
                 "hydro_eff", "Hydro Efficiency", "+0.1 water wheel efficiency",
                 "hydro_basic", 20f, false, Array.Empty<string>(), "water_wheel", 0.1f);
 
+            var hydroTune = new ResearchNodeDefinition();
+            hydroTune.Configure(
+                "hydro_tune", "Hydro Tuning", "+0.1 small hydro efficiency",
+                "hydro_eff", 35f, false, Array.Empty<string>(), "small_hydro", 0.1f);
+
             var solarBasic = new ResearchNodeDefinition();
             solarBasic.Configure(
                 "solar_basic", "Basic Solar", "Unlocks small solar",
@@ -65,6 +70,11 @@ namespace CleanEnergy.Research
             solarEff.Configure(
                 "solar_eff", "Solar Efficiency", "+0.1 solar efficiency",
                 "solar_basic", 25f, false, Array.Empty<string>(), "small_solar", 0.1f);
+
+            var solarInverter = new ResearchNodeDefinition();
+            solarInverter.Configure(
+                "solar_inverter", "Smart Inverter", "+0.1 solar efficiency",
+                "solar_eff", 40f, false, Array.Empty<string>(), "small_solar", 0.1f);
 
             var windBasic = new ResearchNodeDefinition();
             windBasic.Configure(
@@ -76,11 +86,16 @@ namespace CleanEnergy.Research
                 "wind_eff", "Wind Efficiency", "+0.1 wind efficiency",
                 "wind_basic", 25f, false, Array.Empty<string>(), "small_wind", 0.1f);
 
+            var windBlade = new ResearchNodeDefinition();
+            windBlade.Configure(
+                "wind_blade", "Advanced Blade", "+0.1 wind efficiency",
+                "wind_eff", 40f, false, Array.Empty<string>(), "small_wind", 0.1f);
+
             nodes = new[]
             {
-                hydroBasic, hydroTurbine, hydroEff,
-                solarBasic, solarEff,
-                windBasic, windEff
+                hydroBasic, hydroTurbine, hydroEff, hydroTune,
+                solarBasic, solarEff, solarInverter,
+                windBasic, windEff, windBlade
             };
         }
     }

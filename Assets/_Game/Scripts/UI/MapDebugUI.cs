@@ -11,7 +11,7 @@ namespace CleanEnergy.UI
     {
         private static readonly string[] ViewModeLabels =
         {
-            "Normal", "Height", "Slope", "Water", "Solar", "Wind", "Network", "Production"
+            "Normal", "Height", "Slope", "Water", "Solar", "Wind", "Network", "Production", "Demand"
         };
 
         [SerializeField] private MapGenerator mapGenerator;
@@ -52,6 +52,7 @@ namespace CleanEnergy.UI
             if (Input.GetKeyDown(KeyCode.F6)) return DebugViewHotkeys.TryMapKey(KeyCode.F6, out mode);
             if (Input.GetKeyDown(KeyCode.F7)) return DebugViewHotkeys.TryMapKey(KeyCode.F7, out mode);
             if (Input.GetKeyDown(KeyCode.F8)) return DebugViewHotkeys.TryMapKey(KeyCode.F8, out mode);
+            if (Input.GetKeyDown(KeyCode.F9)) return DebugViewHotkeys.TryMapKey(KeyCode.F9, out mode);
             return false;
         }
 
@@ -95,11 +96,11 @@ namespace CleanEnergy.UI
 
             GUILayout.EndHorizontal();
 
-            GUILayout.Label("View Mode (F1–F8)");
+            GUILayout.Label("View Mode (F1–F9)");
             var newMode = (DebugViewMode)GUILayout.SelectionGrid(
                 (int)_viewMode,
                 ViewModeLabels,
-                4);
+                3);
             if (newMode != _viewMode)
             {
                 ApplyViewMode(newMode);
