@@ -26,11 +26,6 @@ namespace CleanEnergy.Core
 
         private void Update()
         {
-            if (pauseOverlay != null && pauseOverlay.IsOverlayVisible)
-            {
-                return;
-            }
-
             if (placementController != null && placementController.IsPlacementActive)
             {
                 return;
@@ -39,6 +34,12 @@ namespace CleanEnergy.Core
             if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Pause)))
             {
                 TogglePause();
+                return;
+            }
+
+            if (pauseOverlay != null && pauseOverlay.IsOverlayVisible)
+            {
+                return;
             }
 
             if (Input.GetKeyDown(KeybindService.Get(RemappableAction.Speed1))
@@ -68,6 +69,20 @@ namespace CleanEnergy.Core
 
         private void TogglePause()
         {
+            if (pauseOverlay != null)
+            {
+                if (pauseOverlay.IsOverlayVisible)
+                {
+                    pauseOverlay.Resume();
+                }
+                else
+                {
+                    pauseOverlay.Pause();
+                }
+
+                return;
+            }
+
             if (clock == null)
             {
                 return;

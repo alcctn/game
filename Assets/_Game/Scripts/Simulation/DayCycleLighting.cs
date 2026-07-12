@@ -4,14 +4,17 @@ namespace CleanEnergy.Simulation
 {
     /// <summary>
     /// Maps <see cref="DayPhase"/> to directional light intensity/color and ambient light.
-    /// Freeze while simulation is paused.
+    /// Cloudy weather dims ambient; pause freezes lighting.
     /// </summary>
     public sealed class DayCycleLighting : MonoBehaviour
     {
+        public const float CloudyAmbientMultiplier = 0.7f;
+
         [SerializeField] private SimulationClock simulationClock;
         [SerializeField] private Light directionalLight;
 
         private DayPhase _lastApplied = (DayPhase)(-1);
+        private WeatherEventKind _lastWeather = (WeatherEventKind)(-1);
 
         public Light DirectionalLight => directionalLight;
 
@@ -26,7 +29,10 @@ namespace CleanEnergy.Simulation
             EnsureLight();
             if (simulationClock != null)
             {
-                ApplyPhase(simulationClock.DayCycle.Phase, force: true);
+                ApplyPhase(
+                    simulationClock.DayCycle.Phase,
+                    simulationClock.Weather.ActiveKind,
+                    force: true);
             }
         }
 
@@ -57,13 +63,19 @@ namespace CleanEnergy.Simulation
                 return;
             }
 
-            ApplyPhase(simulationClock.DayCycle.Phase);
+            ApplyPhase(simulationClock.DayCycle.Phase, simulationClock.Weather.ActiveKind);
         }
 
         /// <summary>
         /// Fixed lighting table. Dawn maps to <see cref="DayPhase.Morning"/>.
+        /// Cloudy multiplies ambient by <see cref="CloudyAmbientMultiplier"/>; WindGust does not.
         /// </summary>
-        public static void Resolve(DayPhase phase, out float intensity, out Color lightColor, out Color ambient)
+        public static void Resolve(
+            DayPhase phase,
+            out float intensity,
+            out Color lightColor,
+            out Color ambient,
+            WeatherEventKind weather = WeatherEventKind.None)
         {
             switch (phase)
             {
@@ -89,17 +101,30 @@ namespace CleanEnergy.Simulation
                     ambient = new Color(0.08f, 0.1f, 0.18f);
                     break;
             }
+
+            if (weather == WeatherEventKind.Cloudy)
+            {
+                ambient *= CloudyAmbientMultiplier;
+            }
         }
 
         public void ApplyPhase(DayPhase phase, bool force = false)
         {
-            if (!force && phase == _lastApplied)
+            var weather = simulationClock != null
+                ? simulationClock.Weather.ActiveKind
+                : WeatherEventKind.None;
+            ApplyPhase(phase, weather, force);
+        }
+
+        public void ApplyPhase(DayPhase phase, WeatherEventKind weather, bool force = false)
+        {
+            if (!force && phase == _lastApplied && weather == _lastWeather)
             {
                 return;
             }
 
             EnsureLight();
-            Resolve(phase, out var intensity, out var lightColor, out var ambient);
+            Resolve(phase, out var intensity, out var lightColor, out var ambient, weather);
             if (directionalLight != null)
             {
                 directionalLight.intensity = intensity;
@@ -108,6 +133,7 @@ namespace CleanEnergy.Simulation
 
             RenderSettings.ambientLight = ambient;
             _lastApplied = phase;
+            _lastWeather = weather;
         }
 
         private void EnsureLight()

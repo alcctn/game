@@ -97,6 +97,21 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 82. [Sprint 78 — Edge Particles](docs/SPRINT_78_EDGE_PARTICLES.md)
 83. [Sprint 79 — Keybind Remap](docs/SPRINT_79_KEYBINDS.md)
 84. [Sprint 80 — Bootstrap Scene](docs/SPRINT_80_BOOTSTRAP.md)
+85. [Sprint 81 — Prefab Persist](docs/SPRINT_81_PREFAB_PERSIST.md)
+86. [Sprint 82 — Spin Child](docs/SPRINT_82_SPIN_CHILD.md)
+87. [Sprint 83 — Menu Four Scenarios](docs/SPRINT_83_MENU_FOUR.md)
+88. [Sprint 84 — Research Sync](docs/SPRINT_84_RESEARCH_SYNC.md)
+89. [Sprint 85 — Locked Build Rows](docs/SPRINT_85_LOCKED_ROWS.md)
+90. [Sprint 86 — Pause Save UX](docs/SPRINT_86_PAUSE_SAVE.md)
+91. [Sprint 87 — Notification / Win Polish](docs/SPRINT_87_NOTIF_POLISH.md)
+92. [Sprint 88 — Multi-Select Repair](docs/SPRINT_88_MULTI_REPAIR.md)
+93. [Sprint 89 — Undo Stack Depth 3](docs/SPRINT_89_UNDO_DEPTH.md)
+94. [Sprint 90 — Seasons Lite](docs/SPRINT_90_SEASONS.md)
+95. [Sprint 91 — Weather Ambient Dim](docs/SPRINT_91_WEATHER_DIM.md)
+96. [Sprint 92 — Environmental Score](docs/SPRINT_92_ENV_SCORE.md)
+97. [Sprint 93 — Fifth Scenario](docs/SPRINT_93_FIFTH_SCENARIO.md)
+98. [Sprint 94 — UI Scale](docs/SPRINT_94_UI_SCALE.md)
+99. [Sprint 95 — Localization String Table](docs/SPRINT_95_LOC_TABLE.md)
 
 ## İlk Uygulama Sırası
 

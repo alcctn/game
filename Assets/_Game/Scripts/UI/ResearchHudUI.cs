@@ -23,9 +23,11 @@ namespace CleanEnergy.UI
                 return;
             }
 
+            GuiScale.Apply();
+
             const float width = 280f;
-            GUILayout.BeginArea(new Rect(12f, Screen.height - 250f, width, 238f), GUI.skin.box);
-            GUILayout.Label(service.Tree != null ? service.Tree.DisplayName : "Research");
+            GUILayout.BeginArea(new Rect(12f, Screen.height / GuiScale.Current - 250f, width, 238f), GUI.skin.box);
+            GUILayout.Label(service.Tree != null ? service.Tree.DisplayName : StringTable.Get(StringKeys.Research));
             GUILayout.Label($"RP: {service.Wallet.Points:F0}");
 
             var nodes = service.Tree.Nodes;

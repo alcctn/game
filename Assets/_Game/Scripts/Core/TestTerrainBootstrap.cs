@@ -175,10 +175,6 @@ namespace CleanEnergy.Core
             }
 
             SettingsService.ApplyAll(controller);
-            pauseOverlay.Configure(clock, placement, controller);
-            var hotkeys = FindOrAdd<PlayHotkeys>(simRoot.gameObject);
-            hotkeys.Configure(clock, placement, pauseOverlay);
-
             var focusGo = EnsureChild("SelectionCameraFocus", debugRoot);
             var selectionFocus = FindOrAdd<SelectionCameraFocus>(focusGo.gameObject);
             selectionFocus.Configure(overlay, mapGenerator, placement, controller);
@@ -191,6 +187,9 @@ namespace CleanEnergy.Core
 
             var saveLoad = FindOrAdd<SaveLoadController>(simRoot.gameObject);
             saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial, driver, sfx);
+            pauseOverlay.Configure(clock, placement, controller, saveLoad);
+            var hotkeys = FindOrAdd<PlayHotkeys>(simRoot.gameObject);
+            hotkeys.Configure(clock, placement, pauseOverlay);
             var saveHudGo = EnsureChild("SaveLoadHudUI", debugRoot);
             var saveHud = FindOrAdd<SaveLoadHudUI>(saveHudGo.gameObject);
             saveHud.Configure(saveLoad);
@@ -270,6 +269,12 @@ namespace CleanEnergy.Core
             if (id == "pine_basin")
             {
                 scenarioDefinition = ScenarioProgressService.CreateRuntimePineBasin();
+                return scenarioDefinition;
+            }
+
+            if (id == "arid_plateau")
+            {
+                scenarioDefinition = ScenarioProgressService.CreateRuntimeAridPlateau();
                 return scenarioDefinition;
             }
 

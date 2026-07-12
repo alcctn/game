@@ -59,7 +59,7 @@ namespace CleanEnergy.Tests.EditMode
         }
 
         [Test]
-        public void FilterForTab_ReturnsOnlyUnlockedInCategory()
+        public void FilterForTab_ReturnsAllInCategory_IncludingLocked()
         {
             var buildings = new List<BuildingDefinition>
             {
@@ -71,11 +71,13 @@ namespace CleanEnergy.Tests.EditMode
             var unlocks = new StubUnlocks("small_solar", "village");
 
             var energy = BuildingPlacementUI.FilterForTab(buildings, BuildingCategory.Energy, unlocks);
-            Assert.AreEqual(1, energy.Count);
+            Assert.AreEqual(2, energy.Count);
             Assert.AreEqual("small_solar", energy[0].Id);
+            Assert.AreEqual("small_wind", energy[1].Id);
 
             var storage = BuildingPlacementUI.FilterForTab(buildings, BuildingCategory.Storage, unlocks);
-            Assert.AreEqual(0, storage.Count);
+            Assert.AreEqual(1, storage.Count);
+            Assert.AreEqual("battery", storage[0].Id);
 
             var settlement = BuildingPlacementUI.FilterForTab(buildings, BuildingCategory.Settlement, unlocks);
             Assert.AreEqual(1, settlement.Count);

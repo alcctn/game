@@ -75,6 +75,26 @@ namespace CleanEnergy.UI
                         _actionMessage = "Demolish selected failed.";
                     }
                 }
+
+                if (placementController != null
+                    && !placementController.IsPlacementActive
+                    && GUILayout.Button("Repair Selected"))
+                {
+                    if (MaintenanceService.TryRepairSelectedProducers(
+                            debugOverlay.MultiSelectedCells,
+                            placementController.Occupancy.Occupied,
+                            placementController.Wallet,
+                            out var count,
+                            out var cost,
+                            out var fail))
+                    {
+                        _actionMessage = $"Repaired {count} for {cost:F0}.";
+                    }
+                    else
+                    {
+                        _actionMessage = fail;
+                    }
+                }
             }
 
             if (debugOverlay == null || !debugOverlay.SelectedCell.HasValue)
@@ -269,9 +289,11 @@ namespace CleanEnergy.UI
                 && !placementController.IsPlacementActive)
             {
                 GUILayout.Space(6f);
-                var label = placementController.DemolishUndoCount > 1
-                    ? $"Undo Demolish ({placementController.DemolishUndoCount})"
-                    : "Undo Demolish";
+                var label = placementController.DemolishUndoStackDepth > 1
+                    ? $"Undo Demolish ×{placementController.DemolishUndoStackDepth}"
+                    : placementController.DemolishUndoCount > 1
+                        ? $"Undo Demolish ({placementController.DemolishUndoCount})"
+                        : "Undo Demolish";
                 if (GUILayout.Button(label))
                 {
                     if (placementController.TryUndoLastDemolish())

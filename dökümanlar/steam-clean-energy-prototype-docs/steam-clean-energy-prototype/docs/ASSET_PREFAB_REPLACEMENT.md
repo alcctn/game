@@ -113,9 +113,11 @@ Once kolay ve statik yapilarla basla:
 4. `village`
 5. `power_line`
 
-**Sprint 68:** Bu bes id icin `Assets/_Game/Prefabs/Buildings/{id}.prefab` placeholder'lari editor setup ile olusturulur ve ilgili `BuildingDefinition.prefab` alanina atanir. Gercek art ile degistirmek icin ayni path'i overwrite etmek yeterlidir; data baglantisi korunur.
+**Sprint 68:** Ilk bes id icin `Assets/_Game/Prefabs/Buildings/{id}.prefab` placeholder'lari editor setup ile olusturulur ve ilgili `BuildingDefinition.prefab` alanina atanir. Gercek art ile degistirmek icin ayni path'i overwrite etmek yeterlidir; data baglantisi korunur.
 
-Daha sonra hareketli veya yon duyarliligi olan yapilara gec:
+**Sprint 81:** Editor setup artik dokuz bina icin placeholder persist eder: `village`, `distribution_hub`, `battery`, `small_solar`, `small_wind`, `water_wheel`, `small_hydro`, `power_line`, `maintenance_depot`. Wind/hydro placeholder'larinda `Spin` child bulunur (Sprint 82).
+
+Daha sonra hareketli veya yon duyarliligi olan yapilar:
 
 1. `small_wind`
 2. `water_wheel`

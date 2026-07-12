@@ -9,7 +9,7 @@ namespace CleanEnergy.UI
     public static class SettingsPanelUI
     {
         /// <summary>
-        /// Draws volume, SFX mute, music volume, and zoom sensitivity. Applies changes immediately.
+        /// Draws volume, SFX mute, music volume, zoom, UI scale, and locale. Applies changes immediately.
         /// </summary>
         public static void Draw(IsometricCameraController camera = null)
         {
@@ -51,6 +51,21 @@ namespace CleanEnergy.UI
                 SettingsService.SetZoomSpeed(newZoom, camera);
             }
 
+            GUILayout.Space(4f);
+            GUILayout.Label("UI Scale");
+            GUILayout.BeginHorizontal();
+            DrawUiScaleButton(0.85f, "85%");
+            DrawUiScaleButton(1f, "100%");
+            DrawUiScaleButton(1.25f, "125%");
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(4f);
+            GUILayout.Label("Language");
+            GUILayout.BeginHorizontal();
+            DrawLocaleButton("en", "EN");
+            DrawLocaleButton("tr", "TR");
+            GUILayout.EndHorizontal();
+
             GUILayout.Space(8f);
             GUILayout.Label("Keybinds");
             DrawKeybind(RemappableAction.Pause, "Pause");
@@ -59,6 +74,24 @@ namespace CleanEnergy.UI
             DrawKeybind(RemappableAction.Speed3, "Speed 4x");
             DrawKeybind(RemappableAction.Undo, "Undo (with Ctrl)");
             DrawKeybind(RemappableAction.Home, "Home Fit");
+        }
+
+        private static void DrawUiScaleButton(float scale, string label)
+        {
+            var selected = Mathf.Approximately(SettingsService.UiScale, scale);
+            if (GUILayout.Toggle(selected, label, "Button") && !selected)
+            {
+                SettingsService.SetUiScale(scale);
+            }
+        }
+
+        private static void DrawLocaleButton(string locale, string label)
+        {
+            var selected = SettingsService.Locale == locale;
+            if (GUILayout.Toggle(selected, label, "Button") && !selected)
+            {
+                SettingsService.SetLocale(locale);
+            }
         }
 
         private static RemappableAction? _listening;

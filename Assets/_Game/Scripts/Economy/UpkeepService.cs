@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CleanEnergy.Buildings;
+using CleanEnergy.DebugTools;
 using CleanEnergy.Grid;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace CleanEnergy.Economy
 {
     /// <summary>
     /// Sums building MaintenanceCost each tick and deducts from the money wallet.
+    /// High local environmental density raises producer upkeep.
     /// </summary>
     public sealed class UpkeepService
     {
@@ -30,8 +32,14 @@ namespace CleanEnergy.Economy
                     continue;
                 }
 
-                total += Mathf.Max(0f, instance.Definition.MaintenanceCost)
-                         * MaintenanceMultiplier(instance.MaintenanceLevel);
+                var cost = Mathf.Max(0f, instance.Definition.MaintenanceCost)
+                           * MaintenanceMultiplier(instance.MaintenanceLevel);
+                if (instance.Definition.IsProducer)
+                {
+                    cost *= EnvironmentalImpact.UpkeepMultiplierAt(instance.Coordinate, occupied);
+                }
+
+                total += cost;
             }
 
             return total;

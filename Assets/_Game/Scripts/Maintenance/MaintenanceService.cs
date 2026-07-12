@@ -285,6 +285,77 @@ namespace CleanEnergy.Maintenance
             return true;
         }
 
+        /// <summary>
+        /// Atomically repairs selected producers (max 8 cells, no depot required).
+        /// </summary>
+        public static bool TryRepairSelectedProducers(
+            IReadOnlyList<GridCoordinate> coordinates,
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
+            Economy.Wallet wallet,
+            out int repairedCount,
+            out float totalCost,
+            out string failure)
+        {
+            repairedCount = 0;
+            totalCost = 0f;
+            failure = null;
+            if (coordinates == null || coordinates.Count == 0 || occupied == null)
+            {
+                failure = "No selection.";
+                return false;
+            }
+
+            var targets = new List<BuildingInstance>();
+            var seen = new HashSet<string>();
+            var limit = Mathf.Min(coordinates.Count, 8);
+            for (var i = 0; i < limit; i++)
+            {
+                if (!occupied.TryGetValue(coordinates[i], out var instance)
+                    || instance?.Definition == null
+                    || !instance.Definition.IsProducer
+                    || !seen.Add(instance.InstanceId))
+                {
+                    continue;
+                }
+
+                if (instance.MaintenanceLevel >= MaxLevel - 0.001f)
+                {
+                    continue;
+                }
+
+                targets.Add(instance);
+                totalCost += ManualRepairCost(instance);
+            }
+
+            if (targets.Count == 0)
+            {
+                failure = "No selected producers need repair.";
+                return false;
+            }
+
+            if (wallet == null || wallet.Money + 0.0001f < totalCost)
+            {
+                failure = $"Need {totalCost:F0} money.";
+                totalCost = 0f;
+                return false;
+            }
+
+            if (!wallet.TrySpend(totalCost))
+            {
+                failure = $"Need {totalCost:F0} money.";
+                totalCost = 0f;
+                return false;
+            }
+
+            for (var i = 0; i < targets.Count; i++)
+            {
+                targets[i].MaintenanceLevel = MaxLevel;
+            }
+
+            repairedCount = targets.Count;
+            return true;
+        }
+
         private static int Manhattan(GridCoordinate a, GridCoordinate b)
         {
             return Mathf.Abs(a.X - b.X) + Mathf.Abs(a.Y - b.Y);

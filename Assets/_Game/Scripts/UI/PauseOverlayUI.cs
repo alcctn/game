@@ -1,35 +1,45 @@
 using CleanEnergy.CameraSystem;
 using CleanEnergy.Core;
 using CleanEnergy.Placement;
+using CleanEnergy.Save;
+using CleanEnergy.Scenario;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
 namespace CleanEnergy.UI
 {
     /// <summary>
-    /// Escape pause overlay when placement is not active.
+    /// Escape/Space pause overlay when placement is not active.
     /// </summary>
     public sealed class PauseOverlayUI : MonoBehaviour
     {
         [SerializeField] private SimulationClock clock;
         [SerializeField] private PlacementController placementController;
         [SerializeField] private IsometricCameraController cameraController;
+        [SerializeField] private SaveLoadController saveLoadController;
 
         private bool _overlayVisible;
         private bool _settingsOpen;
+        private bool _confirmMainMenu;
         private SimulationSpeed _speedBeforePause = SimulationSpeed.One;
 
         public bool IsOverlayVisible => _overlayVisible;
         public bool IsSettingsOpen => _settingsOpen;
+        public bool IsConfirmingMainMenu => _confirmMainMenu;
 
         public void Configure(
             SimulationClock simulationClock,
             PlacementController placement,
-            IsometricCameraController camera = null)
+            IsometricCameraController camera = null,
+            SaveLoadController saveLoad = null)
         {
             clock = simulationClock;
             placementController = placement;
             cameraController = camera;
+            if (saveLoad != null)
+            {
+                saveLoadController = saveLoad;
+            }
         }
 
         private void Update()
@@ -47,6 +57,12 @@ namespace CleanEnergy.UI
             if (_settingsOpen)
             {
                 _settingsOpen = false;
+                return;
+            }
+
+            if (_confirmMainMenu)
+            {
+                CancelMainMenuConfirm();
                 return;
             }
 
@@ -74,6 +90,7 @@ namespace CleanEnergy.UI
 
             _overlayVisible = true;
             _settingsOpen = false;
+            _confirmMainMenu = false;
         }
 
         public void Resume()
@@ -88,18 +105,40 @@ namespace CleanEnergy.UI
 
             _overlayVisible = false;
             _settingsOpen = false;
+            _confirmMainMenu = false;
+        }
+
+        public void RequestMainMenuConfirm()
+        {
+            _confirmMainMenu = true;
+        }
+
+        public void CancelMainMenuConfirm()
+        {
+            _confirmMainMenu = false;
         }
 
         public void GoToMainMenu()
         {
             _overlayVisible = false;
             _settingsOpen = false;
+            _confirmMainMenu = false;
             if (clock != null)
             {
                 clock.SetSpeed(SimulationSpeed.One);
             }
 
             SceneFlow.LoadMainMenu();
+        }
+
+        /// <summary>Formats save-slot button label; marks the active slot with *.</summary>
+        public static string FormatSaveSlotLabel(int slot, int activeSlot)
+        {
+            var clamped = SaveGameService.ClampSlot(slot);
+            var active = SaveGameService.ClampSlot(activeSlot);
+            return clamped == active
+                ? $"Save Slot {clamped} *"
+                : $"Save Slot {clamped}";
         }
 
         private void OnGUI()
@@ -109,64 +148,128 @@ namespace CleanEnergy.UI
                 return;
             }
 
+            GuiScale.Apply();
+
             if (_settingsOpen)
             {
                 DrawSettingsPanel();
                 return;
             }
 
+            if (_confirmMainMenu)
+            {
+                DrawMainMenuConfirm();
+                return;
+            }
+
             const float width = 280f;
-            const float height = 240f;
-            var x = (Screen.width - width) * 0.5f;
-            var y = (Screen.height - height) * 0.5f;
+            const float height = 360f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
+            var y = (Screen.height / GuiScale.Current - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
-            GUILayout.Label("Paused");
-            GUILayout.Label("Esc to resume");
-            if (GUILayout.Button("Resume (1x)"))
+            GUILayout.Label(StringTable.Get(StringKeys.Pause));
+            GUILayout.Label(StringTable.Get(StringKeys.EscToResume));
+            if (GUILayout.Button(StringTable.Get(StringKeys.Resume)))
             {
                 _speedBeforePause = SimulationSpeed.One;
                 Resume();
             }
 
-            if (GUILayout.Button("Save", GUILayout.Height(28f)))
+            GUILayout.Space(6f);
+            var activeSlot = ResolveActiveSlot();
+            for (var slot = 1; slot <= SaveGameService.MaxSlot; slot++)
             {
-                TrySaveActiveSlot();
+                var label = FormatSaveSlotLabel(slot, activeSlot);
+                if (GUILayout.Button(label, GUILayout.Height(28f)))
+                {
+                    TrySaveSlot(slot);
+                }
             }
 
-            if (GUILayout.Button("Settings"))
+            if (GUILayout.Button(StringTable.Get(StringKeys.Settings)))
             {
                 _settingsOpen = true;
             }
 
-            if (GUILayout.Button("Main Menu"))
+            if (GUILayout.Button(StringTable.Get(StringKeys.MainMenu)))
             {
-                GoToMainMenu();
+                RequestMainMenuConfirm();
             }
 
             GUILayout.EndArea();
         }
 
-        private void TrySaveActiveSlot()
+        private void DrawMainMenuConfirm()
         {
-            var saveLoad = FindObjectOfType<Save.SaveLoadController>();
-            if (saveLoad != null)
+            const float width = 300f;
+            const float height = 140f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
+            var y = (Screen.height / GuiScale.Current - height) * 0.5f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            GUILayout.Label("Leave to Main Menu?");
+            GUILayout.Label("Unsaved progress may be lost.");
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Confirm", GUILayout.Height(28f)))
             {
-                saveLoad.SaveSlot();
+                GoToMainMenu();
             }
+
+            if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
+            {
+                CancelMainMenuConfirm();
+            }
+
+            GUILayout.EndHorizontal();
+            GUILayout.EndArea();
+        }
+
+        private int ResolveActiveSlot()
+        {
+            var saveLoad = ResolveSaveLoad();
+            if (saveLoad?.Service != null)
+            {
+                return saveLoad.Service.ActiveSlot;
+            }
+
+            return ScenarioSession.ResolveContinueSlot();
+        }
+
+        private void TrySaveSlot(int slot)
+        {
+            var saveLoad = ResolveSaveLoad();
+            if (saveLoad == null)
+            {
+                return;
+            }
+
+            saveLoad.SetActiveSlot(slot);
+            saveLoad.SaveSlot(slot);
+            ScenarioSession.ContinueSlot = SaveGameService.ClampSlot(slot);
+        }
+
+        private SaveLoadController ResolveSaveLoad()
+        {
+            if (saveLoadController != null)
+            {
+                return saveLoadController;
+            }
+
+            saveLoadController = Object.FindObjectOfType<SaveLoadController>();
+            return saveLoadController;
         }
 
         private void DrawSettingsPanel()
         {
             const float width = 320f;
-            const float height = 280f;
-            var x = (Screen.width - width) * 0.5f;
-            var y = (Screen.height - height) * 0.5f;
+            const float height = 400f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
+            var y = (Screen.height / GuiScale.Current - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
-            GUILayout.Label("Settings");
+            GUILayout.Label(StringTable.Get(StringKeys.Settings));
             GUILayout.Space(8f);
             SettingsPanelUI.Draw(cameraController);
             GUILayout.Space(12f);
-            if (GUILayout.Button("Back", GUILayout.Height(28f)))
+            if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
             {
                 _settingsOpen = false;
             }

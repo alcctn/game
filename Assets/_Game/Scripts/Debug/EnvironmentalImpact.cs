@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleanEnergy.Buildings;
 using CleanEnergy.Grid;
 using CleanEnergy.Placement;
@@ -6,15 +7,26 @@ using UnityEngine;
 namespace CleanEnergy.DebugTools
 {
     /// <summary>
-    /// Stub environmental impact score from nearby producers (visual only).
+    /// Cell density environmental score (0–1) from nearby producers; drives F10 overlay and upkeep.
     /// </summary>
     public static class EnvironmentalImpact
     {
+        public const float DensityPerProducer = 0.25f;
+        public const float HighDensityThreshold = 0.6f;
+        public const float HighDensityUpkeepMultiplier = 1.15f;
+
         public static float ScoreAt(
             GridCoordinate coordinate,
             GridOccupancyService occupancy)
         {
-            if (occupancy == null)
+            return ScoreAt(coordinate, occupancy?.Occupied);
+        }
+
+        public static float ScoreAt(
+            GridCoordinate coordinate,
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied)
+        {
+            if (occupied == null)
             {
                 return 0f;
             }
@@ -25,7 +37,7 @@ namespace CleanEnergy.DebugTools
                 for (var dy = -1; dy <= 1; dy++)
                 {
                     var c = new GridCoordinate(coordinate.X + dx, coordinate.Y + dy);
-                    if (!occupancy.TryGet(c, out var building) || building?.Definition == null)
+                    if (!occupied.TryGetValue(c, out var building) || building?.Definition == null)
                     {
                         continue;
                     }
@@ -37,7 +49,24 @@ namespace CleanEnergy.DebugTools
                 }
             }
 
-            return Mathf.Clamp01(count * 0.25f);
+            return Mathf.Clamp01(count * DensityPerProducer);
+        }
+
+        /// <summary>
+        /// Producer upkeep multiplier when local density exceeds <see cref="HighDensityThreshold"/>.
+        /// </summary>
+        public static float UpkeepMultiplierForDensity(float densityScore)
+        {
+            return densityScore > HighDensityThreshold
+                ? HighDensityUpkeepMultiplier
+                : 1f;
+        }
+
+        public static float UpkeepMultiplierAt(
+            GridCoordinate coordinate,
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied)
+        {
+            return UpkeepMultiplierForDensity(ScoreAt(coordinate, occupied));
         }
 
         public static Color ColorForScore(float score)

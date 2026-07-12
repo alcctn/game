@@ -20,7 +20,7 @@ namespace CleanEnergy.Placement
     }
 
     /// <summary>
-    /// One-step demolish undo snapshot (S55).
+    /// Demolish undo snapshot for ring-stack groups (S55 / S75 / S89).
     /// </summary>
     public sealed class DemolishUndoSnapshot
     {
@@ -70,7 +70,10 @@ namespace CleanEnergy.Placement
         private int _rotation;
         private GridCoordinate? _hoverCoordinate;
         private bool _hoverValid;
-        private readonly List<DemolishUndoSnapshot> _demolishUndoGroup = new List<DemolishUndoSnapshot>();
+        private readonly List<List<DemolishUndoSnapshot>> _demolishUndoStack =
+            new List<List<DemolishUndoSnapshot>>();
+
+        public const int MaxDemolishUndoGroups = 3;
 
         public Wallet Wallet => _wallet;
         public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
@@ -83,9 +86,14 @@ namespace CleanEnergy.Placement
         public bool IsHoverValid => _hoverValid;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
         public MapGenerator MapGenerator => mapGenerator;
-        public bool HasDemolishUndo => _demolishUndoGroup.Count > 0;
-        public int DemolishUndoCount => _demolishUndoGroup.Count;
-        public IReadOnlyList<DemolishUndoSnapshot> DemolishUndoGroup => _demolishUndoGroup;
+        public bool HasDemolishUndo => _demolishUndoStack.Count > 0;
+        public int DemolishUndoStackDepth => _demolishUndoStack.Count;
+        public int DemolishUndoCount =>
+            _demolishUndoStack.Count > 0 ? _demolishUndoStack[_demolishUndoStack.Count - 1].Count : 0;
+        public IReadOnlyList<DemolishUndoSnapshot> DemolishUndoGroup =>
+            _demolishUndoStack.Count > 0
+                ? _demolishUndoStack[_demolishUndoStack.Count - 1]
+                : (IReadOnlyList<DemolishUndoSnapshot>)System.Array.Empty<DemolishUndoSnapshot>();
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
         public event Action<BuildingPlacedEvent> BuildingRemoved;
@@ -359,20 +367,21 @@ namespace CleanEnergy.Placement
 
         public void ClearDemolishUndo()
         {
-            _demolishUndoGroup.Clear();
+            _demolishUndoStack.Clear();
         }
 
         public bool TryUndoLastDemolish()
         {
-            if (_demolishUndoGroup.Count == 0 || _wallet == null)
+            if (_demolishUndoStack.Count == 0 || _wallet == null)
             {
                 return false;
             }
 
+            var group = _demolishUndoStack[_demolishUndoStack.Count - 1];
             var totalRefund = 0f;
-            for (var i = 0; i < _demolishUndoGroup.Count; i++)
+            for (var i = 0; i < group.Count; i++)
             {
-                totalRefund += _demolishUndoGroup[i].RefundAmount;
+                totalRefund += group[i].RefundAmount;
             }
 
             if (!_wallet.TrySpend(totalRefund))
@@ -380,8 +389,8 @@ namespace CleanEnergy.Placement
                 return false;
             }
 
-            var snaps = new List<DemolishUndoSnapshot>(_demolishUndoGroup);
-            _demolishUndoGroup.Clear();
+            _demolishUndoStack.RemoveAt(_demolishUndoStack.Count - 1);
+            var snaps = new List<DemolishUndoSnapshot>(group);
 
             for (var i = 0; i < snaps.Count; i++)
             {
@@ -393,7 +402,6 @@ namespace CleanEnergy.Placement
                         snap.StoredEnergy,
                         snap.MaintenanceLevel))
                 {
-                    // Restore remaining refund for buildings that did not come back.
                     var restored = 0f;
                     for (var j = 0; j < i; j++)
                     {
@@ -401,13 +409,13 @@ namespace CleanEnergy.Placement
                     }
 
                     _wallet.Add(totalRefund - restored);
-                    _demolishUndoGroup.Clear();
-                    _demolishUndoGroup.AddRange(snaps);
+                    _demolishUndoStack.Add(snaps);
+                    TrimDemolishUndoStack();
                     return false;
                 }
             }
 
-            Debug.Log($"[Placement] Undo demolish group ({snaps.Count}).");
+            Debug.Log($"[Placement] Undo demolish group ({snaps.Count}). Stack={_demolishUndoStack.Count}");
             return true;
         }
 
@@ -418,6 +426,7 @@ namespace CleanEnergy.Placement
 
         /// <summary>
         /// Demolishes buildings at the given cells as one undo group (max 8).
+        /// Pushes onto a LIFO stack of up to <see cref="MaxDemolishUndoGroups"/> groups.
         /// </summary>
         public bool TryDemolishMany(IReadOnlyList<GridCoordinate> coordinates, out float refund)
         {
@@ -447,12 +456,12 @@ namespace CleanEnergy.Placement
                 return false;
             }
 
-            _demolishUndoGroup.Clear();
+            var group = new List<DemolishUndoSnapshot>(targets.Count);
             for (var i = 0; i < targets.Count; i++)
             {
                 var building = targets[i];
                 var amount = Mathf.Max(0f, building.Definition.Cost * 0.5f);
-                _demolishUndoGroup.Add(new DemolishUndoSnapshot(
+                group.Add(new DemolishUndoSnapshot(
                     building.Definition.Id,
                     building.Coordinate,
                     building.Rotation,
@@ -472,8 +481,18 @@ namespace CleanEnergy.Placement
                 BuildingRemoved?.Invoke(new BuildingPlacedEvent(building));
             }
 
-            Debug.Log($"[Placement] Demolished group ({targets.Count}). Refund={refund:F0}");
+            _demolishUndoStack.Add(group);
+            TrimDemolishUndoStack();
+            Debug.Log($"[Placement] Demolished group ({targets.Count}). Refund={refund:F0} Stack={_demolishUndoStack.Count}");
             return true;
+        }
+
+        private void TrimDemolishUndoStack()
+        {
+            while (_demolishUndoStack.Count > MaxDemolishUndoGroups)
+            {
+                _demolishUndoStack.RemoveAt(0);
+            }
         }
 
         private void SetFootprintOccupyingIds(BuildingInstance instance, string occupyingId)

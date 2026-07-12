@@ -269,5 +269,28 @@ namespace CleanEnergy.Scenario
                 windOverride: 0.2f);
             return def;
         }
+
+        public static ScenarioDefinition CreateRuntimeAridPlateau()
+        {
+            var def = ScriptableObject.CreateInstance<ScenarioDefinition>();
+            def.name = "RuntimeAridPlateau";
+            def.Configure(
+                "arid_plateau",
+                "Arid Plateau",
+                0.9f,
+                55,
+                2,
+                100f,
+                2.0f,
+                0.3f,
+                28f,
+                researchNodeIds: new[] { "solar_panel" },
+                seed: "arid_plateau_91",
+                solarOverride: 0.98f,
+                streamOverride: 22f,
+                population: 100f,
+                windOverride: 0.15f);
+            return def;
+        }
     }
 }

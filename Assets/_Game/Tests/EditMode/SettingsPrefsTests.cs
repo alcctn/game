@@ -95,6 +95,8 @@ namespace CleanEnergy.Tests.EditMode
             Assert.AreEqual("ce_sfx_mute", SettingsService.SfxMuteKey);
             Assert.AreEqual("ce_music_volume", SettingsService.MusicVolumeKey);
             Assert.AreEqual("ce_zoom_speed", SettingsService.ZoomSpeedKey);
+            Assert.AreEqual("ce_ui_scale", SettingsService.UiScaleKey);
+            Assert.AreEqual("ce_locale", SettingsService.LocaleKey);
         }
 
         [Test]

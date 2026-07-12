@@ -88,6 +88,7 @@ namespace CleanEnergy.UI
             if (scenarioController != null)
             {
                 scenarioController.Failed += OnScenarioFailed;
+                scenarioController.Won += OnScenarioWon;
             }
 
             if (simulationClock != null)
@@ -113,6 +114,7 @@ namespace CleanEnergy.UI
             if (scenarioController != null)
             {
                 scenarioController.Failed -= OnScenarioFailed;
+                scenarioController.Won -= OnScenarioWon;
             }
 
             if (simulationClock != null)
@@ -174,8 +176,26 @@ namespace CleanEnergy.UI
                 return;
             }
 
-            _service.Push($"Unlocked: {evt.NodeId}", Time.unscaledTime);
+            var node = researchController?.Service?.GetNode(evt.NodeId);
+            var displayName = ResolveUnlockDisplayName(evt.NodeId, node);
+            _service.Push($"Unlocked: {displayName}", Time.unscaledTime);
             ResearchUnlockNotified?.Invoke();
+        }
+
+        /// <summary>Prefers research node display name; falls back to id.</summary>
+        public static string ResolveUnlockDisplayName(string nodeId, ResearchNodeDefinition node)
+        {
+            if (node != null && !string.IsNullOrEmpty(node.DisplayName))
+            {
+                return node.DisplayName;
+            }
+
+            return string.IsNullOrEmpty(nodeId) ? string.Empty : nodeId;
+        }
+
+        private void OnScenarioWon(ScenarioWonEvent _)
+        {
+            _service.Push("Scenario complete", Time.unscaledTime);
         }
 
         private void OnEmergencyCredit()

@@ -248,9 +248,13 @@ MonoBehaviour:
   scenarioIds:
   - green_valley
   - sun_ridge
+  - wind_coast
+  - pine_basin
   scenarioLabels:
   - "Ye\u015Fil Vadi"
   - "G\xFCne\u015F S\u0131rt\u0131"
+  - "R\xFCzg\xE2r Sahili"
+  - "\xC7am Havzas\u0131"
 --- !u!4 &652033916
 Transform:
   m_ObjectHideFlags: 0

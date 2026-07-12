@@ -25,12 +25,14 @@ namespace CleanEnergy.Simulation
         private float _accumulator;
         private DayCycleService _dayCycle;
         private readonly WeatherEventService _weather = new WeatherEventService();
+        private readonly SeasonService _seasons = new SeasonService();
 
         public float BaseTickSeconds => baseTickSeconds;
         public SimulationSpeed Speed => speed;
         public int TickIndex { get; private set; }
         public DayCycleService DayCycle => _dayCycle ??= new DayCycleService(ticksPerDay);
         public WeatherEventService Weather => _weather;
+        public SeasonService Seasons => _seasons;
         public event Action<SimulationContext> Ticked;
 
         private void Awake()
@@ -68,6 +70,7 @@ namespace CleanEnergy.Simulation
                 _accumulator -= baseTickSeconds;
                 TickIndex++;
                 DayCycle.SyncFromTickIndex(TickIndex);
+                _seasons.SyncFromDayIndex(DayCycle.DayIndex);
                 _weather.Advance(TickIndex, ResolveSeedHash());
                 var context = CreateContextSnapshot();
                 Ticked?.Invoke(context);
@@ -85,6 +88,7 @@ namespace CleanEnergy.Simulation
             _accumulator = 0f;
             DayCycle.Reset();
             _weather.Reset();
+            _seasons.Reset();
         }
 
         public void RestoreTick(int tickIndex)
@@ -92,11 +96,13 @@ namespace CleanEnergy.Simulation
             TickIndex = Mathf.Max(0, tickIndex);
             _accumulator = 0f;
             DayCycle.SyncFromTickIndex(TickIndex);
+            _seasons.SyncFromDayIndex(DayCycle.DayIndex);
         }
 
         public SimulationContext CreateContextSnapshot()
         {
             DayCycle.SyncFromTickIndex(TickIndex);
+            _seasons.SyncFromDayIndex(DayCycle.DayIndex);
             return new SimulationContext(
                 TickIndex,
                 baseTickSeconds,
@@ -104,7 +110,9 @@ namespace CleanEnergy.Simulation
                 DayCycle.DayNormalized,
                 DayCycle.Phase,
                 _weather.SolarMultiplier,
-                _weather.WindMultiplier);
+                _weather.WindMultiplier,
+                _seasons.SolarMultiplier,
+                _seasons.WindMultiplier);
         }
 
         private int ResolveSeedHash()

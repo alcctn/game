@@ -95,7 +95,7 @@ namespace CleanEnergy.Tests.EditMode
         }
 
         [Test]
-        public void SecondDemolish_OverwritesSnapshot()
+        public void SecondDemolish_PushesOntoStack()
         {
             var go = new GameObject("DemolishUndoOverwrite");
             try
@@ -114,7 +114,7 @@ namespace CleanEnergy.Tests.EditMode
                 Assert.IsTrue(placement.TryDemolish(new GridCoordinate(0, 0), out _));
                 Assert.IsTrue(placement.TryDemolish(new GridCoordinate(1, 0), out _));
                 Assert.IsTrue(placement.HasDemolishUndo);
-                // Only one level: undoing without map still fails, but snapshot remains for last demolish.
+                Assert.AreEqual(2, placement.DemolishUndoStackDepth);
                 Assert.IsFalse(placement.Occupancy.IsOccupied(new GridCoordinate(0, 0)));
                 Assert.IsFalse(placement.Occupancy.IsOccupied(new GridCoordinate(1, 0)));
             }

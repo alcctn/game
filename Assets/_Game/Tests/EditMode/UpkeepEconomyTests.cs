@@ -13,11 +13,12 @@ namespace CleanEnergy.Tests.EditMode
         public void CalculateTotal_SumsMaintenanceCost()
         {
             var service = new UpkeepService();
+            // Spaced far apart so env density upkeep (S92) does not apply.
             var occupied = new Dictionary<GridCoordinate, BuildingInstance>
             {
                 { new GridCoordinate(0, 0), CreateBuilding("a", 1f, new GridCoordinate(0, 0)) },
-                { new GridCoordinate(1, 0), CreateBuilding("b", 1f, new GridCoordinate(1, 0)) },
-                { new GridCoordinate(2, 0), CreateBuilding("c", 1f, new GridCoordinate(2, 0)) }
+                { new GridCoordinate(5, 0), CreateBuilding("b", 1f, new GridCoordinate(5, 0)) },
+                { new GridCoordinate(10, 0), CreateBuilding("c", 1f, new GridCoordinate(10, 0)) }
             };
 
             Assert.AreEqual(3f, service.CalculateTotal(occupied), 0.001f);
@@ -31,8 +32,8 @@ namespace CleanEnergy.Tests.EditMode
             var occupied = new Dictionary<GridCoordinate, BuildingInstance>
             {
                 { new GridCoordinate(0, 0), CreateBuilding("a", 1f, new GridCoordinate(0, 0)) },
-                { new GridCoordinate(1, 0), CreateBuilding("b", 1f, new GridCoordinate(1, 0)) },
-                { new GridCoordinate(2, 0), CreateBuilding("c", 1f, new GridCoordinate(2, 0)) }
+                { new GridCoordinate(5, 0), CreateBuilding("b", 1f, new GridCoordinate(5, 0)) },
+                { new GridCoordinate(10, 0), CreateBuilding("c", 1f, new GridCoordinate(10, 0)) }
             };
 
             service.ProcessTick(occupied, wallet);

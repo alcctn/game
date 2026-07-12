@@ -129,7 +129,7 @@ namespace CleanEnergy.UI
         private void DrawWinOverlay()
         {
             var width = 360f;
-            var height = 150f;
+            var height = 180f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -141,13 +141,18 @@ namespace CleanEnergy.UI
                 RestartScenario();
             }
 
+            if (GUILayout.Button("Return to Menu"))
+            {
+                ReturnToMainMenu();
+            }
+
             GUILayout.EndArea();
         }
 
         private void DrawLoseOverlay()
         {
             var width = 360f;
-            var height = 150f;
+            var height = 180f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -159,12 +164,22 @@ namespace CleanEnergy.UI
                 RestartScenario();
             }
 
+            if (GUILayout.Button("Return to Menu"))
+            {
+                ReturnToMainMenu();
+            }
+
             GUILayout.EndArea();
         }
 
         public void RestartScenario()
         {
             CleanEnergy.Core.SceneFlow.LoadPlayScene();
+        }
+
+        public void ReturnToMainMenu()
+        {
+            CleanEnergy.Core.SceneFlow.LoadMainMenu();
         }
 
         private static string Mark(bool done) => done ? "[x]" : "[ ]";

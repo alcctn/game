@@ -71,8 +71,10 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
+            GuiScale.Apply();
+
             const float width = 560f;
-            var x = (Screen.width - width) * 0.5f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
             GUILayout.BeginArea(new Rect(x, 8f, width, 132f), GUI.skin.box);
 
             var result = driver != null ? driver.LastResult : null;
@@ -91,6 +93,7 @@ namespace CleanEnergy.UI
             var congested = result != null && result.IsCongested;
             var debt = driver != null ? driver.EmergencyCredit.RemainingDebt : 0f;
             var weather = clock != null ? clock.Weather.ActiveKind : WeatherEventKind.None;
+            var season = clock != null ? clock.Seasons.Current : SeasonKind.Spring;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(congested
@@ -110,6 +113,7 @@ namespace CleanEnergy.UI
 
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{phase} (x{demandMul:F2}) Wind x{windMul:F2}");
+            GUILayout.Label(SeasonService.DisplayName(season));
             if (weather != WeatherEventKind.None)
             {
                 GUILayout.Label($"{weather} ({clock.Weather.RemainingTicks})");
@@ -119,6 +123,10 @@ namespace CleanEnergy.UI
             DrawSpeedButton(SimulationSpeed.One, "1x");
             DrawSpeedButton(SimulationSpeed.Two, "2x");
             DrawSpeedButton(SimulationSpeed.Four, "4x");
+            if (clock != null && clock.Speed == SimulationSpeed.Paused)
+            {
+                GUILayout.Label(StringTable.Get(StringKeys.Pause));
+            }
             if (lowMaint > 0)
             {
                 GUILayout.Label($"Maintenance low ({lowMaint})");

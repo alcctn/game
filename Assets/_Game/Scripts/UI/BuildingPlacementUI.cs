@@ -94,13 +94,17 @@ namespace CleanEnergy.UI
         }
 
         /// <summary>
-        /// Returns unlocked buildings in <paramref name="category"/> (null unlock query = all unlocked).
+        /// Returns all buildings in <paramref name="category"/> (locked and unlocked).
+        /// Null unlock query does not filter; callers decide selection eligibility separately.
         /// </summary>
         public static List<BuildingDefinition> FilterForTab(
             IReadOnlyList<BuildingDefinition> buildings,
             BuildingCategory category,
             IBuildingUnlockQuery unlocks = null)
         {
+            // unlocks retained for call-site compatibility; S85 lists locked rows too.
+            _ = unlocks;
+
             var result = new List<BuildingDefinition>();
             if (buildings == null)
             {
@@ -115,14 +119,68 @@ namespace CleanEnergy.UI
                     continue;
                 }
 
-                var unlocked = unlocks == null || unlocks.IsBuildingUnlocked(def.Id);
-                if (unlocked)
-                {
-                    result.Add(def);
-                }
+                result.Add(def);
             }
 
             return result;
+        }
+
+        /// <summary>True when the building may be selected for placement.</summary>
+        public static bool CanSelectBuilding(BuildingDefinition definition, IBuildingUnlockQuery unlocks)
+        {
+            if (definition == null)
+            {
+                return false;
+            }
+
+            return unlocks == null || unlocks.IsBuildingUnlocked(definition.Id);
+        }
+
+        /// <summary>Formats the locked-row reason shown in the build menu.</summary>
+        public static string FormatLockedReason(string requirementLabel)
+        {
+            var label = string.IsNullOrEmpty(requirementLabel) ? "?" : requirementLabel;
+            return $"Requires: {label}";
+        }
+
+        /// <summary>
+        /// Resolves the research node display name (or id) that unlocks <paramref name="buildingId"/>.
+        /// Falls back to the building id when no unlock node is found.
+        /// </summary>
+        public static string ResolveUnlockRequirementLabel(
+            string buildingId,
+            ResearchTreeDefinition tree)
+        {
+            if (string.IsNullOrEmpty(buildingId))
+            {
+                return string.Empty;
+            }
+
+            if (tree != null)
+            {
+                var nodes = tree.Nodes;
+                for (var i = 0; i < nodes.Length; i++)
+                {
+                    var node = nodes[i];
+                    if (node == null)
+                    {
+                        continue;
+                    }
+
+                    var unlocks = node.UnlockBuildingIds;
+                    for (var u = 0; u < unlocks.Length; u++)
+                    {
+                        if (unlocks[u] != buildingId)
+                        {
+                            continue;
+                        }
+
+                        return !string.IsNullOrEmpty(node.DisplayName) ? node.DisplayName : node.Id;
+                    }
+                }
+            }
+
+            return buildingId;
         }
 
         /// <summary>Deletes the build-tab prefs key (tests).</summary>
@@ -139,11 +197,12 @@ namespace CleanEnergy.UI
                 return;
             }
 
+            GuiScale.Apply();
             EnsureTabLoaded();
 
             const float width = 280f;
-            GUILayout.BeginArea(new Rect(Screen.width - width - 12f, 12f, width, 460f), GUI.skin.box);
-            GUILayout.Label("Buildings");
+            GUILayout.BeginArea(new Rect(Screen.width / GuiScale.Current - width - 12f, 12f, width, 460f), GUI.skin.box);
+            GUILayout.Label(StringTable.Get(StringKeys.Build));
             GUILayout.Label($"Money: {placementController.Wallet.Money:F0}");
 
             DrawCategoryTabs();
@@ -151,6 +210,10 @@ namespace CleanEnergy.UI
             var buildings = placementController.AvailableBuildings;
             if (buildings != null)
             {
+                var tree = researchController != null && researchController.Service != null
+                    ? researchController.Service.Tree
+                    : null;
+
                 for (var i = 0; i < buildings.Count; i++)
                 {
                     var def = buildings[i];
@@ -159,10 +222,15 @@ namespace CleanEnergy.UI
                         continue;
                     }
 
-                    var unlocked = placementController.BuildingUnlocks == null
-                                   || placementController.BuildingUnlocks.IsBuildingUnlocked(def.Id);
+                    var unlocked = CanSelectBuilding(def, placementController.BuildingUnlocks);
                     if (!unlocked)
                     {
+                        var requirement = ResolveUnlockRequirementLabel(def.Id, tree);
+                        var lockedLabel = $"{def.DisplayName} — {FormatLockedReason(requirement)}";
+                        var previous = GUI.enabled;
+                        GUI.enabled = false;
+                        GUILayout.Toggle(false, lockedLabel, "Button");
+                        GUI.enabled = previous;
                         continue;
                     }
 
