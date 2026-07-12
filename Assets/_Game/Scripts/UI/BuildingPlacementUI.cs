@@ -317,30 +317,12 @@ namespace CleanEnergy.UI
                 {
                     if (allowed && !isActive)
                     {
-                        // #region agent log
-                        CleanEnergy.DebugTools.AgentDebugLog.Write(
-                            "C1",
-                            "BuildingPlacementUI.DrawCategoryTabs",
-                            "tab_ok",
-                            "{\"category\":\"" + category +
-                            "\",\"energyOnly\":" + (energyOnly ? "true" : "false") + "}");
-                        // #endregion
                         SetActiveCategory(category);
                         if (placementController.SelectedBuilding != null
                             && placementController.SelectedBuilding.Category != _activeCategory)
                         {
                             placementController.CancelPlacement();
                         }
-                    }
-                    else if (!allowed)
-                    {
-                        // #region agent log
-                        CleanEnergy.DebugTools.AgentDebugLog.Write(
-                            "C1",
-                            "BuildingPlacementUI.DrawCategoryTabs",
-                            "tab_blocked",
-                            "{\"category\":\"" + category + "\",\"energyOnly\":true}");
-                        // #endregion
                     }
                 }
 

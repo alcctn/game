@@ -87,6 +87,10 @@ namespace CleanEnergy.UI
                 {
                     GUILayout.Label($"> {label}");
                 }
+                else
+                {
+                    GUILayout.Label($"[ ] {label}");
+                }
             }
 
             GUILayout.EndArea();

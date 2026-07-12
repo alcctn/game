@@ -53,6 +53,8 @@ namespace CleanEnergy.UI
         private SaveGameService _saveService;
         private bool _settingsOpen;
 
+        private Vector2 _settingsScroll;
+
         public void ConfigureScenarios(string[] ids, string[] labels)
         {
             scenarioIds = ids ?? CanonicalScenarioIds;
@@ -146,19 +148,21 @@ namespace CleanEnergy.UI
         private void DrawSettingsPanel()
         {
             const float width = 360f;
-            const float height = 420f;
+            const float height = 520f;
             var x = (Screen.width / GuiScale.Current - width) * 0.5f;
             var y = (Screen.height / GuiScale.Current - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label(StringTable.Get(StringKeys.Settings));
-            GUILayout.Space(8f);
-            SettingsPanelUI.Draw();
-            GUILayout.Space(12f);
             if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
             {
                 _settingsOpen = false;
+                _settingsScroll = Vector2.zero;
             }
 
+            GUILayout.Space(6f);
+            _settingsScroll = GUILayout.BeginScrollView(_settingsScroll);
+            SettingsPanelUI.Draw();
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
 

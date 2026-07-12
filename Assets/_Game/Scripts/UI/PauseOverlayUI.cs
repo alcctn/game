@@ -35,6 +35,7 @@ namespace CleanEnergy.UI
         private SimulationSpeed _speedBeforePause = SimulationSpeed.One;
         private float _savedFlashTimer;
         private int _savedFlashSlot;
+        private Vector2 _settingsScroll;
 
         public bool IsOverlayVisible => _overlayVisible;
         public bool IsSettingsOpen => _settingsOpen;
@@ -493,20 +494,24 @@ namespace CleanEnergy.UI
 
         private void DrawSettingsPanel()
         {
-            const float width = 320f;
-            const float height = 400f;
+            const float width = 360f;
+            const float height = 520f;
             var x = (Screen.width / GuiScale.Current - width) * 0.5f;
             var y = (Screen.height / GuiScale.Current - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label(StringTable.Get(StringKeys.Settings));
-            GUILayout.Space(8f);
-            SettingsPanelUI.Draw(cameraController);
-            GUILayout.Space(12f);
+
+            // Back stays above the scroll region so it never clips under keybinds.
             if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
             {
                 _settingsOpen = false;
+                _settingsScroll = Vector2.zero;
             }
 
+            GUILayout.Space(6f);
+            _settingsScroll = GUILayout.BeginScrollView(_settingsScroll);
+            SettingsPanelUI.Draw(cameraController);
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
     }

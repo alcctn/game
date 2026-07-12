@@ -295,14 +295,6 @@ namespace CleanEnergy.Placement
                 return true;
             }
 
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "E",
-                "MaxSameTypeCountRule.Evaluate",
-                "block",
-                "{\"id\":\"" + id + "\",\"max\":" + max + ",\"count\":" + count + "}");
-            // #endregion
-
             failureReasons.Add(string.Format(
                 FailReasonFormat, max, context.Definition.DisplayName));
             return false;
@@ -436,15 +428,6 @@ namespace CleanEnergy.Placement
             {
                 return true;
             }
-
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "C3",
-                "AllowedBuildCategoryRule.Evaluate",
-                "place_block",
-                "{\"id\":\"" + context.Definition.Id +
-                "\",\"category\":\"" + context.Definition.Category + "\"}");
-            // #endregion
 
             failureReasons.Add(FailReason);
             return false;

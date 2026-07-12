@@ -263,29 +263,8 @@ namespace CleanEnergy.Placement
                 && RestrictBuildMenuToEnergy
                 && definition.Category != BuildingCategory.Energy)
             {
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "C3",
-                    "PlacementController.SelectBuilding",
-                    "select_block",
-                    "{\"id\":\"" + definition.Id +
-                    "\",\"category\":\"" + definition.Category + "\"}");
-                // #endregion
                 return;
             }
-
-            // #region agent log
-            if (definition != null)
-            {
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "C1",
-                    "PlacementController.SelectBuilding",
-                    "select_ok",
-                    "{\"id\":\"" + definition.Id +
-                    "\",\"category\":\"" + definition.Category +
-                    "\",\"energyOnly\":" + (RestrictBuildMenuToEnergy ? "true" : "false") + "}");
-            }
-            // #endregion
 
             _selected = definition;
             _placementArmed = definition != null;
@@ -435,18 +414,6 @@ namespace CleanEnergy.Placement
             if (!result.IsValid)
             {
                 PlacementRejected?.Invoke();
-                // #region agent log
-                if (_selected != null
-                    && (_selected.Id == "water_wheel" || _selected.Id == "small_wind"))
-                {
-                    CleanEnergy.DebugTools.AgentDebugLog.Write(
-                        "T4",
-                        "PlacementController.TryPlace",
-                        "place_fail",
-                        "{\"id\":\"" + _selected.Id +
-                        "\",\"reasons\":\"" + string.Join(" | ", result.FailureReasons).Replace("\"", "'") + "\"}");
-                }
-                // #endregion
                 Debug.Log(
                     $"[Placement] Building '{_selected.Id}' could not be placed at {coordinate}: {string.Join("; ", result.FailureReasons)}");
                 return result;
@@ -483,26 +450,6 @@ namespace CleanEnergy.Placement
             SetFootprintOccupyingIds(instance, instance.InstanceId);
             ClearDemolishUndo();
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
-            // #region agent log
-            var sameCount = 0;
-            var seen = new System.Collections.Generic.HashSet<string>();
-            foreach (var pair in _occupancy.Occupied)
-            {
-                if (pair.Value?.Definition?.Id == instance.Definition.Id
-                    && seen.Add(pair.Value.InstanceId))
-                {
-                    sameCount++;
-                }
-            }
-
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "A",
-                "PlacementController.TryPlace",
-                "placed",
-                "{\"id\":\"" + instance.Definition.Id +
-                "\",\"max\":" + instance.Definition.MaxSameTypeCount +
-                ",\"sameCount\":" + sameCount + "}");
-            // #endregion
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
             CancelPlacement();
             return PlacementValidationResult.Success();

@@ -47,31 +47,12 @@ namespace CleanEnergy.Workers
 
         public bool TryHireTechnician()
         {
-            var gate = CanHireTechnician();
-            var money = _wallet != null ? _wallet.Money : -1f;
-            if (!gate)
+            if (!CanHireTechnician())
             {
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "T1",
-                    "WorkerService.TryHireTechnician",
-                    "gate_fail",
-                    "{\"money\":" + money.ToString("F0") + "}");
-                // #endregion
                 return false;
             }
 
-            var ok = TryHire(WorkerType.Technician, TechnicianHireCost);
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "T2",
-                "WorkerService.TryHireTechnician",
-                ok ? "hired" : "money_fail",
-                "{\"money\":" + money.ToString("F0") +
-                ",\"cost\":" + TechnicianHireCost.ToString("F0") +
-                ",\"techCount\":" + _pool.TechnicianCount + "}");
-            // #endregion
-            return ok;
+            return TryHire(WorkerType.Technician, TechnicianHireCost);
         }
 
         private bool TryHire(WorkerType type, float cost)

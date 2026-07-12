@@ -12,6 +12,8 @@ namespace CleanEnergy.UI
         public const float Gap = 8f;
         public const float LeftColW = 300f;
         public const float RightColW = 280f;
+        /// <summary>Fits title, hint, and all 6 tutorial checklist rows.</summary>
+        public const float TutorialHeight = 260f;
 
         public static Rect TerrainDebug()
         {
@@ -21,7 +23,7 @@ namespace CleanEnergy.UI
         public static Rect Tutorial()
         {
             var above = TerrainDebug();
-            return new Rect(Margin, above.yMax + Gap, LeftColW, 128f);
+            return new Rect(Margin, above.yMax + Gap, LeftColW, TutorialHeight);
         }
 
         /// <summary>Scenario checklist — right of terrain debug, below top energy bar.</summary>

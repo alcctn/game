@@ -11,8 +11,11 @@ namespace CleanEnergy.Tests.EditMode
         {
             // Approximate layout math independent of Screen by using the same helpers
             // with assumed Screen size via Rect comparisons of relative slots.
-            var terrain = new Rect(12f, 12f, 300f, 336f);
-            var tutorial = new Rect(12f, terrain.yMax + 8f, 300f, 128f);
+            var terrain = HudLayout.TerrainDebug();
+            var tutorial = HudLayout.Tutorial();
+            Assert.AreEqual(HudLayout.TutorialHeight, tutorial.height, 0.01f);
+            Assert.GreaterOrEqual(tutorial.height, 200f);
+
             var scenario = new Rect(terrain.xMax + 8f, 172f, 260f, 148f);
             var inspection = new Rect(1920f - 280f - 12f, 12f, 280f, 380f);
             var building = new Rect(inspection.x, inspection.yMax + 8f, 280f, 400f);
