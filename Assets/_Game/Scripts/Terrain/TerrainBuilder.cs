@@ -47,7 +47,54 @@ namespace CleanEnergy.TerrainGeneration
                 _terrain.Flush();
             }
 
+            ApplyUrpTerrainMaterial(_terrain);
             return _terrain;
+        }
+
+        /// <summary>
+        /// Built-in Terrain material is invisible/pink under URP; assign Terrain Lit when available.
+        /// </summary>
+        public static void ApplyUrpTerrainMaterial(UnityEngine.Terrain terrain)
+        {
+            if (terrain == null)
+            {
+                return;
+            }
+
+            var shader = Shader.Find("Universal Render Pipeline/Terrain/Lit");
+            if (shader == null)
+            {
+                shader = Shader.Find("Universal Render Pipeline/Lit");
+            }
+
+            if (shader == null)
+            {
+                return;
+            }
+
+            var mat = terrain.materialTemplate;
+            if (mat == null || mat.shader != shader)
+            {
+                mat = new Material(shader) { name = "GeneratedTerrain_URP" };
+            }
+
+            var grass = new Color(0.32f, 0.52f, 0.26f, 1f);
+            if (mat.HasProperty("_Color"))
+            {
+                mat.SetColor("_Color", grass);
+            }
+
+            if (mat.HasProperty("_BaseColor"))
+            {
+                mat.SetColor("_BaseColor", grass);
+            }
+
+            if (mat.HasProperty("_DiffuseColor"))
+            {
+                mat.SetColor("_DiffuseColor", grass);
+            }
+
+            terrain.materialTemplate = mat;
         }
 
         public void Clear()

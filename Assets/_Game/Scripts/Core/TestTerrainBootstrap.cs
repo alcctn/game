@@ -177,6 +177,7 @@ namespace CleanEnergy.Core
             }
 
             controller.ConfigureBounds(settingsAsset.TerrainWorldSize);
+            controller.FitToMapBounds(0f);
             if (cam.GetComponent<AudioListener>() == null)
             {
                 cam.gameObject.AddComponent<AudioListener>();

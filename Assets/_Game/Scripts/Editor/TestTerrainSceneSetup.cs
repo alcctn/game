@@ -135,6 +135,13 @@ namespace CleanEnergy.Editor
             Debug.Log("[Setup] PurePolyCatalog wired from Pure Poly prefabs.");
         }
 
+        /// <summary>Ensures PurePolyCatalog exists and prefab slots are assigned (null-safe).</summary>
+        public static PurePolyCatalog EnsurePurePolyCatalog()
+        {
+            EnsureFolders();
+            return CreateOrLoadPurePolyCatalog();
+        }
+
         private static void EnsureFolders()
         {
             Directory.CreateDirectory("Assets/_Game/Data/Map");

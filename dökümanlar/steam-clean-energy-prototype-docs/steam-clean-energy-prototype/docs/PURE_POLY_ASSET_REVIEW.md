@@ -41,3 +41,9 @@ Mevcut oyun araziyi heightmesh ile üretir (`MapGenerator`). Bu paket **overlay 
 - **Entegrasyon (S111–118):** `PurePolyCatalog` + `NatureVisualSpawner` — `MapGeneratedEvent` sonrası biome scatter (max 512). Unity Terrain korunur; sim değişmez; bina mesh yok.
 
 Kurulum: Unity menü **Clean Energy → Setup Pure Poly Catalog** (veya Setup Test Terrain Scene).
+
+## Görünürlük notu (play)
+
+- Proje **URP** kullanır; `TerrainBuilder` artık URP Terrain Lit malzeme atar (aksi halde arazi boş/kareli görünür).
+- Catalog boşsa prop spawn olmaz — Setup menüsü veya auto-wire `Assets/_Game/Data/Art/PurePolyCatalog.asset` doldurur.
+- Play sonrası kamera `FitToMapBounds` ile haritaya hizalanır.
