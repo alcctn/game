@@ -1,5 +1,8 @@
 namespace CleanEnergy.Tutorial
 {
+    /// <summary>
+    /// Ordered tutorial steps. Battery is always-unlocked — there is no UnlockBattery step.
+    /// </summary>
     public enum TutorialStepId
     {
         Camera = 0,

@@ -32,7 +32,10 @@ namespace CleanEnergy.Tutorial
             new TutorialStepInfo(TutorialStepId.OpenSolarLayer, "Open Solar layer", "Select Solar in Terrain Debug view modes."),
             new TutorialStepInfo(TutorialStepId.UnlockSolar, "Research Basic Solar", "Spend RP to unlock solar_basic."),
             new TutorialStepInfo(TutorialStepId.PlaceSolar, "Build Small Solar", "Place a small_solar panel."),
-            new TutorialStepInfo(TutorialStepId.PlaceBattery, "Build a Battery", "Place a battery on the network."),
+            new TutorialStepInfo(
+                TutorialStepId.PlaceBattery,
+                "Build a Battery",
+                "Battery is unlocked from the start — place one near your network."),
             new TutorialStepInfo(TutorialStepId.MeetDemand, "Sustain village demand", "Keep coverage high for 10 ticks.")
         };
 

@@ -11,6 +11,7 @@ using CleanEnergy.Research;
 using CleanEnergy.Save;
 using CleanEnergy.Scenario;
 using CleanEnergy.Simulation;
+using CleanEnergy.Telemetry;
 using CleanEnergy.Tutorial;
 using CleanEnergy.UI;
 using UnityEditor;
@@ -316,6 +317,13 @@ namespace CleanEnergy.Editor
             researchHudGo.transform.SetParent(debugRoot.transform, false);
             var researchHud = researchHudGo.AddComponent<ResearchHudUI>();
             researchHud.Configure(researchController);
+
+            var telemetry = simRoot.AddComponent<TelemetryController>();
+            telemetry.Configure(placement, driver, overlay, scenarioController, mapGenerator);
+            var telemetryHudGo = new GameObject("TelemetryHudUI");
+            telemetryHudGo.transform.SetParent(debugRoot.transform, false);
+            var telemetryHud = telemetryHudGo.AddComponent<TelemetryHudUI>();
+            telemetryHud.Configure(telemetry);
 
             var cameraRoot = new GameObject("CameraRoot");
             cameraRoot.transform.SetParent(gameRoot.transform, false);

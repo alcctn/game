@@ -48,6 +48,7 @@ namespace CleanEnergy.Placement
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
+        public event Action PlacementRejected;
 
         private void Awake()
         {
@@ -247,6 +248,7 @@ namespace CleanEnergy.Placement
             _lastFailures = result.FailureReasons;
             if (!result.IsValid)
             {
+                PlacementRejected?.Invoke();
                 Debug.Log(
                     $"[Placement] Building '{_selected.Id}' could not be placed at {coordinate}: {string.Join("; ", result.FailureReasons)}");
                 return result;

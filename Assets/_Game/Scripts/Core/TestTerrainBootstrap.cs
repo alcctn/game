@@ -9,6 +9,7 @@ using CleanEnergy.Research;
 using CleanEnergy.Save;
 using CleanEnergy.Scenario;
 using CleanEnergy.Simulation;
+using CleanEnergy.Telemetry;
 using CleanEnergy.Tutorial;
 using CleanEnergy.UI;
 using UnityEngine;
@@ -96,6 +97,12 @@ namespace CleanEnergy.Core
             var researchHudGo = EnsureChild("ResearchHudUI", debugRoot);
             var researchHud = FindOrAdd<ResearchHudUI>(researchHudGo.gameObject);
             researchHud.Configure(research);
+
+            var telemetry = FindOrAdd<TelemetryController>(simRoot.gameObject);
+            telemetry.Configure(placement, driver, overlay, scenario, mapGenerator);
+            var telemetryHudGo = EnsureChild("TelemetryHudUI", debugRoot);
+            var telemetryHud = FindOrAdd<TelemetryHudUI>(telemetryHudGo.gameObject);
+            telemetryHud.Configure(telemetry);
 
             var camTransform = cameraRoot.Find("Main Camera");
             Camera cam;

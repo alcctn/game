@@ -219,6 +219,7 @@ namespace CleanEnergy.Tutorial
                     _progress.TryComplete(TutorialStepId.PlaceSolar);
                     break;
                 case "battery":
+                    // Always-unlocked building; no prior research step.
                     _progress.TryComplete(TutorialStepId.PlaceBattery);
                     break;
             }

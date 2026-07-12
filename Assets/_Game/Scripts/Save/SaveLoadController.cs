@@ -200,6 +200,7 @@ namespace CleanEnergy.Save
                     data.tutorialStep,
                     (int)TutorialStepId.Camera,
                     (int)TutorialStepId.Completed);
+                // Clamp covers legacy saves if enum order changes.
                 tutorialController.RestoreTutorial(step);
                 tutorialController.SuppressEvents = false;
             }

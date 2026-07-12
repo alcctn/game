@@ -67,5 +67,37 @@ namespace CleanEnergy.Tests.EditMode
             service.Reset();
             Assert.AreEqual(TutorialStepId.Camera, service.CurrentStep);
         }
+
+        [Test]
+        public void Sequence_PlaceBatteryAfterPlaceSolar_NoBatteryResearchStep()
+        {
+            Assert.Greater((int)TutorialStepId.PlaceBattery, (int)TutorialStepId.PlaceSolar);
+            Assert.AreEqual(TutorialStepId.PlaceSolar + 1, TutorialStepId.PlaceBattery);
+
+            var names = System.Enum.GetNames(typeof(TutorialStepId));
+            Assert.That(names, Does.Not.Contain("UnlockBattery"));
+
+            var info = TutorialProgressService.GetInfo(TutorialStepId.PlaceBattery);
+            Assert.That(info.Title, Does.Not.Contain("Research").IgnoreCase);
+            Assert.That(info.Hint, Does.Contain("unlocked").IgnoreCase);
+        }
+
+        [Test]
+        public void PlaceBattery_CompletesWhenActive()
+        {
+            var service = new TutorialProgressService();
+            service.Restore(TutorialStepId.PlaceBattery);
+            Assert.IsTrue(service.TryComplete(TutorialStepId.PlaceBattery));
+            Assert.AreEqual(TutorialStepId.MeetDemand, service.CurrentStep);
+        }
+
+        [Test]
+        public void OrderedInfos_MatchEnumThroughMeetDemand()
+        {
+            Assert.AreEqual(9, TutorialProgressService.StepCount);
+            Assert.AreEqual(TutorialStepId.UnlockSolar, TutorialProgressService.GetInfo(TutorialStepId.UnlockSolar).Id);
+            Assert.AreEqual(TutorialStepId.PlaceSolar, TutorialProgressService.GetInfo(TutorialStepId.PlaceSolar).Id);
+            Assert.AreEqual(TutorialStepId.PlaceBattery, TutorialProgressService.GetInfo(TutorialStepId.PlaceBattery).Id);
+        }
     }
 }
