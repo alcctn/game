@@ -31,10 +31,46 @@ namespace CleanEnergy.UI
             }
         }
 
+        private void Update()
+        {
+            if (!TryConsumeHotkey(out var mode))
+            {
+                return;
+            }
+
+            ApplyViewMode(mode);
+        }
+
+        private static bool TryConsumeHotkey(out DebugViewMode mode)
+        {
+            mode = DebugViewMode.Normal;
+            if (Input.GetKeyDown(KeyCode.F1)) return DebugViewHotkeys.TryMapKey(KeyCode.F1, out mode);
+            if (Input.GetKeyDown(KeyCode.F2)) return DebugViewHotkeys.TryMapKey(KeyCode.F2, out mode);
+            if (Input.GetKeyDown(KeyCode.F3)) return DebugViewHotkeys.TryMapKey(KeyCode.F3, out mode);
+            if (Input.GetKeyDown(KeyCode.F4)) return DebugViewHotkeys.TryMapKey(KeyCode.F4, out mode);
+            if (Input.GetKeyDown(KeyCode.F5)) return DebugViewHotkeys.TryMapKey(KeyCode.F5, out mode);
+            if (Input.GetKeyDown(KeyCode.F6)) return DebugViewHotkeys.TryMapKey(KeyCode.F6, out mode);
+            return false;
+        }
+
+        private void ApplyViewMode(DebugViewMode mode)
+        {
+            if (_viewMode == mode)
+            {
+                return;
+            }
+
+            _viewMode = mode;
+            if (debugOverlay != null)
+            {
+                debugOverlay.SetMode(_viewMode);
+            }
+        }
+
         private void OnGUI()
         {
             const float width = 300f;
-            GUILayout.BeginArea(new Rect(12f, 12f, width, 360f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12f, 12f, width, 380f), GUI.skin.box);
             _scroll = GUILayout.BeginScrollView(_scroll);
 
             GUILayout.Label("Terrain Debug");
@@ -57,18 +93,14 @@ namespace CleanEnergy.UI
 
             GUILayout.EndHorizontal();
 
-            GUILayout.Label("View Mode");
+            GUILayout.Label("View Mode (F1–F6)");
             var newMode = (DebugViewMode)GUILayout.SelectionGrid(
                 (int)_viewMode,
                 ViewModeLabels,
                 3);
             if (newMode != _viewMode)
             {
-                _viewMode = newMode;
-                if (debugOverlay != null)
-                {
-                    debugOverlay.SetMode(_viewMode);
-                }
+                ApplyViewMode(newMode);
             }
 
             DrawSelectedCell();
