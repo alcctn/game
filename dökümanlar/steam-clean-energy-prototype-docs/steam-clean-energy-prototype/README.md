@@ -33,6 +33,7 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 18. [Sprint 14 — Sağ Bilgi Paneli](docs/SPRINT_14_INFO_PANEL.md)
 19. [Sprint 15 — Alt Bildirim Alanı](docs/SPRINT_15_NOTIFICATIONS.md)
 20. [Sprint 16 — Acil Yardım Kredisi](docs/SPRINT_16_EMERGENCY_CREDIT.md)
+21. [Sprint 17 — Senaryo Başarısızlığı](docs/SPRINT_17_SCENARIO_FAIL.md)
 
 ## İlk Uygulama Sırası
 

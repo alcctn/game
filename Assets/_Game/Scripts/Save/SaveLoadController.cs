@@ -254,7 +254,8 @@ namespace CleanEnergy.Save
                 satisfaction = state.Satisfaction,
                 shortageStreakTicks = state.ShortageStreakTicks,
                 isAtRisk = state.IsAtRisk,
-                hasWon = state.HasWon
+                hasWon = state.HasWon,
+                hasLost = state.HasLost
             };
         }
 
@@ -271,7 +272,8 @@ namespace CleanEnergy.Save
                 Satisfaction = data.satisfaction,
                 ShortageStreakTicks = data.shortageStreakTicks,
                 IsAtRisk = data.isAtRisk,
-                HasWon = data.hasWon
+                HasWon = data.hasWon,
+                HasLost = data.hasLost
             };
         }
     }

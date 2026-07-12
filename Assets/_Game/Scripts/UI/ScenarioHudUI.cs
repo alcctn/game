@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CleanEnergy.UI
 {
     /// <summary>
-    /// Checklist HUD, risk banner and win overlay for the active scenario.
+    /// Checklist HUD, risk banner and win/lose overlay for the active scenario.
     /// </summary>
     public sealed class ScenarioHudUI : MonoBehaviour
     {
@@ -12,6 +12,7 @@ namespace CleanEnergy.UI
 
         private ScenarioObjectiveState _state;
         private bool _won;
+        private bool _lost;
 
         public void Configure(ScenarioController controller)
         {
@@ -19,16 +20,19 @@ namespace CleanEnergy.UI
             {
                 scenarioController.StateChanged -= OnStateChanged;
                 scenarioController.Won -= OnWon;
+                scenarioController.Failed -= OnFailed;
             }
 
             scenarioController = controller;
             _won = false;
+            _lost = false;
             _state = scenarioController != null ? scenarioController.State : null;
 
             if (scenarioController != null)
             {
                 scenarioController.StateChanged += OnStateChanged;
                 scenarioController.Won += OnWon;
+                scenarioController.Failed += OnFailed;
             }
         }
 
@@ -41,14 +45,25 @@ namespace CleanEnergy.UI
 
             scenarioController.StateChanged -= OnStateChanged;
             scenarioController.Won -= OnWon;
+            scenarioController.Failed -= OnFailed;
         }
 
         private void OnStateChanged(ScenarioObjectiveState state)
         {
             _state = state;
-            if (state != null && state.HasWon)
+            if (state == null)
+            {
+                return;
+            }
+
+            if (state.HasWon)
             {
                 _won = true;
+            }
+
+            if (state.HasLost)
+            {
+                _lost = true;
             }
         }
 
@@ -57,10 +72,15 @@ namespace CleanEnergy.UI
             _won = true;
         }
 
+        private void OnFailed(ScenarioFailedEvent _)
+        {
+            _lost = true;
+        }
+
         private void OnGUI()
         {
             DrawChecklist();
-            if (_state != null && _state.IsAtRisk && !_won)
+            if (_state != null && _state.IsAtRisk && !_won && !_lost)
             {
                 DrawRiskBanner();
             }
@@ -68,6 +88,10 @@ namespace CleanEnergy.UI
             if (_won)
             {
                 DrawWinOverlay();
+            }
+            else if (_lost)
+            {
+                DrawLoseOverlay();
             }
         }
 
@@ -111,6 +135,19 @@ namespace CleanEnergy.UI
             GUILayout.Label("Scenario complete");
             GUILayout.Label("Village demand sustained with a diversified network.");
             GUILayout.Label("Press Generate to play again.");
+            GUILayout.EndArea();
+        }
+
+        private void DrawLoseOverlay()
+        {
+            var width = 360f;
+            var height = 110f;
+            var x = (Screen.width - width) * 0.5f;
+            var y = (Screen.height - height) * 0.5f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            GUILayout.Label("Scenario failed");
+            GUILayout.Label("Village satisfaction collapsed from prolonged shortages.");
+            GUILayout.Label("Press Generate to try again.");
             GUILayout.EndArea();
         }
 

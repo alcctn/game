@@ -1,6 +1,7 @@
 using CleanEnergy.Energy;
 using CleanEnergy.Maintenance;
 using CleanEnergy.Research;
+using CleanEnergy.Scenario;
 using UnityEngine;
 
 namespace CleanEnergy.UI
@@ -14,6 +15,7 @@ namespace CleanEnergy.UI
         [SerializeField] private ResearchController researchController;
         [SerializeField] private MaintenanceController maintenanceController;
         [SerializeField] private EnergyNetworkService networkService;
+        [SerializeField] private ScenarioController scenarioController;
 
         private readonly NotificationService _service = new NotificationService();
         private int _previousLowMaintenance;
@@ -25,13 +27,15 @@ namespace CleanEnergy.UI
             EnergySimulationDriver driver,
             ResearchController research,
             MaintenanceController maintenance,
-            EnergyNetworkService network)
+            EnergyNetworkService network,
+            ScenarioController scenario = null)
         {
             Unsubscribe();
             energyDriver = driver;
             researchController = research;
             maintenanceController = maintenance;
             networkService = network;
+            scenarioController = scenario;
             Subscribe();
         }
 
@@ -65,6 +69,11 @@ namespace CleanEnergy.UI
             {
                 researchController.Service.NodeUnlocked += OnResearchUnlocked;
             }
+
+            if (scenarioController != null)
+            {
+                scenarioController.Failed += OnScenarioFailed;
+            }
         }
 
         private void Unsubscribe()
@@ -79,6 +88,11 @@ namespace CleanEnergy.UI
             if (researchController?.Service != null)
             {
                 researchController.Service.NodeUnlocked -= OnResearchUnlocked;
+            }
+
+            if (scenarioController != null)
+            {
+                scenarioController.Failed -= OnScenarioFailed;
             }
         }
 
@@ -126,6 +140,11 @@ namespace CleanEnergy.UI
             _service.Push(
                 $"Emergency credit +{Economy.EmergencyCreditService.CreditAmount:F0}",
                 Time.unscaledTime);
+        }
+
+        private void OnScenarioFailed(ScenarioFailedEvent _)
+        {
+            _service.Push("Scenario failed", Time.unscaledTime);
         }
 
         private bool HasFullBattery()

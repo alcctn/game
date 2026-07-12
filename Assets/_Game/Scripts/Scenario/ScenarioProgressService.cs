@@ -40,8 +40,18 @@ namespace CleanEnergy.Scenario
         }
     }
 
+    public sealed class ScenarioFailedEvent
+    {
+        public string ScenarioId { get; }
+
+        public ScenarioFailedEvent(string scenarioId)
+        {
+            ScenarioId = scenarioId;
+        }
+    }
+
     /// <summary>
-    /// Pure tick logic for coverage streak, diversity, battery, satisfaction and win.
+    /// Pure tick logic for coverage streak, diversity, battery, satisfaction and win/lose.
     /// </summary>
     public sealed class ScenarioProgressService
     {
@@ -52,6 +62,7 @@ namespace CleanEnergy.Scenario
         public ScenarioObjectiveState State => _state;
         public ScenarioDefinition Definition => _definition;
         public event Action<ScenarioWonEvent> Won;
+        public event Action<ScenarioFailedEvent> Failed;
         public event Action<ScenarioObjectiveState> StateChanged;
 
         public ScenarioProgressService(ScenarioDefinition definition)
@@ -87,16 +98,21 @@ namespace CleanEnergy.Scenario
             _state.ShortageStreakTicks = snapshot.ShortageStreakTicks;
             _state.IsAtRisk = snapshot.IsAtRisk;
             _state.HasWon = snapshot.HasWon;
+            _state.HasLost = snapshot.HasLost;
             StateChanged?.Invoke(_state);
             if (_state.HasWon)
             {
                 Won?.Invoke(new ScenarioWonEvent(_definition.ScenarioId));
             }
+            else if (_state.HasLost)
+            {
+                Failed?.Invoke(new ScenarioFailedEvent(_definition.ScenarioId));
+            }
         }
 
         public void Evaluate(ScenarioTickInput input)
         {
-            if (_state.HasWon)
+            if (_state.HasWon || _state.HasLost)
             {
                 return;
             }
@@ -143,6 +159,14 @@ namespace CleanEnergy.Scenario
 
             _state.IsAtRisk = _state.Satisfaction <= _definition.RiskSatisfactionThreshold;
             StateChanged?.Invoke(_state);
+
+            if (_state.Satisfaction <= 0.0001f)
+            {
+                _state.HasLost = true;
+                Failed?.Invoke(new ScenarioFailedEvent(_definition.ScenarioId));
+                StateChanged?.Invoke(_state);
+                return;
+            }
 
             if (_state.AllObjectivesComplete)
             {

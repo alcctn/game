@@ -301,7 +301,7 @@ namespace CleanEnergy.Editor
             inspection.Configure(overlay, mapGenerator, placement, network);
 
             var notification = simRoot.AddComponent<NotificationController>();
-            notification.Configure(driver, researchController, maintenance, network);
+            notification.Configure(driver, researchController, maintenance, network, scenarioController);
             var notificationHudGo = new GameObject("NotificationHudUI");
             notificationHudGo.transform.SetParent(debugRoot.transform, false);
             var notificationHud = notificationHudGo.AddComponent<NotificationHudUI>();

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CleanEnergy.Scenario
 {
     /// <summary>
-    /// Wires energy ticks into scenario progress and pauses the clock on win.
+    /// Wires energy ticks into scenario progress and pauses the clock on win/lose.
     /// </summary>
     public sealed class ScenarioController : MonoBehaviour
     {
@@ -23,6 +23,7 @@ namespace CleanEnergy.Scenario
         public ScenarioProgressService Progress => _progress;
         public ScenarioObjectiveState State => _progress?.State;
         public event System.Action<ScenarioWonEvent> Won;
+        public event System.Action<ScenarioFailedEvent> Failed;
         public event System.Action<ScenarioObjectiveState> StateChanged;
 
         private void OnEnable()
@@ -47,6 +48,7 @@ namespace CleanEnergy.Scenario
             if (_progress != null)
             {
                 _progress.Won -= OnWon;
+                _progress.Failed -= OnFailed;
                 _progress.StateChanged -= OnStateChanged;
             }
 
@@ -59,6 +61,7 @@ namespace CleanEnergy.Scenario
             mapGenerator = generator;
             _progress = new ScenarioProgressService(definition);
             _progress.Won += OnWon;
+            _progress.Failed += OnFailed;
             _progress.StateChanged += OnStateChanged;
             Subscribe();
             StateChanged?.Invoke(_progress.State);
@@ -78,7 +81,7 @@ namespace CleanEnergy.Scenario
         {
             EnsureProgress();
             _progress.Restore(snapshot);
-            if (_progress.State.HasWon && clock != null)
+            if ((_progress.State.HasWon || _progress.State.HasLost) && clock != null)
             {
                 clock.SetSpeed(SimulationSpeed.Paused);
             }
@@ -102,6 +105,7 @@ namespace CleanEnergy.Scenario
 
             _progress = new ScenarioProgressService(definition);
             _progress.Won += OnWon;
+            _progress.Failed += OnFailed;
             _progress.StateChanged += OnStateChanged;
         }
 
@@ -213,6 +217,17 @@ namespace CleanEnergy.Scenario
             Debug.Log($"[Scenario] Won: {evt.ScenarioId}");
         }
 
+        private void OnFailed(ScenarioFailedEvent evt)
+        {
+            if (clock != null)
+            {
+                clock.SetSpeed(SimulationSpeed.Paused);
+            }
+
+            Failed?.Invoke(evt);
+            Debug.Log($"[Scenario] Failed: {evt.ScenarioId}");
+        }
+
         private void OnStateChanged(ScenarioObjectiveState state)
         {
             StateChanged?.Invoke(state);
@@ -226,6 +241,7 @@ namespace CleanEnergy.Scenario
             }
 
             _progress.Won -= OnWon;
+            _progress.Failed -= OnFailed;
             _progress.StateChanged -= OnStateChanged;
         }
     }

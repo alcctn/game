@@ -15,6 +15,7 @@ namespace CleanEnergy.Scenario
         public int ShortageStreakTicks { get; set; }
         public bool IsAtRisk { get; set; }
         public bool HasWon { get; set; }
+        public bool HasLost { get; set; }
 
         public bool AllObjectivesComplete =>
             DemandObjectiveComplete && DiversityObjectiveComplete && BatteryObjectiveComplete;
@@ -31,6 +32,7 @@ namespace CleanEnergy.Scenario
             ShortageStreakTicks = 0;
             IsAtRisk = false;
             HasWon = false;
+            HasLost = false;
         }
     }
 }

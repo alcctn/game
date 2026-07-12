@@ -26,6 +26,7 @@ namespace CleanEnergy.Save
         public int shortageStreakTicks;
         public bool isAtRisk;
         public bool hasWon;
+        public bool hasLost;
     }
 
     /// <summary>
