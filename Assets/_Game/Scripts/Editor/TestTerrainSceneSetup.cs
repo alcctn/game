@@ -1,3 +1,4 @@
+using CleanEnergy.Art;
 using System.IO;
 using CleanEnergy.Audio;
 using CleanEnergy.Buildings;
@@ -54,8 +55,9 @@ namespace CleanEnergy.Editor
             var pineBasin = CreateOrLoadPineBasinScenario();
             var aridPlateau = CreateOrLoadAridPlateauScenario();
             var research = CreateOrLoadResearch();
+            var purePoly = CreateOrLoadPurePolyCatalog();
             var buildings = CreateOrLoadBuildings();
-            CreateScene(settings, buildings, scenario, sunRidge, windCoast, pineBasin, aridPlateau, research);
+            CreateScene(settings, buildings, scenario, sunRidge, windCoast, pineBasin, aridPlateau, research, purePoly);
             EnsureMainMenuScene();
             EnsureBootstrapScene();
             UpdateBuildSettings();
@@ -124,6 +126,15 @@ namespace CleanEnergy.Editor
             Debug.Log("[Setup] Research tree created/updated.");
         }
 
+        [MenuItem("Clean Energy/Setup Pure Poly Catalog")]
+        public static void SetupPurePolyCatalogMenu()
+        {
+            EnsureFolders();
+            CreateOrLoadPurePolyCatalog();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Setup] PurePolyCatalog wired from Pure Poly prefabs.");
+        }
+
         private static void EnsureFolders()
         {
             Directory.CreateDirectory("Assets/_Game/Data/Map");
@@ -131,6 +142,8 @@ namespace CleanEnergy.Editor
             Directory.CreateDirectory(BuildingPrefabsFolder);
             Directory.CreateDirectory(ScenariosFolder);
             Directory.CreateDirectory(ResearchFolder);
+            Directory.CreateDirectory("Assets/_Game/Data/Art");
+            Directory.CreateDirectory("Assets/_Game/Resources");
             Directory.CreateDirectory("Assets/_Game/Scenes");
         }
 
@@ -302,6 +315,89 @@ namespace CleanEnergy.Editor
             existing.ConfigureGreenValleyPrototype();
             EditorUtility.SetDirty(existing);
             return existing;
+        }
+
+        private static PurePolyCatalog CreateOrLoadPurePolyCatalog()
+        {
+            const string dataPath = PurePolyCatalog.DefaultAssetPath;
+            const string resourcesPath = "Assets/_Game/Resources/PurePolyCatalog.asset";
+
+            var catalog = AssetDatabase.LoadAssetAtPath<PurePolyCatalog>(dataPath);
+            if (catalog == null)
+            {
+                catalog = ScriptableObject.CreateInstance<PurePolyCatalog>();
+                AssetDatabase.CreateAsset(catalog, dataPath);
+            }
+
+            catalog.Configure(
+                LoadPp("PP_Meadow_07"),
+                new[]
+                {
+                    LoadPp("PP_Tree_02"),
+                    LoadPp("PP_Tree_10"),
+                    LoadPp("PP_Birch_Tree_05"),
+                    LoadPp("PP_Birch_Tree_06")
+                },
+                LoadPp("PP_Lake_Ground_04"),
+                LoadPp("PP_Forest_Mountain_Moss_01") ?? LoadPp("PP_Forest_Mountain_Moss_02"),
+                LoadPp("PP_Meadow_Path_05"),
+                new[]
+                {
+                    LoadPp("PP_Rock_Moss_Grown_09"),
+                    LoadPp("PP_Rock_Moss_Grown_11"),
+                    LoadPp("PP_Rock_Pile_Forest_Moss_05"),
+                    LoadPp("PP_Rock_Pile_Forest_Moss_10")
+                },
+                new[]
+                {
+                    LoadPp("PP_Daffodil_03"),
+                    LoadPp("PP_Hyacinth_04"),
+                    LoadPp("PP_Sunflower_04")
+                },
+                new[]
+                {
+                    LoadPp("PP_Grass_11"),
+                    LoadPp("PP_Grass_15"),
+                    LoadPp("PP_Meadow_08")
+                },
+                new[]
+                {
+                    LoadPp("PP_Bridge_15_Middle"),
+                    LoadPp("PP_Bridge_15_Left"),
+                    LoadPp("PP_Bridge_15_Right")
+                });
+            EditorUtility.SetDirty(catalog);
+
+            // Mirror into Resources for runtime Resolve without scene setup.
+            var resourcesCopy = AssetDatabase.LoadAssetAtPath<PurePolyCatalog>(resourcesPath);
+            if (resourcesCopy == null)
+            {
+                AssetDatabase.CopyAsset(dataPath, resourcesPath);
+                resourcesCopy = AssetDatabase.LoadAssetAtPath<PurePolyCatalog>(resourcesPath);
+            }
+
+            if (resourcesCopy != null && resourcesCopy != catalog)
+            {
+                resourcesCopy.Configure(
+                    catalog.Meadow,
+                    catalog.ForestTrees,
+                    catalog.LakeGround,
+                    catalog.Mountain,
+                    catalog.Path,
+                    catalog.Rocks,
+                    catalog.Flowers,
+                    catalog.Grasses,
+                    catalog.Bridges);
+                EditorUtility.SetDirty(resourcesCopy);
+            }
+
+            return catalog;
+        }
+
+        private static GameObject LoadPp(string prefabName)
+        {
+            return AssetDatabase.LoadAssetAtPath<GameObject>(
+                $"{PurePolyCatalog.PrefabFolder}/{prefabName}.prefab");
         }
 
         private static BuildingDefinition[] CreateOrLoadBuildings()
@@ -496,7 +592,8 @@ namespace CleanEnergy.Editor
             ScenarioDefinition windCoast,
             ScenarioDefinition pineBasin,
             ScenarioDefinition aridPlateau,
-            ResearchTreeDefinition research)
+            ResearchTreeDefinition research,
+            PurePolyCatalog purePoly = null)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
@@ -506,6 +603,7 @@ namespace CleanEnergy.Editor
             so.FindProperty("settings").objectReferenceValue = settings;
             so.FindProperty("scenarioDefinition").objectReferenceValue = scenario;
             so.FindProperty("researchTreeDefinition").objectReferenceValue = research;
+            so.FindProperty("purePolyCatalog").objectReferenceValue = purePoly;
             so.FindProperty("startingMoney").floatValue = 1000f;
             var catalogProp = so.FindProperty("scenarioCatalog");
             catalogProp.arraySize = 5;

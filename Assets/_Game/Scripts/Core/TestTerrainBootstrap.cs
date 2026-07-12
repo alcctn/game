@@ -1,3 +1,4 @@
+using CleanEnergy.Art;
 using CleanEnergy.Audio;
 using CleanEnergy.Buildings;
 using CleanEnergy.CameraSystem;
@@ -27,6 +28,7 @@ namespace CleanEnergy.Core
         [SerializeField] private ScenarioDefinition scenarioDefinition;
         [SerializeField] private ScenarioDefinition[] scenarioCatalog;
         [SerializeField] private ResearchTreeDefinition researchTreeDefinition;
+        [SerializeField] private PurePolyCatalog purePolyCatalog;
         [SerializeField] private bool createSettingsIfMissing = true;
         [SerializeField] private float startingMoney = 1000f;
 
@@ -46,6 +48,10 @@ namespace CleanEnergy.Core
             var mapGenerator = FindOrAdd<MapGenerator>(mapRoot);
             mapGenerator.SetSettings(settingsAsset);
             mapGenerator.SetTerrainRoot(terrainRoot);
+
+            var natureRoot = EnsureChild(NatureVisualSpawner.NatureRootName, mapRoot);
+            var natureSpawner = FindOrAdd<NatureVisualSpawner>(mapRoot.gameObject);
+            natureSpawner.Configure(mapGenerator, ResolvePurePolyCatalog(), natureRoot);
 
             var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
             clock.BindMapGenerator(mapGenerator);
@@ -300,6 +306,23 @@ namespace CleanEnergy.Core
 
             researchTreeDefinition = ResearchService.CreateRuntimeDefaultTree();
             return researchTreeDefinition;
+        }
+
+        private PurePolyCatalog ResolvePurePolyCatalog()
+        {
+            if (purePolyCatalog != null)
+            {
+                return purePolyCatalog;
+            }
+
+            purePolyCatalog = Resources.Load<PurePolyCatalog>("PurePolyCatalog");
+            if (purePolyCatalog != null)
+            {
+                return purePolyCatalog;
+            }
+
+            purePolyCatalog = ScriptableObject.CreateInstance<PurePolyCatalog>();
+            return purePolyCatalog;
         }
 
         public static BuildingDefinition[] CreateDefaultBuildings()

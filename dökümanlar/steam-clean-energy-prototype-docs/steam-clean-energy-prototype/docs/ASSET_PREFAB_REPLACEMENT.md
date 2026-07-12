@@ -155,6 +155,12 @@ Her prefab baglandiktan sonra `Test_Terrain` sahnesinde kontrol et:
 - Materyal shader'i URP ile uyumsuz olabilir.
 - Model cok kucuk veya cok buyuk olabilir.
 
+### Low poly doga (Pure Poly)
+
+- Doga / zemin ornekleri: `Assets/Pure Poly/Free Low Poly Nature Pack/`
+- Envanter: `docs/PURE_POLY_ASSET_REVIEW.md`
+- Enerji bina mesh'i bu pakette yoktur.
+
 ### Model zeminin altinda kaliyor
 
 - Root pivot zeminde degildir.
