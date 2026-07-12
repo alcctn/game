@@ -90,6 +90,33 @@ namespace CleanEnergy.Scenario
             }
         }
 
+        /// <summary>Used by LevelController when Level 1 objectives complete.</summary>
+        public void ForceWin(string reason = null)
+        {
+            EnsureProgress();
+            if (_progress.State.HasWon || _progress.State.HasLost)
+            {
+                return;
+            }
+
+            _progress.State.DemandObjectiveComplete = true;
+            _progress.State.DiversityObjectiveComplete = true;
+            _progress.State.BatteryObjectiveComplete = true;
+            _progress.State.ResearchObjectiveComplete = true;
+            _progress.State.HasWon = true;
+            if (clock != null)
+            {
+                clock.SetSpeed(SimulationSpeed.Paused);
+            }
+
+            StateChanged?.Invoke(_progress.State);
+            Won?.Invoke(new ScenarioWonEvent(definition != null ? definition.ScenarioId : "level"));
+            if (!string.IsNullOrEmpty(reason))
+            {
+                Debug.Log("[Scenario] ForceWin: " + reason);
+            }
+        }
+
         public void RestoreSettlement(float population)
         {
             var start = definition != null

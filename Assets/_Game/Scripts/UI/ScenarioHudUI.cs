@@ -13,9 +13,10 @@ namespace CleanEnergy.UI
         private ScenarioObjectiveState _state;
         private bool _won;
         private bool _lost;
+        private bool _hideChecklist;
         private string _failReason = ScenarioFailedEvent.DefaultReason;
 
-        public void Configure(ScenarioController controller)
+        public void Configure(ScenarioController controller, bool hideChecklist = false)
         {
             if (scenarioController != null)
             {
@@ -25,6 +26,7 @@ namespace CleanEnergy.UI
             }
 
             scenarioController = controller;
+            _hideChecklist = hideChecklist;
             _won = false;
             _lost = false;
             _failReason = ScenarioFailedEvent.DefaultReason;
@@ -85,7 +87,11 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            DrawChecklist();
+            if (!_hideChecklist)
+            {
+                DrawChecklist();
+            }
+
             if (_state != null && _state.IsAtRisk && !_won && !_lost)
             {
                 DrawRiskBanner();

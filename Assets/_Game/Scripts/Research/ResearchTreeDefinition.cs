@@ -17,7 +17,8 @@ namespace CleanEnergy.Research
             "village",
             "power_line",
             "maintenance_depot",
-            "distribution_hub"
+            "distribution_hub",
+            "small_wind"
         };
         [SerializeField] private ResearchNodeDefinition[] nodes = Array.Empty<ResearchNodeDefinition>();
 
@@ -36,7 +37,8 @@ namespace CleanEnergy.Research
                 "village",
                 "power_line",
                 "maintenance_depot",
-                "distribution_hub"
+                "distribution_hub",
+                "small_wind"
             };
 
             var hydroBasic = new ResearchNodeDefinition();

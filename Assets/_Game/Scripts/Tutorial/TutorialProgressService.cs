@@ -18,7 +18,7 @@ namespace CleanEnergy.Tutorial
     }
 
     /// <summary>
-    /// Ordered Green Valley tutorial; only the current step can complete.
+    /// Ordered Green Valley Level 1 tutorial; only the current step can complete.
     /// </summary>
     public sealed class TutorialProgressService
     {
@@ -35,31 +35,24 @@ namespace CleanEnergy.Tutorial
             Reset();
         }
 
-        /// <summary>Tutorial runs only for Green Valley.</summary>
         public static bool IsEnabledForScenario(string scenarioId)
         {
             return string.Equals(scenarioId, TutorialScenarioId, StringComparison.Ordinal);
         }
 
-        /// <summary>Soft-highlight build target id for the current step, or null.</summary>
         public static string ResolveBuildTargetId(TutorialStepId step)
         {
             switch (step)
             {
                 case TutorialStepId.PlaceWaterWheel:
                     return "water_wheel";
-                case TutorialStepId.PlacePowerLine:
-                    return "power_line";
-                case TutorialStepId.PlaceSolar:
-                    return "small_solar";
-                case TutorialStepId.PlaceBattery:
-                    return "battery";
+                case TutorialStepId.PlaceWind:
+                    return "small_wind";
                 default:
                     return null;
             }
         }
 
-        /// <summary>Soft highlight prefix for build menu rows (no hard lock).</summary>
         public static string FormatSoftHighlightLabel(string label, bool highlighted)
         {
             if (!highlighted || string.IsNullOrEmpty(label))
@@ -128,7 +121,7 @@ namespace CleanEnergy.Tutorial
             return new TutorialStepInfo(step, Resolve(titleKey, locale), Resolve(hintKey, locale));
         }
 
-        public static int StepCount => 9;
+        public static int StepCount => 6;
 
         private static string Resolve(string key, string locale)
         {
@@ -145,33 +138,21 @@ namespace CleanEnergy.Tutorial
                     titleKey = StringKeys.TutorialCameraTitle;
                     hintKey = StringKeys.TutorialCameraHint;
                     break;
-                case TutorialStepId.OpenWaterLayer:
-                    titleKey = StringKeys.TutorialOpenWaterTitle;
-                    hintKey = StringKeys.TutorialOpenWaterHint;
+                case TutorialStepId.HireEngineer:
+                    titleKey = StringKeys.TutorialHireEngineerTitle;
+                    hintKey = StringKeys.TutorialHireEngineerHint;
                     break;
                 case TutorialStepId.PlaceWaterWheel:
                     titleKey = StringKeys.TutorialPlaceWaterWheelTitle;
                     hintKey = StringKeys.TutorialPlaceWaterWheelHint;
                     break;
-                case TutorialStepId.PlacePowerLine:
-                    titleKey = StringKeys.TutorialPlacePowerLineTitle;
-                    hintKey = StringKeys.TutorialPlacePowerLineHint;
+                case TutorialStepId.HireTechnician:
+                    titleKey = StringKeys.TutorialHireTechnicianTitle;
+                    hintKey = StringKeys.TutorialHireTechnicianHint;
                     break;
-                case TutorialStepId.OpenSolarLayer:
-                    titleKey = StringKeys.TutorialOpenSolarTitle;
-                    hintKey = StringKeys.TutorialOpenSolarHint;
-                    break;
-                case TutorialStepId.UnlockSolar:
-                    titleKey = StringKeys.TutorialUnlockSolarTitle;
-                    hintKey = StringKeys.TutorialUnlockSolarHint;
-                    break;
-                case TutorialStepId.PlaceSolar:
-                    titleKey = StringKeys.TutorialPlaceSolarTitle;
-                    hintKey = StringKeys.TutorialPlaceSolarHint;
-                    break;
-                case TutorialStepId.PlaceBattery:
-                    titleKey = StringKeys.TutorialPlaceBatteryTitle;
-                    hintKey = StringKeys.TutorialPlaceBatteryHint;
+                case TutorialStepId.PlaceWind:
+                    titleKey = StringKeys.TutorialPlaceWindTitle;
+                    hintKey = StringKeys.TutorialPlaceWindHint;
                     break;
                 case TutorialStepId.MeetDemand:
                     titleKey = StringKeys.TutorialMeetDemandTitle;

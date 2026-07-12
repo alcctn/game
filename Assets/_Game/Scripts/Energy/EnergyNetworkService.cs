@@ -34,6 +34,8 @@ namespace CleanEnergy.Energy
         private System.Func<string, float> _efficiencyBonusProvider;
         private System.Func<float> _demandScaleProvider;
         private System.Func<string, float> _storageCapacityBonusProvider;
+        private bool _autoConnectEnabled;
+        private int _autoConnectMaxRange = 10;
         private bool _dirty = true;
 
         public EnergyNetworkGraph Graph => _graph;
@@ -83,6 +85,14 @@ namespace CleanEnergy.Energy
         {
             _storageCapacityBonusProvider = storageCapacityBonusProvider;
             MarkDirty();
+        }
+
+        public void SetAutoConnect(bool enabled, int maxRange = 10)
+        {
+            _autoConnectEnabled = enabled;
+            _autoConnectMaxRange = Mathf.Max(1, maxRange);
+            MarkDirty();
+            Rebuild();
         }
 
         public void MarkDirty()
@@ -176,6 +186,22 @@ namespace CleanEnergy.Energy
                     if (Manhattan(hub.Coordinate, other.Coordinate) <= maxRange)
                     {
                         _graph.Connect(hub.Id, other.Id);
+                    }
+                }
+            }
+
+            if (_autoConnectEnabled)
+            {
+                // Link producers/storage directly to consumers (and each other) within settlement radius.
+                for (var i = 0; i < energyNodes.Count; i++)
+                {
+                    for (var j = i + 1; j < energyNodes.Count; j++)
+                    {
+                        if (Manhattan(energyNodes[i].Coordinate, energyNodes[j].Coordinate)
+                            <= _autoConnectMaxRange)
+                        {
+                            _graph.Connect(energyNodes[i].Id, energyNodes[j].Id);
+                        }
                     }
                 }
             }

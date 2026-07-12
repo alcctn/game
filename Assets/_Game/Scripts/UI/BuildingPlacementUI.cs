@@ -326,7 +326,23 @@ namespace CleanEnergy.UI
 
         private void DrawYieldPreview(BuildingDefinition def)
         {
-            GUILayout.Label($"Cost: {placementController.GetHoverEffectiveCost():F0}");
+            GUILayout.Label(
+                $"{StringTable.Get(StringKeys.BuildCost)}: {placementController.GetHoverBuildCost():F0}");
+            var auto = placementController.GetHoverAutoConnectCost();
+            if (auto > 0.01f)
+            {
+                GUILayout.Label(
+                    $"{StringTable.Get(StringKeys.AutoConnectionCost)}: {auto:F0}");
+            }
+
+            GUILayout.Label(
+                $"{StringTable.Get(StringKeys.TotalCost)}: {placementController.GetHoverEffectiveCost():F0}");
+            if (def.RequiredEngineers > 0 || def.RequiredTechnicians > 0)
+            {
+                GUILayout.Label(
+                    $"Requires: Eng {def.RequiredEngineers} / Tech {def.RequiredTechnicians}");
+            }
+
             if (!def.IsProducer)
             {
                 return;

@@ -19,7 +19,7 @@ MonoBehaviour:
   prefab: {fileID: 0}
   size: {x: 1, y: 1}
   cost: 80
-  maintenanceCost: 1
+  maintenanceCost: 0
   installedPower: 8
   efficiency: 0.8
   maxSlopeDegrees: 25
@@ -28,6 +28,7 @@ MonoBehaviour:
   minWindPotential: 0
   requiresAdjacentWater: 1
   requireBuildableCell: 0
+  minSameTypeSpacing: 0
   gizmoColor: {r: 0.25, g: 0.55, b: 0.95, a: 1}
   baseDemand: 0
   storageCapacity: 0
@@ -35,3 +36,6 @@ MonoBehaviour:
   dischargeRate: 20
   connectionRange: 4
   isNetworkHub: 0
+  linkCapacity: 0
+  requiredEngineers: 1
+  requiredTechnicians: 0

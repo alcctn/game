@@ -12,6 +12,8 @@ namespace CleanEnergy.Energy
         public float SurplusSold { get; }
         public float Shortage { get; }
         public float EnergyCharged { get; }
+        /// <summary>Demand energy met this tick (Demand - Shortage).</summary>
+        public float EnergySupplied => Mathf.Max(0f, Demand - Shortage);
         /// <summary>Production after hub link-capacity cap.</summary>
         public float DeliveredProduction { get; }
         /// <summary>Component (or network) hub capacity; 0 means unlimited.</summary>

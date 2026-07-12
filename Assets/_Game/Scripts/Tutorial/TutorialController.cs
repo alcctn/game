@@ -9,7 +9,7 @@ using UnityEngine;
 namespace CleanEnergy.Tutorial
 {
     /// <summary>
-    /// Wires gameplay events into the ordered tutorial progress service.
+    /// Wires gameplay events into the ordered Level 1 tutorial progress service.
     /// </summary>
     public sealed class TutorialController : MonoBehaviour
     {
@@ -18,6 +18,7 @@ namespace CleanEnergy.Tutorial
         [SerializeField] private PlacementController placementController;
         [SerializeField] private ResearchController researchController;
         [SerializeField] private ScenarioController scenarioController;
+        [SerializeField] private LevelController levelController;
         [SerializeField] private MapGenerator mapGenerator;
 
         private TutorialProgressService _progress;
@@ -51,7 +52,8 @@ namespace CleanEnergy.Tutorial
             PlacementController placement,
             ResearchController research,
             ScenarioController scenario,
-            MapGenerator generator)
+            MapGenerator generator,
+            LevelController level = null)
         {
             Unsubscribe();
             cameraController = camera;
@@ -59,6 +61,7 @@ namespace CleanEnergy.Tutorial
             placementController = placement;
             researchController = research;
             scenarioController = scenario;
+            levelController = level;
             mapGenerator = generator;
             EnsureProgress();
             RefreshEnabled();
@@ -66,7 +69,6 @@ namespace CleanEnergy.Tutorial
             StepChanged?.Invoke(_progress.CurrentStep);
         }
 
-        /// <summary>Enables tutorial only for Green Valley.</summary>
         public void RefreshEnabled()
         {
             var id = scenarioController?.Progress?.Definition?.ScenarioId
@@ -127,24 +129,14 @@ namespace CleanEnergy.Tutorial
                 cameraController.CameraInputUsed += OnCameraInput;
             }
 
-            if (debugOverlay != null)
-            {
-                debugOverlay.ModeChanged += OnDebugModeChanged;
-            }
-
             if (placementController != null)
             {
                 placementController.BuildingPlaced += OnBuildingPlaced;
             }
 
-            if (researchController?.Service != null)
+            if (levelController != null)
             {
-                researchController.Service.NodeUnlocked += OnResearchUnlocked;
-            }
-
-            if (scenarioController != null)
-            {
-                scenarioController.StateChanged += OnScenarioStateChanged;
+                levelController.StateChanged += OnLevelStateChanged;
             }
 
             if (mapGenerator != null)
@@ -165,24 +157,14 @@ namespace CleanEnergy.Tutorial
                 cameraController.CameraInputUsed -= OnCameraInput;
             }
 
-            if (debugOverlay != null)
-            {
-                debugOverlay.ModeChanged -= OnDebugModeChanged;
-            }
-
             if (placementController != null)
             {
                 placementController.BuildingPlaced -= OnBuildingPlaced;
             }
 
-            if (researchController?.Service != null)
+            if (levelController != null)
             {
-                researchController.Service.NodeUnlocked -= OnResearchUnlocked;
-            }
-
-            if (scenarioController != null)
-            {
-                scenarioController.StateChanged -= OnScenarioStateChanged;
+                levelController.StateChanged -= OnLevelStateChanged;
             }
 
             if (mapGenerator != null)
@@ -211,23 +193,6 @@ namespace CleanEnergy.Tutorial
             _progress?.TryComplete(TutorialStepId.Camera);
         }
 
-        private void OnDebugModeChanged(DebugViewMode mode)
-        {
-            if (_suppressEvents || !_enabled || _progress == null)
-            {
-                return;
-            }
-
-            if (mode == DebugViewMode.Water)
-            {
-                _progress.TryComplete(TutorialStepId.OpenWaterLayer);
-            }
-            else if (mode == DebugViewMode.Solar)
-            {
-                _progress.TryComplete(TutorialStepId.OpenSolarLayer);
-            }
-        }
-
         private void OnBuildingPlaced(BuildingPlacedEvent evt)
         {
             if (_suppressEvents || !_enabled || _progress == null || evt?.Instance?.Definition == null)
@@ -238,42 +203,33 @@ namespace CleanEnergy.Tutorial
             switch (evt.Instance.Definition.Id)
             {
                 case "water_wheel":
+                case "small_hydro":
                     _progress.TryComplete(TutorialStepId.PlaceWaterWheel);
                     break;
-                case "power_line":
-                    _progress.TryComplete(TutorialStepId.PlacePowerLine);
-                    break;
-                case "small_solar":
-                    _progress.TryComplete(TutorialStepId.PlaceSolar);
-                    break;
-                case "battery":
-                    // Always-unlocked building; no prior research step.
-                    _progress.TryComplete(TutorialStepId.PlaceBattery);
+                case "small_wind":
+                    _progress.TryComplete(TutorialStepId.PlaceWind);
                     break;
             }
         }
 
-        private void OnResearchUnlocked(ResearchUnlockedEvent evt)
-        {
-            if (_suppressEvents || !_enabled || _progress == null || evt == null)
-            {
-                return;
-            }
-
-            if (evt.NodeId == "solar_basic")
-            {
-                _progress.TryComplete(TutorialStepId.UnlockSolar);
-            }
-        }
-
-        private void OnScenarioStateChanged(ScenarioObjectiveState state)
+        private void OnLevelStateChanged(LevelObjectiveState state)
         {
             if (_suppressEvents || !_enabled || _progress == null || state == null)
             {
                 return;
             }
 
-            if (state.DemandObjectiveComplete
+            if (state.EngineerComplete)
+            {
+                _progress.TryComplete(TutorialStepId.HireEngineer);
+            }
+
+            if (state.TechnicianComplete)
+            {
+                _progress.TryComplete(TutorialStepId.HireTechnician);
+            }
+
+            if (state.CoverageComplete || state.HasCompletedLevel
                 || state.CoverageStreakTicks >= TutorialProgressService.MeetDemandStreakTicks)
             {
                 _progress.TryComplete(TutorialStepId.MeetDemand);
@@ -283,11 +239,6 @@ namespace CleanEnergy.Tutorial
         private void OnStepChanged(TutorialStepId step)
         {
             StepChanged?.Invoke(step);
-        }
-
-        private void OnDestroy()
-        {
-            Unsubscribe();
         }
     }
 }

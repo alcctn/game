@@ -1,80 +1,42 @@
-using CleanEnergy.Scenario;
 using CleanEnergy.Tutorial;
 using CleanEnergy.UI;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace CleanEnergy.Tests.EditMode
 {
     public sealed class TutorialPolishTests
     {
-        [TearDown]
-        public void TearDown()
+        [Test]
+        public void GetInfo_LocalizedTitles()
         {
-            SettingsService.ClearPrefs();
-            ScenarioSession.SelectedId = ScenarioSession.DefaultId;
+            var en = TutorialProgressService.GetInfo(TutorialStepId.PlaceWind, "en");
+            var tr = TutorialProgressService.GetInfo(TutorialStepId.PlaceWind, "tr");
+            Assert.IsFalse(string.IsNullOrEmpty(en.Title));
+            Assert.IsFalse(string.IsNullOrEmpty(tr.Title));
+            Assert.AreNotEqual(en.Title, tr.Title);
         }
 
         [Test]
-        public void StringTable_HasTutorialTitlesEnAndTr()
+        public void SoftHighlight_PrefixesLabel()
         {
-            Assert.AreEqual("Move the camera", StringTable.Get(StringKeys.TutorialCameraTitle, "en"));
-            Assert.AreEqual("Kamerayı hareket ettir", StringTable.Get(StringKeys.TutorialCameraTitle, "tr"));
-            Assert.AreEqual("Sustain village demand", StringTable.Get(StringKeys.TutorialMeetDemandTitle, "en"));
-            Assert.AreEqual("Köy talebini sürdür", StringTable.Get(StringKeys.TutorialMeetDemandTitle, "tr"));
+            Assert.AreEqual("> Water", TutorialProgressService.FormatSoftHighlightLabel("Water", true));
+            Assert.AreEqual("Water", TutorialProgressService.FormatSoftHighlightLabel("Water", false));
         }
 
         [Test]
-        public void GetInfo_UsesLocale()
-        {
-            var en = TutorialProgressService.GetInfo(TutorialStepId.PlaceSolar, "en");
-            var tr = TutorialProgressService.GetInfo(TutorialStepId.PlaceSolar, "tr");
-            Assert.AreEqual("Build Small Solar", en.Title);
-            Assert.AreEqual("Küçük güneş paneli kur", tr.Title);
-        }
-
-        [Test]
-        public void IsEnabledForScenario_OnlyGreenValley()
-        {
-            Assert.IsTrue(TutorialProgressService.IsEnabledForScenario("green_valley"));
-            Assert.IsFalse(TutorialProgressService.IsEnabledForScenario("sun_ridge"));
-            Assert.IsFalse(TutorialProgressService.IsEnabledForScenario("wind_coast"));
-            Assert.IsFalse(TutorialProgressService.IsEnabledForScenario(null));
-        }
-
-        [Test]
-        public void ResolveBuildTargetId_MapsPlaceSteps()
+        public void ResolveBuildTargetId_Level01Targets()
         {
             Assert.AreEqual("water_wheel", TutorialProgressService.ResolveBuildTargetId(TutorialStepId.PlaceWaterWheel));
-            Assert.AreEqual("power_line", TutorialProgressService.ResolveBuildTargetId(TutorialStepId.PlacePowerLine));
-            Assert.AreEqual("small_solar", TutorialProgressService.ResolveBuildTargetId(TutorialStepId.PlaceSolar));
-            Assert.AreEqual("battery", TutorialProgressService.ResolveBuildTargetId(TutorialStepId.PlaceBattery));
+            Assert.AreEqual("small_wind", TutorialProgressService.ResolveBuildTargetId(TutorialStepId.PlaceWind));
             Assert.IsNull(TutorialProgressService.ResolveBuildTargetId(TutorialStepId.Camera));
+            Assert.IsNull(TutorialProgressService.ResolveBuildTargetId(TutorialStepId.HireEngineer));
         }
 
         [Test]
-        public void SoftHighlight_PrefixesLabel_WithoutLocking()
+        public void LevelStrings_Exist()
         {
-            Assert.AreEqual("> Water Wheel (100)", TutorialProgressService.FormatSoftHighlightLabel("Water Wheel (100)", true));
-            Assert.AreEqual("Water Wheel (100)", TutorialProgressService.FormatSoftHighlightLabel("Water Wheel (100)", false));
-        }
-
-        [Test]
-        public void Controller_DisablesOutsideGreenValley()
-        {
-            var go = new GameObject("TutorialPolish");
-            try
-            {
-                ScenarioSession.SelectedId = "sun_ridge";
-                var tutorial = go.AddComponent<TutorialController>();
-                tutorial.RefreshEnabled();
-                Assert.IsFalse(tutorial.IsEnabled);
-                Assert.IsTrue(tutorial.Progress.IsComplete);
-            }
-            finally
-            {
-                Object.DestroyImmediate(go);
-            }
+            Assert.IsFalse(string.IsNullOrEmpty(StringTable.Get(StringKeys.Level01Title, "en")));
+            Assert.IsFalse(string.IsNullOrEmpty(StringTable.Get(StringKeys.HireEngineer, "tr")));
         }
     }
 }

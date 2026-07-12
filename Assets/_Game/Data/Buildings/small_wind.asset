@@ -18,14 +18,14 @@ MonoBehaviour:
   category: 0
   prefab: {fileID: 0}
   size: {x: 1, y: 1}
-  cost: 150
-  maintenanceCost: 1
+  cost: 100
+  maintenanceCost: 0.1
   installedPower: 14
   efficiency: 0.8
   maxSlopeDegrees: 28
   minWaterFlow: 0
   minSolarPotential: 0
-  minWindPotential: 0.4
+  minWindPotential: 0.25
   requiresAdjacentWater: 0
   requireBuildableCell: 1
   minSameTypeSpacing: 3
@@ -36,3 +36,6 @@ MonoBehaviour:
   dischargeRate: 20
   connectionRange: 4
   isNetworkHub: 0
+  linkCapacity: 0
+  requiredEngineers: 1
+  requiredTechnicians: 1

@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using CleanEnergy.Buildings;
 using CleanEnergy.Economy;
 using CleanEnergy.Grid;
+using CleanEnergy.Scenario;
+using CleanEnergy.Settlements;
+using CleanEnergy.Workers;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -29,7 +32,10 @@ namespace CleanEnergy.Placement
             GridOccupancyService occupancy,
             Wallet wallet,
             IBuildingUnlockQuery unlocks,
-            int rotation)
+            int rotation,
+            IActiveSettlementQuery settlement = null,
+            IWorkerQuery workers = null,
+            LevelDefinition level = null)
         {
             if (definition == null || grid == null || !grid.IsInitialized || validator == null)
             {
@@ -50,7 +56,8 @@ namespace CleanEnergy.Placement
 
                     var coord = new GridCoordinate(x, y);
                     var result = validator.Validate(
-                        definition, coord, grid, occupancy, wallet, unlocks, rotation);
+                        definition, coord, grid, occupancy, wallet, unlocks, rotation,
+                        settlement, workers, level);
                     if (!result.IsValid || !grid.TryGetCell(coord, out var cell))
                     {
                         continue;

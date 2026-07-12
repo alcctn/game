@@ -21,6 +21,7 @@ MonoBehaviour:
   - power_line
   - maintenance_depot
   - distribution_hub
+  - small_wind
   nodes:
   - id: hydro_basic
     displayName: Basic Hydro

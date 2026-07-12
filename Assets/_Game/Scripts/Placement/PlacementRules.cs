@@ -367,6 +367,7 @@ namespace CleanEnergy.Placement
     /// <summary>
     /// Producers and storage must place within link range of an existing network node.
     /// Empty map: first network node (including producers) may seed the network.
+    /// When Level auto-connect is enabled, network proximity is deferred to auto-grid.
     /// Distance uses each building's anchor cell only.
     /// </summary>
     public sealed class NetworkConnectionRule : IPlacementRule
@@ -379,6 +380,11 @@ namespace CleanEnergy.Placement
         {
             var definition = context.Definition;
             if (definition == null || (!definition.IsProducer && !definition.IsStorage))
+            {
+                return true;
+            }
+
+            if (context.Level != null && context.Level.AutoConnectEnabled)
             {
                 return true;
             }

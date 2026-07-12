@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using CleanEnergy.Buildings;
 using CleanEnergy.Economy;
 using CleanEnergy.Grid;
+using CleanEnergy.Scenario;
+using CleanEnergy.Settlements;
+using CleanEnergy.Workers;
 
 namespace CleanEnergy.Placement
 {
@@ -25,9 +28,24 @@ namespace CleanEnergy.Placement
         public GridOccupancyService Occupancy { get; }
         public Wallet Wallet { get; }
         public IBuildingUnlockQuery BuildingUnlocks { get; }
+        public IActiveSettlementQuery Settlement { get; }
+        public IWorkerQuery Workers { get; }
+        public LevelDefinition Level { get; }
 
-        public float EffectiveCost => PowerLinePlacementCost.ComputeEffectiveCost(
+        public float BuildCost => PowerLinePlacementCost.ComputeEffectiveCost(
             Definition, Coordinate, Occupancy);
+
+        public float AutoConnectCost =>
+            Level != null
+                ? AutoConnectionCost.Compute(
+                    Definition,
+                    Coordinate,
+                    Settlement,
+                    Level.ConnectionCostPerCell,
+                    Level.AutoConnectEnabled)
+                : 0f;
+
+        public float EffectiveCost => BuildCost + AutoConnectCost;
 
         public PlacementContext(
             BuildingDefinition definition,
@@ -36,7 +54,10 @@ namespace CleanEnergy.Placement
             GridOccupancyService occupancy,
             Wallet wallet,
             IBuildingUnlockQuery buildingUnlocks = null,
-            int rotation = 0)
+            int rotation = 0,
+            IActiveSettlementQuery settlement = null,
+            IWorkerQuery workers = null,
+            LevelDefinition level = null)
         {
             Definition = definition;
             Coordinate = coordinate;
@@ -45,6 +66,9 @@ namespace CleanEnergy.Placement
             Occupancy = occupancy;
             Wallet = wallet;
             BuildingUnlocks = buildingUnlocks;
+            Settlement = settlement;
+            Workers = workers;
+            Level = level;
         }
     }
 

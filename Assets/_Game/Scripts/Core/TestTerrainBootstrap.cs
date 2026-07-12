@@ -31,7 +31,8 @@ namespace CleanEnergy.Core
         [SerializeField] private PurePolyCatalog purePolyCatalog;
         [SerializeField] private TerrainArtCatalog terrainArtCatalog;
         [SerializeField] private bool createSettingsIfMissing = true;
-        [SerializeField] private float startingMoney = 1000f;
+        [SerializeField] private float startingMoney = 250f;
+        [SerializeField] private LevelDefinition levelDefinition;
 
         private void Awake()
         {
@@ -81,6 +82,7 @@ namespace CleanEnergy.Core
             var placementGo = EnsureChild("PlacementRoot");
             var placement = FindOrAdd<PlacementController>(placementGo.gameObject);
             var buildings = ResolveBuildings();
+            ApplyLevel01BuildingTuning(buildings);
             placement.Configure(mapGenerator, buildingRoot, buildings, startingMoney);
             overlay.SetPlacementController(placement);
 
@@ -117,6 +119,12 @@ namespace CleanEnergy.Core
                 research.Service.GetStorageCapacityBonus);
             placementUi.Configure(placement, clock, research);
 
+            var level = FindOrAdd<LevelController>(simRoot.gameObject);
+            var levelDef = ResolveLevelDefinition();
+            level.Configure(levelDef, placement, mapGenerator, driver, scenario, clock);
+            level.BindNetworkAutoConnect(network);
+            startingMoney = levelDef.StartingMoney;
+
             var hudGo = EnsureChild("EnergyHudUI", debugRoot);
             var hud = FindOrAdd<EnergyHudUI>(hudGo.gameObject);
             hud.Configure(driver, clock, placement, research, maintenance, scenario);
@@ -138,9 +146,14 @@ namespace CleanEnergy.Core
             var notificationHud = FindOrAdd<NotificationHudUI>(notificationHudGo.gameObject);
             notificationHud.Configure(notification, sfx);
 
+            var levelHudGo = EnsureChild("LevelProgressHudUI", debugRoot);
+            var levelHud = FindOrAdd<LevelProgressHudUI>(levelHudGo.gameObject);
+            levelHud.Configure(level);
+
             var scenarioHudGo = EnsureChild("ScenarioHudUI", debugRoot);
             var scenarioHud = FindOrAdd<ScenarioHudUI>(scenarioHudGo.gameObject);
-            scenarioHud.Configure(scenario);
+            // Level HUD owns the checklist slot; keep win/lose overlays via scenario events.
+            scenarioHud.Configure(scenario, hideChecklist: true);
 
             var researchHudGo = EnsureChild("ResearchHudUI", debugRoot);
             var researchHud = FindOrAdd<ResearchHudUI>(researchHudGo.gameObject);
@@ -197,7 +210,7 @@ namespace CleanEnergy.Core
             selectionFocus.Configure(overlay, mapGenerator, placement, controller);
 
             var tutorial = FindOrAdd<TutorialController>(simRoot.gameObject);
-            tutorial.Configure(controller, overlay, placement, research, scenario, mapGenerator);
+            tutorial.Configure(controller, overlay, placement, research, scenario, mapGenerator, level);
             placementUi.Configure(placement, clock, research, tutorial);
             var tutorialHudGo = EnsureChild("TutorialHudUI", debugRoot);
             var tutorialHud = FindOrAdd<TutorialHudUI>(tutorialHudGo.gameObject);
@@ -392,6 +405,51 @@ namespace CleanEnergy.Core
                     BuildingCategory.Network, 120f, 0f, 30f, 0f, 0f, 0f, false, true,
                     new Color(0.55f, 0.75f, 0.95f), linkRange: 10, hub: true, hubLinkCapacity: 120f)
             };
+        }
+
+        private LevelDefinition ResolveLevelDefinition()
+        {
+            if (levelDefinition != null)
+            {
+                return levelDefinition;
+            }
+
+            levelDefinition = LevelDefinition.CreateRuntimeDefault();
+            levelDefinition.name = "RuntimeLevel01VillagePower";
+            return levelDefinition;
+        }
+
+        private static void ApplyLevel01BuildingTuning(BuildingDefinition[] buildings)
+        {
+            if (buildings == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < buildings.Length; i++)
+            {
+                var def = buildings[i];
+                if (def == null)
+                {
+                    continue;
+                }
+
+                switch (def.Id)
+                {
+                    case "water_wheel":
+                        def.SetEconomy(80f, 0f);
+                        def.SetWorkerRequirements(1, 0);
+                        break;
+                    case "small_wind":
+                        def.SetEconomy(100f, 0.1f);
+                        def.SetWorkerRequirements(1, 1);
+                        def.SetMinWindPotential(0.25f);
+                        break;
+                    case "village":
+                        def.SetEconomy(0f, 0f);
+                        break;
+                }
+            }
         }
 
         private static BuildingDefinition CreateRuntimeBuilding(

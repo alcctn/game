@@ -34,6 +34,9 @@ namespace CleanEnergy.Buildings
         [SerializeField] private int connectionRange = 4;
         [SerializeField] private bool isNetworkHub;
         [SerializeField] private float linkCapacity;
+        [Header("Workers")]
+        [SerializeField] private int requiredEngineers;
+        [SerializeField] private int requiredTechnicians;
 
         public string Id => id;
         public string DisplayName => displayName;
@@ -62,6 +65,8 @@ namespace CleanEnergy.Buildings
         public bool IsNetworkHub => isNetworkHub;
         /// <summary>Hub throughput per tick. Values &lt;= 0 mean unlimited.</summary>
         public float LinkCapacity => linkCapacity;
+        public int RequiredEngineers => Mathf.Max(0, requiredEngineers);
+        public int RequiredTechnicians => Mathf.Max(0, requiredTechnicians);
 
         public bool IsProducer => installedPower > 0f && category == BuildingCategory.Energy;
         public bool IsConsumer => baseDemand > 0f;
@@ -119,6 +124,23 @@ namespace CleanEnergy.Buildings
             isNetworkHub = hub;
             linkCapacity = hubLinkCapacity;
             minSameTypeSpacing = Mathf.Max(0, sameTypeSpacing);
+        }
+
+        public void SetEconomy(float buildingCost, float upkeepCost)
+        {
+            cost = buildingCost;
+            maintenanceCost = Mathf.Max(0f, upkeepCost);
+        }
+
+        public void SetWorkerRequirements(int engineers, int technicians)
+        {
+            requiredEngineers = Mathf.Max(0, engineers);
+            requiredTechnicians = Mathf.Max(0, technicians);
+        }
+
+        public void SetMinWindPotential(float value)
+        {
+            minWindPotential = Mathf.Max(0f, value);
         }
 
         /// <summary>Assigns the visual prefab used by <see cref="BuildingFactory"/>.</summary>

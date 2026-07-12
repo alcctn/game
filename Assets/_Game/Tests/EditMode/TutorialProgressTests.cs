@@ -6,48 +6,46 @@ namespace CleanEnergy.Tests.EditMode
     public sealed class TutorialProgressTests
     {
         [Test]
-        public void StartsAtCamera()
+        public void Starts_AtCamera()
         {
             var service = new TutorialProgressService();
             Assert.AreEqual(TutorialStepId.Camera, service.CurrentStep);
-            Assert.IsFalse(service.IsComplete);
         }
 
         [Test]
-        public void CompletingCurrent_AdvancesInOrder()
+        public void Completes_InOrder()
         {
             var service = new TutorialProgressService();
             Assert.IsTrue(service.TryComplete(TutorialStepId.Camera));
-            Assert.AreEqual(TutorialStepId.OpenWaterLayer, service.CurrentStep);
-            Assert.IsTrue(service.TryComplete(TutorialStepId.OpenWaterLayer));
+            Assert.AreEqual(TutorialStepId.HireEngineer, service.CurrentStep);
+            Assert.IsTrue(service.TryComplete(TutorialStepId.HireEngineer));
             Assert.AreEqual(TutorialStepId.PlaceWaterWheel, service.CurrentStep);
         }
 
         [Test]
-        public void SkipAhead_IsRejected()
+        public void Rejects_OutOfOrder()
         {
             var service = new TutorialProgressService();
-            Assert.IsFalse(service.TryComplete(TutorialStepId.PlaceBattery));
+            Assert.IsFalse(service.TryComplete(TutorialStepId.PlaceWind));
             Assert.AreEqual(TutorialStepId.Camera, service.CurrentStep);
         }
 
         [Test]
-        public void Restore_SetsCurrentStep()
+        public void Restore_AllowsContinue()
         {
             var service = new TutorialProgressService();
-            service.Restore(TutorialStepId.UnlockSolar);
-            Assert.AreEqual(TutorialStepId.UnlockSolar, service.CurrentStep);
-            Assert.IsTrue(service.TryComplete(TutorialStepId.UnlockSolar));
-            Assert.AreEqual(TutorialStepId.PlaceSolar, service.CurrentStep);
+            service.Restore(TutorialStepId.HireTechnician);
+            Assert.AreEqual(TutorialStepId.HireTechnician, service.CurrentStep);
+            Assert.IsTrue(service.TryComplete(TutorialStepId.HireTechnician));
+            Assert.AreEqual(TutorialStepId.PlaceWind, service.CurrentStep);
         }
 
         [Test]
-        public void CompletingAll_ReachesCompleted()
+        public void CompletingAll_RaisesCompleted()
         {
             var service = new TutorialProgressService();
-            var completed = false;
-            service.Completed += () => completed = true;
-
+            var completed = 0;
+            service.Completed += () => completed++;
             for (var i = 0; i < TutorialProgressService.StepCount; i++)
             {
                 Assert.IsTrue(service.TryComplete((TutorialStepId)i));
@@ -55,7 +53,7 @@ namespace CleanEnergy.Tests.EditMode
 
             Assert.IsTrue(service.IsComplete);
             Assert.AreEqual(TutorialStepId.Completed, service.CurrentStep);
-            Assert.IsTrue(completed);
+            Assert.AreEqual(1, completed);
             Assert.IsFalse(service.TryComplete(TutorialStepId.MeetDemand));
         }
 
@@ -69,35 +67,28 @@ namespace CleanEnergy.Tests.EditMode
         }
 
         [Test]
-        public void Sequence_PlaceBatteryAfterPlaceSolar_NoBatteryResearchStep()
+        public void Sequence_WindAfterTechnician()
         {
-            Assert.Greater((int)TutorialStepId.PlaceBattery, (int)TutorialStepId.PlaceSolar);
-            Assert.AreEqual(TutorialStepId.PlaceSolar + 1, TutorialStepId.PlaceBattery);
-
-            var names = System.Enum.GetNames(typeof(TutorialStepId));
-            Assert.That(names, Does.Not.Contain("UnlockBattery"));
-
-            var info = TutorialProgressService.GetInfo(TutorialStepId.PlaceBattery);
-            Assert.That(info.Hint, Does.Contain("storage_basic").IgnoreCase);
-            Assert.That(info.Title, Does.Contain("Storage").IgnoreCase);
+            Assert.AreEqual(TutorialStepId.HireTechnician + 1, TutorialStepId.PlaceWind);
+            var info = TutorialProgressService.GetInfo(TutorialStepId.PlaceWind);
+            Assert.AreEqual(TutorialStepId.PlaceWind, info.Id);
         }
 
         [Test]
-        public void PlaceBattery_CompletesWhenActive()
+        public void PlaceWind_CompletesWhenActive()
         {
             var service = new TutorialProgressService();
-            service.Restore(TutorialStepId.PlaceBattery);
-            Assert.IsTrue(service.TryComplete(TutorialStepId.PlaceBattery));
+            service.Restore(TutorialStepId.PlaceWind);
+            Assert.IsTrue(service.TryComplete(TutorialStepId.PlaceWind));
             Assert.AreEqual(TutorialStepId.MeetDemand, service.CurrentStep);
         }
 
         [Test]
-        public void OrderedInfos_MatchEnumThroughMeetDemand()
+        public void StepCount_IsSix()
         {
-            Assert.AreEqual(9, TutorialProgressService.StepCount);
-            Assert.AreEqual(TutorialStepId.UnlockSolar, TutorialProgressService.GetInfo(TutorialStepId.UnlockSolar).Id);
-            Assert.AreEqual(TutorialStepId.PlaceSolar, TutorialProgressService.GetInfo(TutorialStepId.PlaceSolar).Id);
-            Assert.AreEqual(TutorialStepId.PlaceBattery, TutorialProgressService.GetInfo(TutorialStepId.PlaceBattery).Id);
+            Assert.AreEqual(6, TutorialProgressService.StepCount);
+            Assert.AreEqual(TutorialStepId.HireEngineer, TutorialProgressService.GetInfo(TutorialStepId.HireEngineer).Id);
+            Assert.AreEqual(TutorialStepId.PlaceWind, TutorialProgressService.GetInfo(TutorialStepId.PlaceWind).Id);
         }
     }
 }

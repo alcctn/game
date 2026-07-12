@@ -5,7 +5,10 @@ using CleanEnergy.Core;
 using CleanEnergy.Economy;
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
+using CleanEnergy.Scenario;
+using CleanEnergy.Settlements;
 using CleanEnergy.UI;
+using CleanEnergy.Workers;
 using UnityEngine;
 
 namespace CleanEnergy.Placement
@@ -62,10 +65,13 @@ namespace CleanEnergy.Placement
         [SerializeField] private BuildingDefinition[] availableBuildings;
 
         private readonly BuildingFactory _factory = new BuildingFactory();
-        private readonly PlacementValidator _validator = new PlacementValidator();
+        private PlacementValidator _validator = new PlacementValidator();
         private readonly GridOccupancyService _occupancy = new GridOccupancyService();
         private Wallet _wallet;
         private IBuildingUnlockQuery _buildingUnlocks;
+        private IActiveSettlementQuery _settlement;
+        private IWorkerQuery _workers;
+        private LevelDefinition _level;
         private BuildingDefinition _selected;
         private IReadOnlyList<string> _lastFailures = Array.Empty<string>();
         private bool _placementArmed;
@@ -170,10 +176,10 @@ namespace CleanEnergy.Placement
                 _occupancy,
                 _wallet,
                 _buildingUnlocks,
-                _rotation);
-            _lastFailures = result.FailureReasons;
-            _hoverCoordinate = coordinate;
-            _hoverValid = result.IsValid;
+                _rotation,
+                _settlement,
+                _workers,
+                _level);
 
             preview.Show(_selected, coordinate, mapGenerator.Grid, result.IsValid, _rotation);
 
@@ -210,6 +216,42 @@ namespace CleanEnergy.Placement
         public void SetBuildingUnlockQuery(IBuildingUnlockQuery buildingUnlocks)
         {
             _buildingUnlocks = buildingUnlocks;
+        }
+
+        public void SetLevelServices(
+            LevelDefinition level,
+            IActiveSettlementQuery settlement,
+            IWorkerQuery workers)
+        {
+            _level = level;
+            _settlement = settlement;
+            _workers = workers;
+            _validator = PlacementValidator.CreateForLevel(settlement, workers);
+        }
+
+        public float GetBuildCost(BuildingDefinition definition, GridCoordinate coordinate)
+        {
+            return PowerLinePlacementCost.ComputeEffectiveCost(definition, coordinate, _occupancy);
+        }
+
+        public float GetAutoConnectCost(BuildingDefinition definition, GridCoordinate coordinate)
+        {
+            if (_level == null)
+            {
+                return 0f;
+            }
+
+            return AutoConnectionCost.Compute(
+                definition,
+                coordinate,
+                _settlement,
+                _level.ConnectionCostPerCell,
+                _level.AutoConnectEnabled);
+        }
+
+        public float GetTotalPlacementCost(BuildingDefinition definition, GridCoordinate coordinate)
+        {
+            return GetBuildCost(definition, coordinate) + GetAutoConnectCost(definition, coordinate);
         }
 
         public void SelectBuilding(BuildingDefinition definition)
@@ -315,8 +357,27 @@ namespace CleanEnergy.Placement
                 return _selected != null ? _selected.Cost : 0f;
             }
 
-            return PowerLinePlacementCost.ComputeEffectiveCost(
-                _selected, _hoverCoordinate.Value, _occupancy);
+            return GetTotalPlacementCost(_selected, _hoverCoordinate.Value);
+        }
+
+        public float GetHoverBuildCost()
+        {
+            if (_selected == null || !_hoverCoordinate.HasValue)
+            {
+                return _selected != null ? _selected.Cost : 0f;
+            }
+
+            return GetBuildCost(_selected, _hoverCoordinate.Value);
+        }
+
+        public float GetHoverAutoConnectCost()
+        {
+            if (_selected == null || !_hoverCoordinate.HasValue)
+            {
+                return 0f;
+            }
+
+            return GetAutoConnectCost(_selected, _hoverCoordinate.Value);
         }
 
         public PlacementValidationResult TryPlace(GridCoordinate coordinate)
@@ -335,7 +396,10 @@ namespace CleanEnergy.Placement
                 _occupancy,
                 _wallet,
                 _buildingUnlocks,
-                _rotation);
+                _rotation,
+                _settlement,
+                _workers,
+                _level);
             _lastFailures = result.FailureReasons;
             if (!result.IsValid)
             {
@@ -362,8 +426,7 @@ namespace CleanEnergy.Placement
                 return PlacementValidationResult.Failure(new[] { "Cell became occupied." });
             }
 
-            if (!_wallet.TrySpend(PowerLinePlacementCost.ComputeEffectiveCost(
-                    _selected, coordinate, _occupancy)))
+            if (!_wallet.TrySpend(GetTotalPlacementCost(_selected, coordinate)))
             {
                 _occupancy.ReleaseInstance(instance);
                 if (instance.GameObject != null)
@@ -397,7 +460,10 @@ namespace CleanEnergy.Placement
                 _occupancy,
                 _wallet,
                 _buildingUnlocks,
-                _rotation);
+                _rotation,
+                _settlement,
+                _workers,
+                _level);
         }
 
         public void ClearDemolishUndo()

@@ -20,6 +20,8 @@ namespace CleanEnergy.Energy
         [SerializeField] private MaintenanceController maintenanceController;
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private float surplusSellPrice = 0.5f;
+        [SerializeField] private float incomePerSuppliedEnergy = 1f;
+        [SerializeField] private bool payForSuppliedEnergy = true;
 
         private readonly EnergyBalanceCalculator _balanceCalculator = new EnergyBalanceCalculator();
         private readonly UpkeepService _upkeepService = new UpkeepService();
@@ -95,6 +97,12 @@ namespace CleanEnergy.Energy
             SubscribeMap();
         }
 
+        public void SetIncomePerSuppliedEnergy(float rate, bool enabled = true)
+        {
+            incomePerSuppliedEnergy = Mathf.Max(0f, rate);
+            payForSuppliedEnergy = enabled;
+        }
+
         public bool TryGetHubUtilization(GridCoordinate coordinate, out float utilization)
         {
             return _hubUtilization.TryGetValue(coordinate, out utilization);
@@ -163,9 +171,20 @@ namespace CleanEnergy.Energy
             networkService.RebuildIfNeeded();
             RefreshNetworkSnapshot(context);
 
-            if (_lastResult.SurplusSold > 0f && placementController?.Wallet != null)
+            if (placementController?.Wallet != null)
             {
-                placementController.Wallet.Add(_lastResult.SurplusSold * surplusSellPrice);
+                if (payForSuppliedEnergy)
+                {
+                    var suppliedIncome = _lastResult.EnergySupplied * incomePerSuppliedEnergy;
+                    if (suppliedIncome > 0f)
+                    {
+                        placementController.Wallet.Add(suppliedIncome);
+                    }
+                }
+                else if (_lastResult.SurplusSold > 0f)
+                {
+                    placementController.Wallet.Add(_lastResult.SurplusSold * surplusSellPrice);
+                }
             }
 
             if (placementController != null)
