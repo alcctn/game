@@ -57,7 +57,6 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.EndArea();
-            ImguiHitTest.LogOverlapsIfNeeded();
         }
     }
 }

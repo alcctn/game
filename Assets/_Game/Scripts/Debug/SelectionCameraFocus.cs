@@ -156,16 +156,6 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            // #region agent log
-            AgentDebugLog.Write(
-                "C",
-                "SelectionCameraFocus.FocusCell",
-                "fit_on_select",
-                "{\"x\":" + coordinate.X + ",\"y\":" + coordinate.Y +
-                ",\"wx\":" + cell.WorldPosition.x.ToString("F1") +
-                ",\"wz\":" + cell.WorldPosition.z.ToString("F1") + "}");
-            // #endregion
-
             var cellSize = mapGenerator.Grid.CellSize;
             var fit = CameraFitMath.BoundsAroundCell(
                 cell.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);

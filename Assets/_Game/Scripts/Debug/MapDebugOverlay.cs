@@ -73,22 +73,9 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0) && !IsPointerOverGui())
             {
-                var overGui = IsPointerOverGui();
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "C",
-                    "MapDebugOverlay.Update",
-                    "world_click",
-                    "{\"overGui\":" + (overGui ? "true" : "false") +
-                    ",\"mx\":" + Input.mousePosition.x.ToString("F0") +
-                    ",\"placement\":" + (placementController != null && placementController.IsPlacementActive ? "true" : "false") + "}");
-                // #endregion
-                if (!overGui)
-                {
-                    TrySelectCellUnderCursor();
-                }
+                TrySelectCellUnderCursor();
             }
         }
 
