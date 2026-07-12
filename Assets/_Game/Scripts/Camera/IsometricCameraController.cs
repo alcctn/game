@@ -131,20 +131,6 @@ namespace CleanEnergy.CameraSystem
             var size = CameraFitMath.OrthographicSizeForBounds(
                 worldBounds, _camera.aspect, minOrthographicSize, maxOrthographicSize);
 
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "A",
-                "IsometricCameraController.FitToBounds",
-                "fit_target",
-                "{\"runId\":\"post-fix\",\"boundsCy\":" + worldBounds.center.y.ToString("F2") +
-                ",\"focusHeight\":" + focusHeight.ToString("F2") +
-                ",\"targetX\":" + targetFocus.x.ToString("F2") +
-                ",\"targetY\":" + targetFocus.y.ToString("F2") +
-                ",\"targetZ\":" + targetFocus.z.ToString("F2") +
-                ",\"size\":" + size.ToString("F2") +
-                ",\"prevFocusY\":" + _focusPoint.y.ToString("F2") + "}");
-            // #endregion
-
             if (duration <= 0.0001f)
             {
                 _focusPoint = targetFocus;
@@ -203,23 +189,6 @@ namespace CleanEnergy.CameraSystem
                 {
                     _camera.orthographicSize = _zoomTweenTo;
                 }
-
-                // #region agent log
-                var screen = _camera != null
-                    ? _camera.WorldToScreenPoint(_focusPoint)
-                    : Vector3.zero;
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "A",
-                    "IsometricCameraController.AdvanceFocusTween",
-                    "tween_done",
-                    "{\"runId\":\"post-fix\",\"focusX\":" + _focusPoint.x.ToString("F2") +
-                    ",\"focusY\":" + _focusPoint.y.ToString("F2") +
-                    ",\"focusZ\":" + _focusPoint.z.ToString("F2") +
-                    ",\"screenX\":" + screen.x.ToString("F1") +
-                    ",\"screenY\":" + screen.y.ToString("F1") +
-                    ",\"sh\":" + Screen.height +
-                    ",\"ortho\":" + (_camera != null ? _camera.orthographicSize.ToString("F2") : "0") + "}");
-                // #endregion
 
                 CancelFocusTween();
             }
