@@ -28,6 +28,7 @@ MonoBehaviour:
   minWindPotential: 0.4
   requiresAdjacentWater: 0
   requireBuildableCell: 1
+  minSameTypeSpacing: 3
   gizmoColor: {r: 0.65, g: 0.85, b: 0.95, a: 1}
   baseDemand: 0
   storageCapacity: 0

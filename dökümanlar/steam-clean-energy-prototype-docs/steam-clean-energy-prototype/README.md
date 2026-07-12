@@ -40,6 +40,7 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 25. [Sprint 21 — Hat Kapasite Limiti](docs/SPRINT_21_LINE_CAPACITY.md)
 26. [Sprint 22 — Seçim Highlight](docs/SPRINT_22_SELECTION_HIGHLIGHT.md)
 27. [Sprint 23 — Rüzgâr Gün Döngüsü](docs/SPRINT_23_WIND_DAYCYCLE.md)
+28. [Sprint 24 — Rüzgâr Türbin Mesafesi](docs/SPRINT_24_WIND_SPACING.md)
 
 ## İlk Uygulama Sırası
 

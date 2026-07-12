@@ -106,6 +106,63 @@ namespace CleanEnergy.Tests.EditMode
             Assert.AreEqual("solar_9", grid.GetCell(coordinate).OccupyingBuildingId);
         }
 
+        [Test]
+        public void WindTooClose_FailsSpacing()
+        {
+            var grid = CreateFlatGrid(8);
+            var definition = CreateBuilding("small_wind", windMin: 0f, sameTypeSpacing: 3);
+            var occupancy = new GridOccupancyService();
+            occupancy.TryOccupy(new BuildingInstance("w0", definition, new GridCoordinate(0, 0), 0, null));
+
+            var result = new PlacementValidator().Validate(
+                definition,
+                new GridCoordinate(1, 0),
+                grid,
+                occupancy,
+                new Wallet(1000f));
+
+            Assert.IsFalse(result.IsValid);
+            Assert.That(string.Join(" ", result.FailureReasons), Does.Contain("spacing").IgnoreCase);
+        }
+
+        [Test]
+        public void WindFarEnough_Passes()
+        {
+            var grid = CreateFlatGrid(8);
+            var definition = CreateBuilding("small_wind", windMin: 0f, sameTypeSpacing: 3);
+            var occupancy = new GridOccupancyService();
+            occupancy.TryOccupy(new BuildingInstance("w0", definition, new GridCoordinate(0, 0), 0, null));
+
+            var result = new PlacementValidator().Validate(
+                definition,
+                new GridCoordinate(3, 0),
+                grid,
+                occupancy,
+                new Wallet(1000f));
+
+            Assert.IsTrue(result.IsValid, string.Join("; ", result.FailureReasons));
+        }
+
+        [Test]
+        public void SpacingZero_Skipped()
+        {
+            var grid = CreateFlatGrid(4);
+            grid.SetSolarPotential(new GridCoordinate(0, 0), 1f);
+            grid.SetSolarPotential(new GridCoordinate(1, 0), 1f);
+            var definition = CreateBuilding("small_solar", solarMin: 0.1f, sameTypeSpacing: 0);
+            var occupancy = new GridOccupancyService();
+            occupancy.TryOccupy(new BuildingInstance("s0", definition, new GridCoordinate(0, 0), 0, null));
+
+            var result = new PlacementValidator().Validate(
+                definition,
+                new GridCoordinate(1, 0),
+                grid,
+                occupancy,
+                new Wallet(1000f));
+
+            Assert.IsTrue(result.IsValid, string.Join("; ", result.FailureReasons));
+        }
+
         private static GridService CreateFlatGrid(int size)
         {
             var grid = new GridService();
@@ -134,13 +191,15 @@ namespace CleanEnergy.Tests.EditMode
             float solarMin = 0f,
             float windMin = 0f,
             bool adjacentWater = false,
-            bool requireBuildable = true)
+            bool requireBuildable = true,
+            int sameTypeSpacing = 0)
         {
             var def = ScriptableObject.CreateInstance<BuildingDefinition>();
             def.Configure(
                 id, id, id, BuildingCategory.Energy,
                 cost, 10f, maxSlope, waterMin, solarMin, windMin,
-                adjacentWater, requireBuildable, Color.white);
+                adjacentWater, requireBuildable, Color.white,
+                sameTypeSpacing: sameTypeSpacing);
             return def;
         }
     }

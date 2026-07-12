@@ -178,6 +178,49 @@ namespace CleanEnergy.Placement
         }
     }
 
+    public sealed class MinSameTypeSpacingRule : IPlacementRule
+    {
+        public string RuleId => "same_type_spacing";
+
+        public bool Evaluate(PlacementContext context, List<string> failureReasons)
+        {
+            var spacing = context.Definition.MinSameTypeSpacing;
+            if (spacing <= 0 || context.Occupancy == null)
+            {
+                return true;
+            }
+
+            var id = context.Definition.Id;
+            foreach (var pair in context.Occupancy.Occupied)
+            {
+                var other = pair.Value;
+                if (other?.Definition == null || other.Definition.Id != id)
+                {
+                    continue;
+                }
+
+                var distance = Manhattan(context.Coordinate, other.Coordinate);
+                if (distance < spacing)
+                {
+                    failureReasons.Add(
+                        $"Too close to another {context.Definition.DisplayName} (need spacing {spacing}, have {distance}).");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static int Manhattan(GridCoordinate a, GridCoordinate b)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+            if (dx < 0) dx = -dx;
+            if (dy < 0) dy = -dy;
+            return dx + dy;
+        }
+    }
+
     public sealed class GridOccupancyRule : IPlacementRule
     {
         public string RuleId => "occupancy";

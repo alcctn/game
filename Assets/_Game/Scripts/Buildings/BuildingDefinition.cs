@@ -24,6 +24,7 @@ namespace CleanEnergy.Buildings
         [SerializeField] private float minWindPotential;
         [SerializeField] private bool requiresAdjacentWater;
         [SerializeField] private bool requireBuildableCell = true;
+        [SerializeField] private int minSameTypeSpacing;
         [SerializeField] private Color gizmoColor = new Color(0.3f, 0.75f, 0.9f, 1f);
         [Header("Energy Network")]
         [SerializeField] private float baseDemand;
@@ -50,6 +51,8 @@ namespace CleanEnergy.Buildings
         public float MinWindPotential => minWindPotential;
         public bool RequiresAdjacentWater => requiresAdjacentWater;
         public bool RequireBuildableCell => requireBuildableCell;
+        /// <summary>Min Manhattan distance to another building of the same Id. &lt;= 0 skips the rule.</summary>
+        public int MinSameTypeSpacing => minSameTypeSpacing;
         public Color GizmoColor => gizmoColor;
         public float BaseDemand => baseDemand;
         public float StorageCapacity => storageCapacity;
@@ -86,7 +89,8 @@ namespace CleanEnergy.Buildings
             bool hub = false,
             float buildingEfficiency = 0.8f,
             float upkeepCost = 1f,
-            float hubLinkCapacity = 0f)
+            float hubLinkCapacity = 0f,
+            int sameTypeSpacing = 0)
         {
             id = buildingId;
             displayName = name;
@@ -111,6 +115,7 @@ namespace CleanEnergy.Buildings
             connectionRange = linkRange;
             isNetworkHub = hub;
             linkCapacity = hubLinkCapacity;
+            minSameTypeSpacing = Mathf.Max(0, sameTypeSpacing);
         }
     }
 }

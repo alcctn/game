@@ -230,7 +230,7 @@ namespace CleanEnergy.Core
                 CreateRuntimeBuilding(
                     "small_wind", "Small Wind", "Open-area turbine",
                     BuildingCategory.Energy, 150f, 14f, 28f, 0f, 0f, 0.4f, false, true,
-                    new Color(0.65f, 0.85f, 0.95f)),
+                    new Color(0.65f, 0.85f, 0.95f), sameTypeSpacing: 3),
                 CreateRuntimeBuilding(
                     "village", "Village", "Energy demand settlement",
                     BuildingCategory.Settlement, 200f, 0f, 20f, 0f, 0f, 0f, false, true,
@@ -275,7 +275,8 @@ namespace CleanEnergy.Core
             int linkRange = 4,
             bool hub = false,
             float buildingEfficiency = 0.8f,
-            float hubLinkCapacity = 0f)
+            float hubLinkCapacity = 0f,
+            int sameTypeSpacing = 0)
         {
             var def = ScriptableObject.CreateInstance<BuildingDefinition>();
             def.name = id;
@@ -284,7 +285,8 @@ namespace CleanEnergy.Core
                 cost, power, maxSlope, minWater, minSolar, minWind,
                 adjacentWater, requireBuildable, color,
                 demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency,
-                hubLinkCapacity: hubLinkCapacity);
+                hubLinkCapacity: hubLinkCapacity,
+                sameTypeSpacing: sameTypeSpacing);
             return def;
         }
 
