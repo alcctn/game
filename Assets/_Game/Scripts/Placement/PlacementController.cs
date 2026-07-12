@@ -57,6 +57,7 @@ namespace CleanEnergy.Placement
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private Transform buildingRoot;
         [SerializeField] private PlacementPreview preview;
+        [SerializeField] private PlacementValidityOverlay validityOverlay;
         [SerializeField] private float startingMoney = 1000f;
         [SerializeField] private BuildingDefinition[] availableBuildings;
 
@@ -107,6 +108,13 @@ namespace CleanEnergy.Placement
             {
                 preview = gameObject.AddComponent<PlacementPreview>();
             }
+
+            if (validityOverlay == null)
+            {
+                var go = new GameObject("PlacementValidityOverlay");
+                go.transform.SetParent(transform, false);
+                validityOverlay = go.AddComponent<PlacementValidityOverlay>();
+            }
         }
 
         private void OnEnable()
@@ -144,6 +152,7 @@ namespace CleanEnergy.Placement
             if (Input.GetKeyDown(KeyCode.R))
             {
                 _rotation = (_rotation + 1) % 4;
+                RefreshValidityOverlay();
             }
 
             if (!TryGetHoveredCoordinate(out var coordinate))
@@ -212,6 +221,11 @@ namespace CleanEnergy.Placement
             if (definition == null)
             {
                 preview?.Hide();
+                validityOverlay?.Hide();
+            }
+            else
+            {
+                RefreshValidityOverlay();
             }
         }
 
@@ -224,6 +238,14 @@ namespace CleanEnergy.Placement
             _hoverCoordinate = null;
             _hoverValid = false;
             preview?.Hide();
+            validityOverlay?.Hide();
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "P",
+                "PlacementController.CancelPlacement",
+                "disarmed",
+                "{}");
+            // #endregion
         }
 
         /// <summary>Cycles placement yaw for tests and input.</summary>
@@ -403,7 +425,43 @@ namespace CleanEnergy.Placement
             ClearDemolishUndo();
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "P",
+                "PlacementController.TryPlace",
+                "place_ok_disarm",
+                "{\"id\":\"" + instance.Definition.Id +
+                "\",\"x\":" + coordinate.X +
+                ",\"y\":" + coordinate.Y + "}");
+            // #endregion
+            CancelPlacement();
             return PlacementValidationResult.Success();
+        }
+
+        private void RefreshValidityOverlay()
+        {
+            if (validityOverlay == null || _selected == null || mapGenerator == null)
+            {
+                validityOverlay?.Hide();
+                return;
+            }
+
+            validityOverlay.Rebuild(
+                _selected,
+                mapGenerator.Grid,
+                _validator,
+                _occupancy,
+                _wallet,
+                _buildingUnlocks,
+                _rotation);
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "P",
+                "PlacementController.RefreshValidityOverlay",
+                "valid_cells",
+                "{\"id\":\"" + _selected.Id +
+                "\",\"count\":" + validityOverlay.LastValidCount + "}");
+            // #endregion
         }
 
         public void ClearDemolishUndo()
