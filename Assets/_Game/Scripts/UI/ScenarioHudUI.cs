@@ -113,7 +113,9 @@ namespace CleanEnergy.UI
             var batteryDone = _state != null && _state.BatteryObjectiveComplete;
             var satisfaction = _state?.Satisfaction ?? 100f;
 
-            GUILayout.BeginArea(new Rect(12f, 90f, 280f, 140f), GUI.skin.box);
+            var area = HudLayout.ScenarioChecklist();
+            ImguiHitTest.Register(area, "Scenario");
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label(def != null ? def.DisplayName : "Scenario");
             GUILayout.Label($"{Mark(demandDone)} Demand {streak}/{requiredTicks} ({(_state?.CoverageRatio ?? 0f) * 100f:F0}%)");
             GUILayout.Label($"{Mark(diversityDone)} Sources {types}/{requiredTypes}");

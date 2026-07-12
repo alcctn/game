@@ -27,13 +27,13 @@ namespace CleanEnergy.UI
             try
             {
                 GuiScale.Apply();
-                var scale = Mathf.Max(0.01f, GuiScale.Current);
-                const float width = 220f;
-                const float height = 140f;
-                var x = Screen.width / scale - width - 12f;
-                var y = Screen.height / scale - height - 12f;
-                var area = new Rect(x, y, width, height);
-                ImguiHitTest.Register(area);
+                var screen = HudLayout.SaveLoad();
+                var area = HudLayout.ToScaled(screen);
+                ImguiHitTest.Register(screen, "SaveLoad");
+
+                var x = area.x;
+                var y = area.y;
+                var width = area.width;
 
                 GUI.Box(area, "Save / Load");
 

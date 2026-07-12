@@ -25,9 +25,9 @@ namespace CleanEnergy.UI
                 return;
             }
 
-            const float width = 260f;
-            const float height = 190f;
-            GUILayout.BeginArea(new Rect(12f, Screen.height - height - 12f, width, height), GUI.skin.box);
+            var area = HudLayout.Telemetry();
+            ImguiHitTest.Register(area, "Telemetry");
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("Telemetry");
             GUILayout.Label($"1st build: {Format(s.TimeToFirstBuildingSeconds)}s");
             GUILayout.Label($"1st prod: {Format(s.TimeToFirstProductionSeconds)}s");

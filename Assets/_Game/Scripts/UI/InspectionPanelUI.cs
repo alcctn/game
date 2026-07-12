@@ -53,10 +53,8 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            const float width = 280f;
-            var x = Screen.width - width - 12f;
-            var area = new Rect(x, 12f, width, 560f);
-            ImguiHitTest.Register(area);
+            var area = HudLayout.Inspection();
+            ImguiHitTest.Register(area, "Inspection");
             GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("Inspection");
 

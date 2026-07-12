@@ -46,11 +46,9 @@ namespace CleanEnergy.UI
 
         private void DrawMuteToggle()
         {
-            const float width = 120f;
-            const float height = 28f;
-            var x = Screen.width - width - 16f;
-            var y = Screen.height - height - 16f;
-            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            var area = HudLayout.MuteSfx();
+            ImguiHitTest.Register(area, "MuteSfx");
+            GUILayout.BeginArea(area, GUI.skin.box);
             var muted = SfxService.IsMuted;
             var next = GUILayout.Toggle(muted, "Mute SFX");
             if (next != muted)
@@ -59,6 +57,7 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.EndArea();
+            ImguiHitTest.LogOverlapsIfNeeded();
         }
     }
 }
