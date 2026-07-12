@@ -24,6 +24,10 @@ namespace CleanEnergy.Scenario
             "small_solar",
             "small_wind"
         };
+        [SerializeField] private string[] requiredResearchNodeIds =
+        {
+            "solar_basic"
+        };
 
         public string ScenarioId => scenarioId;
         public string DisplayName => displayName;
@@ -34,7 +38,8 @@ namespace CleanEnergy.Scenario
         public float ShortageSatisfactionPenalty => shortageSatisfactionPenalty;
         public float CoverageSatisfactionRecovery => coverageSatisfactionRecovery;
         public float RiskSatisfactionThreshold => riskSatisfactionThreshold;
-        public string[] CountedProducerTypeIds => countedProducerTypeIds;
+        public string[] CountedProducerTypeIds => countedProducerTypeIds ?? System.Array.Empty<string>();
+        public string[] RequiredResearchNodeIds => requiredResearchNodeIds ?? System.Array.Empty<string>();
 
         public void Configure(
             string id,
@@ -45,7 +50,8 @@ namespace CleanEnergy.Scenario
             float satisfaction,
             float shortagePenalty,
             float recovery,
-            float riskThreshold)
+            float riskThreshold,
+            string[] researchNodeIds = null)
         {
             scenarioId = id;
             displayName = name;
@@ -63,6 +69,7 @@ namespace CleanEnergy.Scenario
                 "small_solar",
                 "small_wind"
             };
+            requiredResearchNodeIds = researchNodeIds ?? new[] { "solar_basic" };
         }
     }
 }

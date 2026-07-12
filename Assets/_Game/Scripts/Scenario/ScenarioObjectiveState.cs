@@ -9,6 +9,7 @@ namespace CleanEnergy.Scenario
         public bool DemandObjectiveComplete { get; set; }
         public bool DiversityObjectiveComplete { get; set; }
         public bool BatteryObjectiveComplete { get; set; }
+        public bool ResearchObjectiveComplete { get; set; }
         public int ActiveProducerTypeCount { get; set; }
         public float CoverageRatio { get; set; }
         public float Satisfaction { get; set; }
@@ -18,7 +19,10 @@ namespace CleanEnergy.Scenario
         public bool HasLost { get; set; }
 
         public bool AllObjectivesComplete =>
-            DemandObjectiveComplete && DiversityObjectiveComplete && BatteryObjectiveComplete;
+            DemandObjectiveComplete
+            && DiversityObjectiveComplete
+            && BatteryObjectiveComplete
+            && ResearchObjectiveComplete;
 
         public void Reset(float initialSatisfaction)
         {
@@ -26,6 +30,7 @@ namespace CleanEnergy.Scenario
             DemandObjectiveComplete = false;
             DiversityObjectiveComplete = false;
             BatteryObjectiveComplete = false;
+            ResearchObjectiveComplete = false;
             ActiveProducerTypeCount = 0;
             CoverageRatio = 0f;
             Satisfaction = initialSatisfaction;

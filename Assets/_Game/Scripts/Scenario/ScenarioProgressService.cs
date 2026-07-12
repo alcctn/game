@@ -14,19 +14,22 @@ namespace CleanEnergy.Scenario
         public bool HasShortage { get; }
         public int ActiveProducerTypeCount { get; }
         public bool HasConnectedBattery { get; }
+        public bool ResearchRequirementMet { get; }
 
         public ScenarioTickInput(
             float coverageRatio,
             float demand,
             bool hasShortage,
             int activeProducerTypeCount,
-            bool hasConnectedBattery)
+            bool hasConnectedBattery,
+            bool researchRequirementMet = true)
         {
             CoverageRatio = coverageRatio;
             Demand = demand;
             HasShortage = hasShortage;
             ActiveProducerTypeCount = activeProducerTypeCount;
             HasConnectedBattery = hasConnectedBattery;
+            ResearchRequirementMet = researchRequirementMet;
         }
     }
 
@@ -92,6 +95,7 @@ namespace CleanEnergy.Scenario
             _state.DemandObjectiveComplete = snapshot.DemandObjectiveComplete;
             _state.DiversityObjectiveComplete = snapshot.DiversityObjectiveComplete;
             _state.BatteryObjectiveComplete = snapshot.BatteryObjectiveComplete;
+            _state.ResearchObjectiveComplete = snapshot.ResearchObjectiveComplete;
             _state.ActiveProducerTypeCount = snapshot.ActiveProducerTypeCount;
             _state.CoverageRatio = snapshot.CoverageRatio;
             _state.Satisfaction = snapshot.Satisfaction;
@@ -120,6 +124,7 @@ namespace CleanEnergy.Scenario
             _state.CoverageRatio = input.CoverageRatio;
             _state.ActiveProducerTypeCount = input.ActiveProducerTypeCount;
             _state.BatteryObjectiveComplete = input.HasConnectedBattery;
+            _state.ResearchObjectiveComplete = input.ResearchRequirementMet;
             _state.DiversityObjectiveComplete =
                 input.ActiveProducerTypeCount >= _definition.RequiredProducerTypes;
 

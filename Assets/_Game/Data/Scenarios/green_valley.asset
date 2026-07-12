@@ -26,3 +26,5 @@ MonoBehaviour:
   - small_hydro
   - small_solar
   - small_wind
+  requiredResearchNodeIds:
+  - solar_basic

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CleanEnergy.Energy;
 using CleanEnergy.Map;
+using CleanEnergy.Research;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ namespace CleanEnergy.Scenario
         [SerializeField] private EnergyNetworkService networkService;
         [SerializeField] private SimulationClock clock;
         [SerializeField] private MapGenerator mapGenerator;
+        [SerializeField] private ResearchController researchController;
 
         private ScenarioProgressService _progress;
         private readonly HashSet<string> _activeTypesBuffer = new HashSet<string>();
@@ -42,7 +44,8 @@ namespace CleanEnergy.Scenario
             EnergySimulationDriver driver,
             EnergyNetworkService network,
             SimulationClock simulationClock,
-            MapGenerator generator)
+            MapGenerator generator,
+            ResearchController research = null)
         {
             Unsubscribe();
             if (_progress != null)
@@ -59,6 +62,7 @@ namespace CleanEnergy.Scenario
             networkService = network;
             clock = simulationClock;
             mapGenerator = generator;
+            researchController = research;
             _progress = new ScenarioProgressService(definition);
             _progress.Won += OnWon;
             _progress.Failed += OnFailed;
@@ -154,7 +158,39 @@ namespace CleanEnergy.Scenario
                 result.Demand,
                 result.HasShortage,
                 typeCount,
-                hasBattery));
+                hasBattery,
+                IsResearchRequirementMet()));
+        }
+
+        private bool IsResearchRequirementMet()
+        {
+            var required = _progress?.Definition?.RequiredResearchNodeIds;
+            if (required == null || required.Length == 0)
+            {
+                return true;
+            }
+
+            var service = researchController?.Service;
+            if (service == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < required.Length; i++)
+            {
+                var id = required[i];
+                if (string.IsNullOrEmpty(id))
+                {
+                    continue;
+                }
+
+                if (!service.IsNodeUnlocked(id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void AnalyzeNetwork(out int activeProducerTypeCount, out bool hasConnectedBattery)

@@ -107,11 +107,12 @@ namespace CleanEnergy.UI
             var batteryDone = _state != null && _state.BatteryObjectiveComplete;
             var satisfaction = _state?.Satisfaction ?? 100f;
 
-            GUILayout.BeginArea(new Rect(12f, 90f, 280f, 120f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12f, 90f, 280f, 140f), GUI.skin.box);
             GUILayout.Label(def != null ? def.DisplayName : "Scenario");
             GUILayout.Label($"{Mark(demandDone)} Demand {streak}/{requiredTicks} ({(_state?.CoverageRatio ?? 0f) * 100f:F0}%)");
             GUILayout.Label($"{Mark(diversityDone)} Sources {types}/{requiredTypes}");
             GUILayout.Label($"{Mark(batteryDone)} Battery connected");
+            GUILayout.Label($"{Mark(_state != null && _state.ResearchObjectiveComplete)} Research unlock");
             GUILayout.Label($"Satisfaction {satisfaction:F0}");
             GUILayout.EndArea();
         }

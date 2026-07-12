@@ -264,9 +264,9 @@ namespace CleanEnergy.Editor
             var maintenance = simRoot.AddComponent<MaintenanceController>();
             var driver = simRoot.AddComponent<EnergySimulationDriver>();
             var scenarioController = simRoot.AddComponent<ScenarioController>();
-            scenarioController.Configure(scenario, driver, network, clock, mapGenerator);
             var researchController = simRoot.AddComponent<ResearchController>();
             researchController.Configure(research, driver, network, scenarioController, mapGenerator);
+            scenarioController.Configure(scenario, driver, network, clock, mapGenerator, researchController);
             placement.Configure(mapGenerator, buildingRoot.transform, buildings, 1000f, researchController.Service);
             network.Configure(placement, mapGenerator, researchController.Service.GetEfficiencyBonus);
             maintenance.Configure(placement);

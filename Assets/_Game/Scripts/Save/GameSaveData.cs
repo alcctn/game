@@ -20,6 +20,7 @@ namespace CleanEnergy.Save
         public bool demandObjectiveComplete;
         public bool diversityObjectiveComplete;
         public bool batteryObjectiveComplete;
+        public bool researchObjectiveComplete;
         public int activeProducerTypeCount;
         public float coverageRatio;
         public float satisfaction;

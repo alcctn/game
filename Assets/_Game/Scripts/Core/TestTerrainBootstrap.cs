@@ -69,10 +69,9 @@ namespace CleanEnergy.Core
             driver.Configure(clock, network, placement, maintenance, mapGenerator);
 
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
-            scenario.Configure(ResolveScenario(), driver, network, clock, mapGenerator);
-
             var research = FindOrAdd<ResearchController>(simRoot.gameObject);
             research.Configure(ResolveResearchTree(), driver, network, scenario, mapGenerator);
+            scenario.Configure(ResolveScenario(), driver, network, clock, mapGenerator, research);
             placement.SetBuildingUnlockQuery(research.Service);
             network.Configure(placement, mapGenerator, research.Service.GetEfficiencyBonus);
 
