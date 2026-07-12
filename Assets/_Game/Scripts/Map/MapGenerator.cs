@@ -79,6 +79,34 @@ namespace CleanEnergy.Map
 
             _lastHeightMap = _heightMapGenerator.Generate(settings);
 
+            // #region agent log
+            {
+                float minH = 1f, maxH = 0f, sum = 0f;
+                var w = _lastHeightMap.GetLength(0);
+                var h = _lastHeightMap.GetLength(1);
+                for (var x = 0; x < w; x++)
+                {
+                    for (var y = 0; y < h; y++)
+                    {
+                        var v = _lastHeightMap[x, y];
+                        if (v < minH) minH = v;
+                        if (v > maxH) maxH = v;
+                        sum += v;
+                    }
+                }
+
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "B",
+                    "MapGenerator.Generate",
+                    "heightmap_stats",
+                    "{\"min\":" + minH.ToString("F3") +
+                    ",\"max\":" + maxH.ToString("F3") +
+                    ",\"avg\":" + (sum / (w * h)).ToString("F3") +
+                    ",\"worldSize\":" + settings.TerrainWorldSize +
+                    ",\"maxHeight\":" + settings.MaxHeight + "}");
+            }
+            // #endregion
+
             var parent = terrainRoot != null ? terrainRoot : transform;
             _terrainBuilder.BuildOrUpdate(settings, _lastHeightMap, parent);
 

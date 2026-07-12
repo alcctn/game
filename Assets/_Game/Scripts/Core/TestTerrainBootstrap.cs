@@ -51,7 +51,16 @@ namespace CleanEnergy.Core
 
             var natureRoot = EnsureChild(NatureVisualSpawner.NatureRootName, mapRoot);
             var natureSpawner = FindOrAdd<NatureVisualSpawner>(mapRoot.gameObject);
-            natureSpawner.Configure(mapGenerator, ResolvePurePolyCatalog(), natureRoot);
+            var catalog = ResolvePurePolyCatalog();
+            natureSpawner.Configure(mapGenerator, catalog, natureRoot);
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "C",
+                "TestTerrainBootstrap.Awake",
+                "nature_configured",
+                "{\"slots\":" + (catalog != null ? catalog.AssignedSlotCount() : -1) +
+                ",\"catalogName\":\"" + (catalog != null ? catalog.name : "null") + "\"}");
+            // #endregion
 
             var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
             clock.BindMapGenerator(mapGenerator);

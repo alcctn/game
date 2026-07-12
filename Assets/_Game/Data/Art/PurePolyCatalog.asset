@@ -12,29 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41f58985ffc1ec74b99cdb3636abacde, type: 3}
   m_Name: PurePolyCatalog
   m_EditorClassIdentifier: CleanEnergy.Runtime::CleanEnergy.Art.PurePolyCatalog
-  meadow: {fileID: 100100000, guid: cf22a2db10f09a34495e9f83913738c8, type: 3}
+  meadow: {fileID: 2357419356555822539, guid: cf22a2db10f09a34495e9f83913738c8, type: 3}
   forestTrees:
-  - {fileID: 100100000, guid: e133dac167ef59c40b7678ba58107c6a, type: 3}
-  - {fileID: 100100000, guid: 273b8f4150121d249ac7e2fd11da7005, type: 3}
-  - {fileID: 100100000, guid: 2554008d6447a2540b44e55f0c0b576e, type: 3}
-  - {fileID: 100100000, guid: a2bd798ea40c7e341aa61ad124d95342, type: 3}
-  lakeGround: {fileID: 100100000, guid: 66072c42e7f38924f90a2ea3e36cc606, type: 3}
-  mountain: {fileID: 100100000, guid: 512b72c73a22e904d87662ebca8eb1e1, type: 3}
-  path: {fileID: 100100000, guid: d5b8de414112a004a82d0437b5f7a780, type: 3}
+  - {fileID: 4032642331417584291, guid: e133dac167ef59c40b7678ba58107c6a, type: 3}
+  - {fileID: 6846767348704259191, guid: 273b8f4150121d249ac7e2fd11da7005, type: 3}
+  - {fileID: 9154215057541871321, guid: 2554008d6447a2540b44e55f0c0b576e, type: 3}
+  - {fileID: 2636820298107493410, guid: a2bd798ea40c7e341aa61ad124d95342, type: 3}
+  lakeGround: {fileID: 268118961561806861, guid: 66072c42e7f38924f90a2ea3e36cc606, type: 3}
+  mountain: {fileID: 200864487664385347, guid: 512b72c73a22e904d87662ebca8eb1e1, type: 3}
+  path: {fileID: 8082612214144964267, guid: d5b8de414112a004a82d0437b5f7a780, type: 3}
   rocks:
-  - {fileID: 100100000, guid: 24457fdf8e66c3c49b7599931e0fdcb2, type: 3}
-  - {fileID: 100100000, guid: a524090786e7ba545bd5ce3d24c9a3fb, type: 3}
-  - {fileID: 100100000, guid: 9a91bc2b0a89c4748a0c5b940bd461a7, type: 3}
-  - {fileID: 100100000, guid: c8134dd87be4906419f13922ddc5bf4f, type: 3}
+  - {fileID: 4577034113271871886, guid: 24457fdf8e66c3c49b7599931e0fdcb2, type: 3}
+  - {fileID: 4500668923149335752, guid: a524090786e7ba545bd5ce3d24c9a3fb, type: 3}
+  - {fileID: 1090505329258949676, guid: 9a91bc2b0a89c4748a0c5b940bd461a7, type: 3}
+  - {fileID: 2146431531174499849, guid: c8134dd87be4906419f13922ddc5bf4f, type: 3}
   flowers:
-  - {fileID: 100100000, guid: 13dd10d6717971d4ea9125d158299b1e, type: 3}
-  - {fileID: 100100000, guid: 194e9111af0c33840a49d573f2b26952, type: 3}
-  - {fileID: 100100000, guid: 18bb023d75a113f4cb8d1452371f5c0e, type: 3}
+  - {fileID: 8123141273917358956, guid: 13dd10d6717971d4ea9125d158299b1e, type: 3}
+  - {fileID: 2954823824624447290, guid: 194e9111af0c33840a49d573f2b26952, type: 3}
+  - {fileID: 4400482160171448048, guid: 18bb023d75a113f4cb8d1452371f5c0e, type: 3}
   grasses:
-  - {fileID: 100100000, guid: ef62619642b0df743b22dd5120c6ac4d, type: 3}
-  - {fileID: 100100000, guid: b8217b9c1183a5144b666d1dd63980c4, type: 3}
-  - {fileID: 100100000, guid: 7baba197ce36c92439b423eabaad3737, type: 3}
+  - {fileID: 1439904337943108576, guid: ef62619642b0df743b22dd5120c6ac4d, type: 3}
+  - {fileID: 2304540294968618315, guid: b8217b9c1183a5144b666d1dd63980c4, type: 3}
+  - {fileID: 138836365270009319, guid: 7baba197ce36c92439b423eabaad3737, type: 3}
   bridges:
-  - {fileID: 100100000, guid: be86ea3e14e72e6449b4e36e285d7959, type: 3}
-  - {fileID: 100100000, guid: 80132865211c93040b97d23952be71f0, type: 3}
-  - {fileID: 100100000, guid: 6ac3c795b94fcc84a90ed972e4ab3b3f, type: 3}
+  - {fileID: 4105503895706498325, guid: be86ea3e14e72e6449b4e36e285d7959, type: 3}
+  - {fileID: 6411469768709739534, guid: 80132865211c93040b97d23952be71f0, type: 3}
+  - {fileID: 3975161406391732262, guid: 6ac3c795b94fcc84a90ed972e4ab3b3f, type: 3}

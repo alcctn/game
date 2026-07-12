@@ -27,6 +27,7 @@ namespace CleanEnergy.TerrainGeneration
 
             var heights = SampleToTerrainHeights(heightMap, resolution);
             terrainData.SetHeights(0, 0, heights);
+            EnsureTerrainLayers(terrainData);
 
             if (_terrain == null)
             {
@@ -48,7 +49,86 @@ namespace CleanEnergy.TerrainGeneration
             }
 
             ApplyUrpTerrainMaterial(_terrain);
+
+            // #region agent log
+            {
+                var mat = _terrain != null ? _terrain.materialTemplate : null;
+                var shaderName = mat != null && mat.shader != null ? mat.shader.name : "null";
+                var size = _terrain != null && _terrain.terrainData != null
+                    ? _terrain.terrainData.size
+                    : Vector3.zero;
+                var layers = _terrain != null && _terrain.terrainData != null
+                    ? _terrain.terrainData.terrainLayers
+                    : null;
+                var layerCount = layers != null ? layers.Length : 0;
+                var enabled = _terrain != null && _terrain.enabled;
+                var draw = _terrain != null && _terrain.drawHeightmap;
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "A",
+                    "TerrainBuilder.BuildOrUpdate",
+                    "terrain_built",
+                    "{\"enabled\":" + (enabled ? "true" : "false") +
+                    ",\"drawHeightmap\":" + (draw ? "true" : "false") +
+                    ",\"shader\":\"" + shaderName +
+                    "\",\"layerCount\":" + layerCount +
+                    ",\"sizeX\":" + size.x.ToString("F1") +
+                    ",\"sizeY\":" + size.y.ToString("F1") +
+                    ",\"sizeZ\":" + size.z.ToString("F1") +
+                    ",\"posY\":" + (_terrain != null ? _terrain.transform.position.y.ToString("F2") : "0") +
+                    ",\"res\":" + resolution + "}");
+            }
+            // #endregion
+
             return _terrain;
+        }
+
+        /// <summary>
+        /// URP Terrain Lit needs at least one TerrainLayer or the surface often draws blank.
+        /// </summary>
+        public static void EnsureTerrainLayers(TerrainData terrainData)
+        {
+            if (terrainData == null)
+            {
+                return;
+            }
+
+            var existing = terrainData.terrainLayers;
+            if (existing != null && existing.Length > 0 && existing[0] != null)
+            {
+                return;
+            }
+
+            var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false)
+            {
+                name = "TerrainGrassTex",
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Bilinear
+            };
+            var pixels = new Color[16];
+            var grass = new Color(0.34f, 0.55f, 0.27f, 1f);
+            for (var i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = grass;
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply(false, true);
+
+            var layer = new TerrainLayer
+            {
+                diffuseTexture = tex,
+                tileSize = new Vector2(16f, 16f),
+                tileOffset = Vector2.zero
+            };
+            terrainData.terrainLayers = new[] { layer };
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "F",
+                "TerrainBuilder.EnsureTerrainLayers",
+                "layers_assigned",
+                "{\"count\":1}");
+            // #endregion
         }
 
         /// <summary>
@@ -58,19 +138,35 @@ namespace CleanEnergy.TerrainGeneration
         {
             if (terrain == null)
             {
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write("A", "TerrainBuilder.ApplyUrp", "terrain_null", "{}");
+                // #endregion
                 return;
             }
 
             var shader = Shader.Find("Universal Render Pipeline/Terrain/Lit");
+            var foundTerrainLit = shader != null;
             if (shader == null)
             {
-                shader = Shader.Find("Universal Render Pipeline/Lit");
-            }
-
-            if (shader == null)
-            {
+                // Do NOT fall back to Lit — it does not draw Terrain geometry.
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "A",
+                    "TerrainBuilder.ApplyUrp",
+                    "terrain_lit_missing",
+                    "{}");
+                // #endregion
                 return;
             }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "A",
+                "TerrainBuilder.ApplyUrp",
+                "shader_lookup",
+                "{\"foundTerrainLit\":" + (foundTerrainLit ? "true" : "false") +
+                ",\"shader\":\"" + shader.name + "\"}");
+            // #endregion
 
             var mat = terrain.materialTemplate;
             if (mat == null || mat.shader != shader)

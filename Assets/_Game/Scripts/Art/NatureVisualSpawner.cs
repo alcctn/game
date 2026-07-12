@@ -75,6 +75,15 @@ namespace CleanEnergy.Art
 
             if (catalog == null || mapGenerator?.Grid == null || !mapGenerator.Grid.IsInitialized)
             {
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "C",
+                    "NatureVisualSpawner.Rebuild",
+                    "early_exit",
+                    "{\"catalogNull\":" + (catalog == null ? "true" : "false") +
+                    ",\"gridInit\":" + (mapGenerator?.Grid != null && mapGenerator.Grid.IsInitialized ? "true" : "false") +
+                    ",\"slots\":" + (catalog != null ? catalog.AssignedSlotCount() : 0) + "}");
+                // #endregion
                 return;
             }
 
@@ -91,6 +100,10 @@ namespace CleanEnergy.Art
             var hillsUsed = 0;
             var lakeUsed = 0;
             var bridgeUsed = 0;
+            var plainsCells = 0;
+            var forestCells = 0;
+            var hillsCells = 0;
+            var ridgeCells = 0;
 
             var grid = mapGenerator.Grid;
             var width = grid.Width;
@@ -102,7 +115,7 @@ namespace CleanEnergy.Art
                 {
                     if (_spawnedCount >= maxInstances)
                     {
-                        return;
+                        goto DoneSpawn;
                     }
 
                     var coord = new GridCoordinate(x, y);
@@ -114,6 +127,7 @@ namespace CleanEnergy.Art
                     switch (cell.Biome)
                     {
                         case BiomeType.Plains:
+                            plainsCells++;
                             if (plainsUsed < plainsCap
                                 && NatureSpawnMath.Roll(seed, x, y, NatureSpawnMath.PlainsDensity)
                                 && TrySpawnPlains(cell, NatureSpawnMath.Hash(seed, x, y)))
@@ -123,6 +137,7 @@ namespace CleanEnergy.Art
 
                             break;
                         case BiomeType.Forest:
+                            forestCells++;
                             if (forestUsed < forestCap
                                 && NatureSpawnMath.Roll(seed, x, y, NatureSpawnMath.ForestDensity)
                                 && TrySpawnForest(cell, NatureSpawnMath.Hash(seed, x, y)))
@@ -132,6 +147,7 @@ namespace CleanEnergy.Art
 
                             break;
                         case BiomeType.Hills:
+                            hillsCells++;
                             if (hillsUsed < hillsCap
                                 && NatureSpawnMath.Roll(seed, x, y, NatureSpawnMath.HillsDensity)
                                 && TrySpawnHills(cell, NatureSpawnMath.Hash(seed, x, y), preferMountain: false))
@@ -141,6 +157,7 @@ namespace CleanEnergy.Art
 
                             break;
                         case BiomeType.Ridge:
+                            ridgeCells++;
                             if (hillsUsed < hillsCap
                                 && NatureSpawnMath.Roll(seed, x, y, NatureSpawnMath.HillsDensity)
                                 && TrySpawnHills(cell, NatureSpawnMath.Hash(seed, x, y), preferMountain: true))
@@ -174,6 +191,28 @@ namespace CleanEnergy.Art
                     }
                 }
             }
+
+            DoneSpawn:
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "C",
+                "NatureVisualSpawner.Rebuild",
+                "spawn_summary",
+                "{\"spawned\":" + _spawnedCount +
+                ",\"slots\":" + catalog.AssignedSlotCount() +
+                ",\"meadow\":" + (catalog.Meadow != null ? "true" : "false") +
+                ",\"grassN\":" + (catalog.Grasses != null ? catalog.Grasses.Length : 0) +
+                ",\"treeN\":" + (catalog.ForestTrees != null ? catalog.ForestTrees.Length : 0) +
+                ",\"mountain\":" + (catalog.Mountain != null ? "true" : "false") +
+                ",\"plainsCells\":" + plainsCells +
+                ",\"forestCells\":" + forestCells +
+                ",\"hillsCells\":" + hillsCells +
+                ",\"ridgeCells\":" + ridgeCells +
+                ",\"plainsUsed\":" + plainsUsed +
+                ",\"forestUsed\":" + forestUsed +
+                ",\"hillsUsed\":" + hillsUsed +
+                ",\"lakeUsed\":" + lakeUsed + "}");
+            // #endregion
         }
 
         public void ClearNatureRoot()
