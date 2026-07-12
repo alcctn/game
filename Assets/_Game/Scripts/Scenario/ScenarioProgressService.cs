@@ -139,9 +139,12 @@ namespace CleanEnergy.Scenario
             {
                 _state.CoverageStreakTicks++;
                 _state.ShortageStreakTicks = 0;
-                _state.Satisfaction = Mathf.Min(
-                    _definition.InitialSatisfaction,
-                    _state.Satisfaction + _definition.CoverageSatisfactionRecovery);
+                if (_definition.EnableSatisfactionSoftLose)
+                {
+                    _state.Satisfaction = Mathf.Min(
+                        _definition.InitialSatisfaction,
+                        _state.Satisfaction + _definition.CoverageSatisfactionRecovery);
+                }
             }
             else if (hasDemand)
             {
@@ -149,9 +152,12 @@ namespace CleanEnergy.Scenario
                 if (input.HasShortage || input.CoverageRatio + 0.0001f < _definition.RequiredCoverageRatio)
                 {
                     _state.ShortageStreakTicks++;
-                    _state.Satisfaction = Mathf.Max(
-                        0f,
-                        _state.Satisfaction - _definition.ShortageSatisfactionPenalty);
+                    if (_definition.EnableSatisfactionSoftLose)
+                    {
+                        _state.Satisfaction = Mathf.Max(
+                            0f,
+                            _state.Satisfaction - _definition.ShortageSatisfactionPenalty);
+                    }
                 }
             }
             else
@@ -166,10 +172,19 @@ namespace CleanEnergy.Scenario
                 _state.DemandObjectiveComplete = true;
             }
 
-            _state.IsAtRisk = _state.Satisfaction <= _definition.RiskSatisfactionThreshold;
+            if (_definition.EnableSatisfactionSoftLose)
+            {
+                _state.IsAtRisk = _state.Satisfaction <= _definition.RiskSatisfactionThreshold;
+            }
+            else
+            {
+                _state.IsAtRisk = false;
+                _state.Satisfaction = _definition.InitialSatisfaction;
+            }
+
             StateChanged?.Invoke(_state);
 
-            if (_state.Satisfaction <= 0.0001f)
+            if (_definition.EnableSatisfactionSoftLose && _state.Satisfaction <= 0.0001f)
             {
                 _state.HasLost = true;
                 Failed?.Invoke(new ScenarioFailedEvent(_definition.ScenarioId));

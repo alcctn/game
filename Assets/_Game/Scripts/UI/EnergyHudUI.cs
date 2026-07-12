@@ -133,7 +133,12 @@ namespace CleanEnergy.UI
             GUILayout.Label($"Demand {demand:F1}");
             GUILayout.Label($"Stored {stored:F1}");
             GUILayout.Label($"Surplus {surplusSold:F1}");
-            GUILayout.Label($"Sat {satisfaction:F0}");
+            if (scenarioController?.Progress?.Definition != null
+                && scenarioController.Progress.Definition.EnableSatisfactionSoftLose)
+            {
+                GUILayout.Label($"Sat {satisfaction:F0}");
+            }
+
             GUILayout.Label($"Money {money:F0}");
             if (debt > 0.0001f)
             {

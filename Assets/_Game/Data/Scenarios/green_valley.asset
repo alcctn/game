@@ -21,6 +21,7 @@ MonoBehaviour:
   shortageSatisfactionPenalty: 2
   coverageSatisfactionRecovery: 0.25
   riskSatisfactionThreshold: 30
+  enableSatisfactionSoftLose: 0
   mapSeed: 
   baseClimateSolarOverride: -1
   streamAccumulationOverride: -1

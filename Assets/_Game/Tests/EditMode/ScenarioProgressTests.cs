@@ -116,7 +116,8 @@ namespace CleanEnergy.Tests.EditMode
                 initialSatisfaction,
                 shortagePenalty,
                 0.25f,
-                riskThreshold);
+                riskThreshold,
+                satisfactionSoftLose: true);
             return new ScenarioProgressService(def);
         }
 

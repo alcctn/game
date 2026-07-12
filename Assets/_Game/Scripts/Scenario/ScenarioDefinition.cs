@@ -18,6 +18,7 @@ namespace CleanEnergy.Scenario
         [SerializeField] private float shortageSatisfactionPenalty = 2f;
         [SerializeField] private float coverageSatisfactionRecovery = 0.25f;
         [SerializeField] private float riskSatisfactionThreshold = 30f;
+        [SerializeField] private bool enableSatisfactionSoftLose;
         [SerializeField] private string mapSeed = "";
         [SerializeField] private float baseClimateSolarOverride = -1f;
         [SerializeField] private float baseClimateWindOverride = -1f;
@@ -44,6 +45,8 @@ namespace CleanEnergy.Scenario
         public float ShortageSatisfactionPenalty => shortageSatisfactionPenalty;
         public float CoverageSatisfactionRecovery => coverageSatisfactionRecovery;
         public float RiskSatisfactionThreshold => riskSatisfactionThreshold;
+        /// <summary>When false, shortage does not drain Sat or fail the scenario (Level 1 default).</summary>
+        public bool EnableSatisfactionSoftLose => enableSatisfactionSoftLose;
         public string MapSeed => mapSeed ?? string.Empty;
         public float BaseClimateSolarOverride => baseClimateSolarOverride;
         public float BaseClimateWindOverride => baseClimateWindOverride;
@@ -67,7 +70,8 @@ namespace CleanEnergy.Scenario
             float solarOverride = -1f,
             float streamOverride = -1f,
             float population = 100f,
-            float windOverride = -1f)
+            float windOverride = -1f,
+            bool satisfactionSoftLose = false)
         {
             scenarioId = id;
             displayName = name;
@@ -78,6 +82,7 @@ namespace CleanEnergy.Scenario
             shortageSatisfactionPenalty = shortagePenalty;
             coverageSatisfactionRecovery = recovery;
             riskSatisfactionThreshold = riskThreshold;
+            enableSatisfactionSoftLose = satisfactionSoftLose;
             countedProducerTypeIds = new[]
             {
                 "water_wheel",
@@ -91,6 +96,11 @@ namespace CleanEnergy.Scenario
             streamAccumulationOverride = streamOverride;
             startingPopulation = population > 0.001f ? population : 100f;
             baseClimateWindOverride = windOverride;
+        }
+
+        public void SetSatisfactionSoftLose(bool enabled)
+        {
+            enableSatisfactionSoftLose = enabled;
         }
 
         public void ApplyToMapSettings(MapGenerationSettings settings)
