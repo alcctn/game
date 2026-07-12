@@ -47,7 +47,7 @@ namespace CleanEnergy.UI
             }
 
             var area = HudLayout.ScenarioChecklist();
-            area.height = 300f;
+            area.height = 320f;
             GUILayout.BeginArea(area, GUI.skin.box);
             ImguiHitTest.Register(area, "LevelProgress");
             GUILayout.Label(StringTable.Get(StringKeys.Level01Title));
@@ -74,10 +74,19 @@ namespace CleanEnergy.UI
                     workers.TryHireEngineer();
                 }
 
+                var canTech = workers.CanHireTechnician();
+                var prev = GUI.enabled;
+                GUI.enabled = canTech;
                 if (GUILayout.Button(
                         $"{StringTable.Get(StringKeys.HireTechnician)} ({workers.TechnicianHireCost:F0})"))
                 {
                     workers.TryHireTechnician();
+                }
+
+                GUI.enabled = prev;
+                if (!canTech)
+                {
+                    GUILayout.Label(StringTable.Get(StringKeys.HireTechnicianRequiresWater));
                 }
             }
 

@@ -45,6 +45,7 @@ namespace CleanEnergy.UI
         public const string LevelObjCoverage = "LevelObjCoverage";
         public const string HireEngineer = "HireEngineer";
         public const string HireTechnician = "HireTechnician";
+        public const string HireTechnicianRequiresWater = "HireTechnicianRequiresWater";
         public const string BuildCost = "BuildCost";
         public const string AutoConnectionCost = "AutoConnectionCost";
         public const string TotalCost = "TotalCost";

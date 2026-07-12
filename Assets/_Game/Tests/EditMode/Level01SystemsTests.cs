@@ -91,6 +91,46 @@ namespace CleanEnergy.Tests.EditMode
             Assert.LessOrEqual(first, level.StartingMoney);
         }
 
+        [Test]
+        public void MaxSameTypeCountRule_BlocksSecondWind()
+        {
+            var def = ScriptableObject.CreateInstance<BuildingDefinition>();
+            def.Configure(
+                "small_wind", "Small Wind", "", BuildingCategory.Energy,
+                100f, 14f, 28f, 0f, 0f, 0.25f, false, true, Color.yellow);
+            def.SetMaxSameTypeCount(1);
+
+            var occupancy = new GridOccupancyService();
+            var placed = new BuildingInstance(
+                "w1", def, new GridCoordinate(0, 0), 0, null);
+            Assert.IsTrue(occupancy.TryOccupy(placed));
+
+            var rule = new MaxSameTypeCountRule();
+            var reasons = new System.Collections.Generic.List<string>();
+            var ctx = new PlacementContext(
+                def, new GridCoordinate(5, 5), CreateGrid(8), occupancy, new Wallet(500f));
+            Assert.IsFalse(rule.Evaluate(ctx, reasons));
+            Assert.That(reasons[0], Does.Contain("Only 1"));
+        }
+
+        [Test]
+        public void TechnicianHire_RequiresWaterGate()
+        {
+            var level = LevelDefinition.CreateRuntimeDefault();
+            var wallet = new Wallet(500f);
+            var waterReady = false;
+            var workers = new WorkerService();
+            workers.Configure(level, wallet, () => waterReady);
+
+            Assert.IsFalse(workers.CanHireTechnician());
+            Assert.IsFalse(workers.TryHireTechnician());
+            Assert.AreEqual(0, workers.Pool.TechnicianCount);
+
+            waterReady = true;
+            Assert.IsTrue(workers.TryHireTechnician());
+            Assert.AreEqual(1, workers.Pool.TechnicianCount);
+        }
+
         private static GridService CreateGrid(int size)
         {
             var grid = new GridService();

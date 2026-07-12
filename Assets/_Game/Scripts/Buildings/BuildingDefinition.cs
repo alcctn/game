@@ -25,6 +25,8 @@ namespace CleanEnergy.Buildings
         [SerializeField] private bool requiresAdjacentWater;
         [SerializeField] private bool requireBuildableCell = true;
         [SerializeField] private int minSameTypeSpacing;
+        /// <summary>Max placed instances of this Id. &lt;= 0 means unlimited.</summary>
+        [SerializeField] private int maxSameTypeCount;
         [SerializeField] private Color gizmoColor = new Color(0.3f, 0.75f, 0.9f, 1f);
         [Header("Energy Network")]
         [SerializeField] private float baseDemand;
@@ -56,6 +58,8 @@ namespace CleanEnergy.Buildings
         public bool RequireBuildableCell => requireBuildableCell;
         /// <summary>Min Manhattan distance to another building of the same Id. &lt;= 0 skips the rule.</summary>
         public int MinSameTypeSpacing => minSameTypeSpacing;
+        /// <summary>Max instances of this Id. &lt;= 0 means unlimited.</summary>
+        public int MaxSameTypeCount => maxSameTypeCount;
         public Color GizmoColor => gizmoColor;
         public float BaseDemand => baseDemand;
         public float StorageCapacity => storageCapacity;
@@ -141,6 +145,16 @@ namespace CleanEnergy.Buildings
         public void SetMinWindPotential(float value)
         {
             minWindPotential = Mathf.Max(0f, value);
+        }
+
+        public void SetMaxSameTypeCount(int count)
+        {
+            maxSameTypeCount = Mathf.Max(0, count);
+        }
+
+        public void SetGizmoColor(Color color)
+        {
+            gizmoColor = color;
         }
 
         /// <summary>Assigns the visual prefab used by <see cref="BuildingFactory"/>.</summary>

@@ -439,11 +439,28 @@ namespace CleanEnergy.Core
                     case "water_wheel":
                         def.SetEconomy(80f, 0f);
                         def.SetWorkerRequirements(1, 0);
+                        def.SetGizmoColor(new Color(0.25f, 0.55f, 0.95f, 1f));
+                        // #region agent log
+                        CleanEnergy.DebugTools.AgentDebugLog.Write(
+                            "B",
+                            "ApplyLevel01BuildingTuning",
+                            "water_wheel_tune",
+                            "{\"maxSameType\":" + def.MaxSameTypeCount + "}");
+                        // #endregion
                         break;
                     case "small_wind":
                         def.SetEconomy(100f, 0.1f);
                         def.SetWorkerRequirements(1, 1);
                         def.SetMinWindPotential(0.25f);
+                        def.SetMaxSameTypeCount(1);
+                        def.SetGizmoColor(new Color(0.95f, 0.75f, 0.2f, 1f));
+                        // #region agent log
+                        CleanEnergy.DebugTools.AgentDebugLog.Write(
+                            "B",
+                            "ApplyLevel01BuildingTuning",
+                            "small_wind_tune",
+                            "{\"maxSameType\":" + def.MaxSameTypeCount + "}");
+                        // #endregion
                         break;
                     case "village":
                         def.SetEconomy(0f, 0f);

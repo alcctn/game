@@ -13,7 +13,7 @@ namespace CleanEnergy.Simulation
     /// </summary>
     public sealed class SeasonService
     {
-        public const int DaysPerSeason = 90;
+        public const int DaysPerSeason = 180;
 
         public const float SpringSolar = 1f;
         public const float SpringWind = 1f;

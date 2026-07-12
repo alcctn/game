@@ -48,6 +48,7 @@ namespace CleanEnergy.UI
             { StringKeys.LevelObjCoverage, "Meet 95% village demand" },
             { StringKeys.HireEngineer, "Hire Engineer" },
             { StringKeys.HireTechnician, "Hire Technician" },
+            { StringKeys.HireTechnicianRequiresWater, "Build water production first." },
             { StringKeys.BuildCost, "Build Cost" },
             { StringKeys.AutoConnectionCost, "Auto Grid Connection" },
             { StringKeys.TotalCost, "Total" }
@@ -94,6 +95,7 @@ namespace CleanEnergy.UI
             { StringKeys.LevelObjCoverage, "Köy talebinin %95'ini karşıla" },
             { StringKeys.HireEngineer, "Mühendis tut" },
             { StringKeys.HireTechnician, "Teknisyen tut" },
+            { StringKeys.HireTechnicianRequiresWater, "Önce su üretimi kur." },
             { StringKeys.BuildCost, "İnşa Maliyeti" },
             { StringKeys.AutoConnectionCost, "Otomatik Şebeke Bağlantısı" },
             { StringKeys.TotalCost, "Toplam" }

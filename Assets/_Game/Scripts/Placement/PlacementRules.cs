@@ -257,6 +257,66 @@ namespace CleanEnergy.Placement
         }
     }
 
+    public sealed class MaxSameTypeCountRule : IPlacementRule
+    {
+        public const string FailReasonFormat = "Only {0} {1} allowed.";
+
+        public string RuleId => "max_same_type_count";
+
+        public bool Evaluate(PlacementContext context, List<string> failureReasons)
+        {
+            var max = context.Definition != null ? context.Definition.MaxSameTypeCount : 0;
+            if (max <= 0 || context.Occupancy == null || context.Definition == null)
+            {
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "A",
+                    "MaxSameTypeCountRule.Evaluate",
+                    "skip_unlimited",
+                    "{\"id\":\"" + (context.Definition != null ? context.Definition.Id : "") +
+                    "\",\"max\":" + max + "}");
+                // #endregion
+                return true;
+            }
+
+            var id = context.Definition.Id;
+            var seen = new HashSet<string>();
+            var count = 0;
+            foreach (var pair in context.Occupancy.Occupied)
+            {
+                var other = pair.Value;
+                if (other?.Definition == null || other.Definition.Id != id)
+                {
+                    continue;
+                }
+
+                if (!seen.Add(other.InstanceId))
+                {
+                    continue;
+                }
+
+                count++;
+            }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "E",
+                "MaxSameTypeCountRule.Evaluate",
+                count < max ? "allow" : "block",
+                "{\"id\":\"" + id + "\",\"max\":" + max + ",\"count\":" + count + "}");
+            // #endregion
+
+            if (count < max)
+            {
+                return true;
+            }
+
+            failureReasons.Add(string.Format(
+                FailReasonFormat, max, context.Definition.DisplayName));
+            return false;
+        }
+    }
+
     public sealed class GridOccupancyRule : IPlacementRule
     {
         public string RuleId => "occupancy";

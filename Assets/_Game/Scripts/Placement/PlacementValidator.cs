@@ -84,6 +84,7 @@ namespace CleanEnergy.Placement
                 new MinSolarPotentialRule(),
                 new MinWindPotentialRule(),
                 new MinSameTypeSpacingRule(),
+                new MaxSameTypeCountRule(),
                 new AffordabilityRule(),
                 new TechnologyUnlockedRule(),
                 new SettlementRadiusRule(settlement),

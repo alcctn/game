@@ -123,6 +123,21 @@ namespace CleanEnergy.Scenario
             }
 
             _state.CoverageComplete = _state.CoverageStreakTicks >= _level.RequiredCoverageTicks;
+            // #region agent log
+            if (_state.CoverageStreakTicks == 1
+                || _state.CoverageStreakTicks == _level.RequiredCoverageTicks
+                || _state.CoverageStreakTicks == _level.RequiredCoverageTicks + 1)
+            {
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "D",
+                    "LevelProgressService.Evaluate",
+                    "coverage_streak",
+                    "{\"streak\":" + _state.CoverageStreakTicks +
+                    ",\"required\":" + _level.RequiredCoverageTicks +
+                    ",\"ratio\":" + coverageRatio.ToString("F2") +
+                    ",\"complete\":" + (_state.CoverageComplete ? "true" : "false") + "}");
+            }
+            // #endregion
 
             GrantRewards(wallet);
             _state.Recalculate(_level);

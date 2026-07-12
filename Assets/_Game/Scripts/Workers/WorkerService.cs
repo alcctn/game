@@ -11,14 +11,19 @@ namespace CleanEnergy.Workers
         private readonly WorkerPool _pool = new WorkerPool();
         private LevelDefinition _level;
         private Wallet _wallet;
+        private Func<bool> _canHireTechnician;
 
         public WorkerPool Pool => _pool;
         public event Action WorkersChanged;
 
-        public void Configure(LevelDefinition level, Wallet wallet)
+        public void Configure(
+            LevelDefinition level,
+            Wallet wallet,
+            Func<bool> canHireTechnician = null)
         {
             _level = level;
             _wallet = wallet;
+            _canHireTechnician = canHireTechnician;
         }
 
         public void Reset()
@@ -30,6 +35,11 @@ namespace CleanEnergy.Workers
         public float EngineerHireCost => _level != null ? _level.EngineerHireCost : 40f;
         public float TechnicianHireCost => _level != null ? _level.TechnicianHireCost : 40f;
 
+        public bool CanHireTechnician()
+        {
+            return _canHireTechnician == null || _canHireTechnician();
+        }
+
         public bool TryHireEngineer()
         {
             return TryHire(WorkerType.Engineer, EngineerHireCost);
@@ -37,6 +47,11 @@ namespace CleanEnergy.Workers
 
         public bool TryHireTechnician()
         {
+            if (!CanHireTechnician())
+            {
+                return false;
+            }
+
             return TryHire(WorkerType.Technician, TechnicianHireCost);
         }
 

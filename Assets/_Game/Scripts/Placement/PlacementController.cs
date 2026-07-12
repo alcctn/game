@@ -440,6 +440,26 @@ namespace CleanEnergy.Placement
             SetFootprintOccupyingIds(instance, instance.InstanceId);
             ClearDemolishUndo();
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
+            // #region agent log
+            var sameCount = 0;
+            var seen = new System.Collections.Generic.HashSet<string>();
+            foreach (var pair in _occupancy.Occupied)
+            {
+                if (pair.Value?.Definition?.Id == instance.Definition.Id
+                    && seen.Add(pair.Value.InstanceId))
+                {
+                    sameCount++;
+                }
+            }
+
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "A",
+                "PlacementController.TryPlace",
+                "placed",
+                "{\"id\":\"" + instance.Definition.Id +
+                "\",\"max\":" + instance.Definition.MaxSameTypeCount +
+                ",\"sameCount\":" + sameCount + "}");
+            // #endregion
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
             CancelPlacement();
             return PlacementValidationResult.Success();

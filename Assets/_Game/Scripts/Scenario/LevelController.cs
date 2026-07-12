@@ -26,7 +26,7 @@ namespace CleanEnergy.Scenario
         private readonly WorkerService _workers = new WorkerService();
         private LevelProgressService _progress;
         private bool _villageSeeded;
-        private LineRenderer _linkVisual;
+        private ProducerSettlementLinkOverlay _linkOverlay;
 
         public LevelDefinition Definition => levelDefinition;
         public LevelProgressService Progress => _progress;
@@ -52,13 +52,22 @@ namespace CleanEnergy.Scenario
             scenarioController = scenario;
             clock = simulationClock;
 
-            _workers.Configure(levelDefinition, placementController != null ? placementController.Wallet : null);
-            _workers.Reset();
             _settlement.Clear();
             _villageSeeded = false;
             _progress = new LevelProgressService(levelDefinition);
             _progress.StateChanged += OnProgressStateChanged;
             _progress.LevelCompleted += OnLevelCompleted;
+
+            _workers.Configure(
+                levelDefinition,
+                placementController != null ? placementController.Wallet : null,
+                () => _progress != null && _progress.State.WaterComplete);
+            _workers.Reset();
+
+            EnsureLinkOverlay();
+            _linkOverlay.Configure(mapGenerator, _settlement);
+            _linkOverlay.ClearAll();
+            _linkOverlay.SetVisible(true);
 
             if (placementController != null)
             {
@@ -121,6 +130,7 @@ namespace CleanEnergy.Scenario
             if (placementController != null)
             {
                 placementController.BuildingPlaced += OnBuildingPlaced;
+                placementController.BuildingRemoved += OnBuildingRemoved;
             }
 
             if (_workers != null)
@@ -144,6 +154,7 @@ namespace CleanEnergy.Scenario
             if (placementController != null)
             {
                 placementController.BuildingPlaced -= OnBuildingPlaced;
+                placementController.BuildingRemoved -= OnBuildingRemoved;
             }
 
             if (_workers != null)
@@ -158,6 +169,8 @@ namespace CleanEnergy.Scenario
             _settlement.Clear();
             _workers.Reset();
             _progress?.Reset();
+            _linkOverlay?.ClearAll();
+            _linkOverlay?.SetVisible(true);
             if (placementController != null && levelDefinition != null)
             {
                 placementController.Wallet?.SetMoney(levelDefinition.StartingMoney);
@@ -169,7 +182,21 @@ namespace CleanEnergy.Scenario
 
         private void OnBuildingPlaced(BuildingPlacedEvent evt)
         {
-            RefreshLinkVisual(evt?.Instance);
+            if (evt?.Instance != null)
+            {
+                _linkOverlay?.UpsertProducerLink(evt.Instance);
+            }
+
+            EvaluateNow(energyDriver != null ? energyDriver.LastResult : null);
+        }
+
+        private void OnBuildingRemoved(BuildingPlacedEvent evt)
+        {
+            if (evt?.Instance != null)
+            {
+                _linkOverlay?.RemoveLink(evt.Instance.InstanceId);
+            }
+
             EvaluateNow(energyDriver != null ? energyDriver.LastResult : null);
         }
 
@@ -205,6 +232,7 @@ namespace CleanEnergy.Scenario
 
         private void OnLevelCompleted()
         {
+            _linkOverlay?.SetVisible(false);
             LevelCompleted?.Invoke();
             scenarioController?.ForceWin("Level 1 complete");
             if (clock != null)
@@ -317,41 +345,16 @@ namespace CleanEnergy.Scenario
             return found;
         }
 
-        private void RefreshLinkVisual(BuildingInstance instance)
+        private void EnsureLinkOverlay()
         {
-            if (instance?.Definition == null || !instance.Definition.IsProducer || !_settlement.HasActiveSettlement)
+            if (_linkOverlay != null)
             {
                 return;
             }
 
-            if (mapGenerator == null || !mapGenerator.Grid.TryGetCell(instance.Coordinate, out var fromCell)
-                || !mapGenerator.Grid.TryGetCell(_settlement.Coordinate, out var toCell))
-            {
-                return;
-            }
-
-            EnsureLinkVisual();
-            _linkVisual.positionCount = 2;
-            _linkVisual.SetPosition(0, fromCell.WorldPosition + Vector3.up * 0.5f);
-            _linkVisual.SetPosition(1, toCell.WorldPosition + Vector3.up * 0.5f);
-            _linkVisual.enabled = true;
-        }
-
-        private void EnsureLinkVisual()
-        {
-            if (_linkVisual != null)
-            {
-                return;
-            }
-
-            var go = new GameObject("AutoGridLinkVisual");
+            var go = new GameObject("ProducerSettlementLinks");
             go.transform.SetParent(transform, false);
-            _linkVisual = go.AddComponent<LineRenderer>();
-            _linkVisual.widthMultiplier = 0.15f;
-            _linkVisual.material = new Material(Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit"));
-            _linkVisual.startColor = new Color(0.2f, 0.85f, 1f, 0.7f);
-            _linkVisual.endColor = new Color(0.2f, 0.85f, 1f, 0.7f);
-            _linkVisual.enabled = false;
+            _linkOverlay = go.AddComponent<ProducerSettlementLinkOverlay>();
         }
     }
 }

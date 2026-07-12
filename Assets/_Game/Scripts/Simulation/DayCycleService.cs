@@ -7,7 +7,7 @@ namespace CleanEnergy.Simulation
     /// </summary>
     public sealed class DayCycleService
     {
-        public const int DefaultTicksPerDay = 48;
+        public const int DefaultTicksPerDay = 120;
 
         private readonly int _ticksPerDay;
 

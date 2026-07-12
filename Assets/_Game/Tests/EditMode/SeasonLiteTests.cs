@@ -19,21 +19,22 @@ namespace CleanEnergy.Tests.EditMode
         }
 
         [Test]
-        public void ResolveSeason_AdvancesEveryNinetyDays()
+        public void ResolveSeason_AdvancesEveryDaysPerSeason()
         {
+            var d = SeasonService.DaysPerSeason;
             Assert.AreEqual(SeasonKind.Spring, SeasonService.ResolveSeason(0));
-            Assert.AreEqual(SeasonKind.Spring, SeasonService.ResolveSeason(89));
-            Assert.AreEqual(SeasonKind.Summer, SeasonService.ResolveSeason(90));
-            Assert.AreEqual(SeasonKind.Autumn, SeasonService.ResolveSeason(180));
-            Assert.AreEqual(SeasonKind.Winter, SeasonService.ResolveSeason(270));
-            Assert.AreEqual(SeasonKind.Spring, SeasonService.ResolveSeason(360));
+            Assert.AreEqual(SeasonKind.Spring, SeasonService.ResolveSeason(d - 1));
+            Assert.AreEqual(SeasonKind.Summer, SeasonService.ResolveSeason(d));
+            Assert.AreEqual(SeasonKind.Autumn, SeasonService.ResolveSeason(d * 2));
+            Assert.AreEqual(SeasonKind.Winter, SeasonService.ResolveSeason(d * 3));
+            Assert.AreEqual(SeasonKind.Spring, SeasonService.ResolveSeason(d * 4));
         }
 
         [Test]
         public void SyncFromDayIndex_UpdatesCurrentAndMultipliers()
         {
             var seasons = new SeasonService();
-            seasons.SyncFromDayIndex(100);
+            seasons.SyncFromDayIndex(SeasonService.DaysPerSeason + 10);
             Assert.AreEqual(SeasonKind.Summer, seasons.Current);
             Assert.AreEqual(SeasonService.SummerSolar, seasons.SolarMultiplier, 0.001f);
             Assert.AreEqual(SeasonService.SummerWind, seasons.WindMultiplier, 0.001f);
