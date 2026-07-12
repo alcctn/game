@@ -102,7 +102,9 @@ namespace CleanEnergy.UI
 
             const float width = 560f;
             var x = (Screen.width / GuiScale.Current - width) * 0.5f;
-            GUILayout.BeginArea(new Rect(x, 8f, width, 156f), GUI.skin.box);
+            var area = new Rect(x, 8f, width, 156f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
 
             var result = driver != null ? driver.LastResult : null;
             var money = placementController != null ? placementController.Wallet.Money : 0f;

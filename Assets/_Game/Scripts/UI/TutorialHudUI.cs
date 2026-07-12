@@ -57,7 +57,9 @@ namespace CleanEnergy.UI
             }
 
             var info = progress.GetCurrentInfo();
-            GUILayout.BeginArea(new Rect(12f, 380f, 300f, 140f), GUI.skin.box);
+            var area = new Rect(12f, 380f, 300f, 140f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label(StringTable.Get(StringKeys.Tutorial));
             if (progress.IsComplete)
             {

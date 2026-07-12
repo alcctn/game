@@ -73,9 +73,35 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            if (Input.GetMouseButtonDown(0) && !IsPointerOverGui())
+            if (Input.GetMouseButtonDown(0))
             {
-                TrySelectCellUnderCursor();
+                var overGui = IsPointerOverGui();
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "A",
+                    "MapDebugOverlay.Update",
+                    "click",
+                    "{\"overGui\":" + (overGui ? "true" : "false") +
+                    ",\"willSelect\":" + (!overGui ? "true" : "false") +
+                    ",\"mx\":" + Input.mousePosition.x.ToString("F0") +
+                    ",\"my\":" + Input.mousePosition.y.ToString("F0") +
+                    ",\"sw\":" + Screen.width +
+                    ",\"sh\":" + Screen.height + "}");
+                // #endregion
+                if (!overGui)
+                {
+                    TrySelectCellUnderCursor();
+                }
+                else
+                {
+                    // #region agent log
+                    CleanEnergy.DebugTools.AgentDebugLog.Write(
+                        "A",
+                        "MapDebugOverlay.Update",
+                        "blocked_by_gui",
+                        "{}");
+                    // #endregion
+                }
             }
         }
 
@@ -462,7 +488,7 @@ namespace CleanEnergy.DebugTools
 
         private static bool IsPointerOverGui()
         {
-            return false;
+            return CleanEnergy.UI.ImguiHitTest.IsPointerOverGui();
         }
     }
 }

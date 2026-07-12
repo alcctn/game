@@ -28,10 +28,38 @@ namespace CleanEnergy.Save
         [SerializeField] private SfxService sfxService;
         [SerializeField] private MaintenanceController maintenanceController;
 
-        private readonly SaveGameService _saveService = new SaveGameService();
+        private SaveGameService _saveService;
 
-        public SaveGameService Service => _saveService;
+        public SaveGameService Service
+        {
+            get
+            {
+                EnsureService();
+                return _saveService;
+            }
+        }
+
         public string LastMessage { get; private set; } = string.Empty;
+
+        private void Awake()
+        {
+            EnsureService();
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "B",
+                "SaveLoadController.Awake",
+                "service_ok",
+                "{\"hasService\":" + (_saveService != null ? "true" : "false") + "}");
+            // #endregion
+        }
+
+        private void EnsureService()
+        {
+            if (_saveService == null)
+            {
+                _saveService = new SaveGameService();
+            }
+        }
 
         public void Configure(
             MapGenerator map,
@@ -59,11 +87,13 @@ namespace CleanEnergy.Save
 
         public bool SaveSlot()
         {
+            EnsureService();
             return SaveSlot(_saveService.ActiveSlot);
         }
 
         public bool SaveSlot(int slot)
         {
+            EnsureService();
             var data = Collect();
             if (data == null)
             {
@@ -79,11 +109,13 @@ namespace CleanEnergy.Save
 
         public bool LoadSlot()
         {
+            EnsureService();
             return LoadSlot(_saveService.ActiveSlot);
         }
 
         public bool LoadSlot(int slot)
         {
+            EnsureService();
             _saveService.SetActiveSlot(slot);
             var data = _saveService.Read();
             if (data == null)
@@ -104,11 +136,13 @@ namespace CleanEnergy.Save
 
         public void SetActiveSlot(int slot)
         {
+            EnsureService();
             _saveService.SetActiveSlot(slot);
         }
 
         public bool DeleteSlot(int slot)
         {
+            EnsureService();
             _saveService.SetActiveSlot(slot);
             if (!_saveService.DeleteSlot(slot))
             {

@@ -55,7 +55,9 @@ namespace CleanEnergy.UI
         {
             const float width = 280f;
             var x = Screen.width - width - 12f;
-            GUILayout.BeginArea(new Rect(x, 12f, width, 560f), GUI.skin.box);
+            var area = new Rect(x, 12f, width, 560f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("Inspection");
 
             DrawDebtAndRepay();

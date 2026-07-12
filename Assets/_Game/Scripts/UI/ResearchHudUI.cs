@@ -26,7 +26,9 @@ namespace CleanEnergy.UI
             GuiScale.Apply();
 
             const float width = 320f;
-            GUILayout.BeginArea(new Rect(12f, Screen.height / GuiScale.Current - 320f, width, 308f), GUI.skin.box);
+            var area = new Rect(12f, Screen.height / GuiScale.Current - 320f, width, 308f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label(service.Tree != null ? service.Tree.DisplayName : StringTable.Get(StringKeys.Research));
             GUILayout.Label($"RP: {service.Wallet.Points:F0}");
 

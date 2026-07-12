@@ -5,6 +5,7 @@ using CleanEnergy.Core;
 using CleanEnergy.Economy;
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
+using CleanEnergy.UI;
 using UnityEngine;
 
 namespace CleanEnergy.Placement
@@ -547,7 +548,12 @@ namespace CleanEnergy.Placement
 
         private static bool IsPointerOverImgui()
         {
-            // Rough guard: left UI panels and right building menu.
+            if (ImguiHitTest.IsPointerOverGui())
+            {
+                return true;
+            }
+
+            // Fallback bands if HUD has not registered yet this session.
             return Input.mousePosition.x < 320f
                    || Input.mousePosition.x > Screen.width - 320f
                    || (Input.mousePosition.x > Screen.width - 180f && Input.mousePosition.y < 100f);

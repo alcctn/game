@@ -33,6 +33,7 @@ namespace CleanEnergy.UI
                 var x = Screen.width / scale - width - 12f;
                 var y = Screen.height / scale - height - 12f;
                 var area = new Rect(x, y, width, height);
+                ImguiHitTest.Register(area);
 
                 GUI.Box(area, "Save / Load");
 

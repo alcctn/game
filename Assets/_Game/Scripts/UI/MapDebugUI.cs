@@ -74,7 +74,9 @@ namespace CleanEnergy.UI
         private void OnGUI()
         {
             const float width = 300f;
-            GUILayout.BeginArea(new Rect(12f, 12f, width, 380f), GUI.skin.box);
+            var area = new Rect(12f, 12f, width, 380f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
             _scroll = GUILayout.BeginScrollView(_scroll);
 
             GUILayout.Label("Terrain Debug");

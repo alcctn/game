@@ -208,7 +208,9 @@ namespace CleanEnergy.UI
             EnsureTabLoaded();
 
             const float width = 280f;
-            GUILayout.BeginArea(new Rect(Screen.width / GuiScale.Current - width - 12f, 12f, width, 460f), GUI.skin.box);
+            var area = new Rect(Screen.width / GuiScale.Current - width - 12f, 12f, width, 460f);
+            ImguiHitTest.Register(area);
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label(StringTable.Get(StringKeys.Build));
             GUILayout.Label($"Money: {placementController.Wallet.Money:F0}");
 
