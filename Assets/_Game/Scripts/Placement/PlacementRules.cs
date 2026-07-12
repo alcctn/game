@@ -386,13 +386,6 @@ namespace CleanEnergy.Placement
             var occupancy = context.Occupancy;
             if (occupancy == null || occupancy.Occupied.Count == 0)
             {
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "N",
-                    "NetworkConnectionRule.Evaluate",
-                    "seed_ok",
-                    "{\"id\":\"" + definition.Id + "\",\"empty\":true}");
-                // #endregion
                 // Seed the network — tutorial places water_wheel first.
                 return true;
             }

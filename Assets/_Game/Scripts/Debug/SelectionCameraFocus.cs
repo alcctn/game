@@ -145,11 +145,8 @@ namespace CleanEnergy.DebugTools
             }
 
             _lastPlacementHover = hover;
-            // Placement hover pans only; Home / selection use zoom-to-fit.
-            if (mapGenerator.Grid.TryGetCell(hover, out var cell))
-            {
-                cameraController.FocusOn(cell.WorldPosition, placementFocusDuration);
-            }
+            // Do not pan/zoom camera while placing — hover preview is enough.
+            // Continuous FocusOn caused map jitter as the cursor crossed cells.
         }
 
         private void FocusCell(GridCoordinate coordinate, float duration)
@@ -158,6 +155,16 @@ namespace CleanEnergy.DebugTools
             {
                 return;
             }
+
+            // #region agent log
+            AgentDebugLog.Write(
+                "C",
+                "SelectionCameraFocus.FocusCell",
+                "fit_on_select",
+                "{\"x\":" + coordinate.X + ",\"y\":" + coordinate.Y +
+                ",\"wx\":" + cell.WorldPosition.x.ToString("F1") +
+                ",\"wz\":" + cell.WorldPosition.z.ToString("F1") + "}");
+            // #endregion
 
             var cellSize = mapGenerator.Grid.CellSize;
             var fit = CameraFitMath.BoundsAroundCell(

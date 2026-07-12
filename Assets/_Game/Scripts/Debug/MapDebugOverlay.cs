@@ -73,9 +73,22 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            if (Input.GetMouseButtonDown(0) && !IsPointerOverGui())
+            if (Input.GetMouseButtonDown(0))
             {
-                TrySelectCellUnderCursor();
+                var overGui = IsPointerOverGui();
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "C",
+                    "MapDebugOverlay.Update",
+                    "world_click",
+                    "{\"overGui\":" + (overGui ? "true" : "false") +
+                    ",\"mx\":" + Input.mousePosition.x.ToString("F0") +
+                    ",\"placement\":" + (placementController != null && placementController.IsPlacementActive ? "true" : "false") + "}");
+                // #endregion
+                if (!overGui)
+                {
+                    TrySelectCellUnderCursor();
+                }
             }
         }
 
@@ -462,7 +475,15 @@ namespace CleanEnergy.DebugTools
 
         private static bool IsPointerOverGui()
         {
-            return CleanEnergy.UI.ImguiHitTest.IsPointerOverGui();
+            if (CleanEnergy.UI.ImguiHitTest.IsPointerOverGui())
+            {
+                return true;
+            }
+
+            // Update runs before OnGUI; hard band covers right Build/Inspection column
+            // so selecting a building does not also pick a map cell under the panel.
+            var rightBand = Screen.width - CleanEnergy.UI.HudLayout.RightColW - CleanEnergy.UI.HudLayout.Margin;
+            return Input.mousePosition.x >= rightBand;
         }
     }
 }
