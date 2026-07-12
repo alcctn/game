@@ -168,11 +168,11 @@ namespace CleanEnergy.Editor
                 CreateOrUpdateBuilding(
                     "power_line", "Power Line", "Connects nearby energy nodes",
                     BuildingCategory.Network, 40f, 0f, 35f, 0f, 0f, 0f, false, true,
-                    new Color(0.9f, 0.9f, 0.4f), linkRange: 5, hub: true),
+                    new Color(0.9f, 0.9f, 0.4f), linkRange: 5, hub: true, hubLinkCapacity: 40f),
                 CreateOrUpdateBuilding(
                     "distribution_hub", "Distribution Hub", "Long-range network center",
                     BuildingCategory.Network, 120f, 0f, 30f, 0f, 0f, 0f, false, true,
-                    new Color(0.55f, 0.75f, 0.95f), linkRange: 10, hub: true)
+                    new Color(0.55f, 0.75f, 0.95f), linkRange: 10, hub: true, hubLinkCapacity: 120f)
             };
         }
 
@@ -196,7 +196,8 @@ namespace CleanEnergy.Editor
             float discharge = 20f,
             int linkRange = 4,
             bool hub = false,
-            float buildingEfficiency = 0.8f)
+            float buildingEfficiency = 0.8f,
+            float hubLinkCapacity = 0f)
         {
             var path = $"{BuildingsFolder}/{id}.asset";
             var asset = AssetDatabase.LoadAssetAtPath<BuildingDefinition>(path);
@@ -210,7 +211,8 @@ namespace CleanEnergy.Editor
                 id, displayName, description, category,
                 cost, power, maxSlope, minWater, minSolar, minWind,
                 adjacentWater, requireBuildable, color,
-                demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency);
+                demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency,
+                hubLinkCapacity: hubLinkCapacity);
             EditorUtility.SetDirty(asset);
             return asset;
         }

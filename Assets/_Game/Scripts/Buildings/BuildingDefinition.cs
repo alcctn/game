@@ -32,6 +32,7 @@ namespace CleanEnergy.Buildings
         [SerializeField] private float dischargeRate = 20f;
         [SerializeField] private int connectionRange = 4;
         [SerializeField] private bool isNetworkHub;
+        [SerializeField] private float linkCapacity;
 
         public string Id => id;
         public string DisplayName => displayName;
@@ -56,6 +57,8 @@ namespace CleanEnergy.Buildings
         public float DischargeRate => dischargeRate;
         public int ConnectionRange => connectionRange;
         public bool IsNetworkHub => isNetworkHub;
+        /// <summary>Hub throughput per tick. Values &lt;= 0 mean unlimited.</summary>
+        public float LinkCapacity => linkCapacity;
 
         public bool IsProducer => installedPower > 0f && category == BuildingCategory.Energy;
         public bool IsConsumer => baseDemand > 0f;
@@ -82,7 +85,8 @@ namespace CleanEnergy.Buildings
             int linkRange = 4,
             bool hub = false,
             float buildingEfficiency = 0.8f,
-            float upkeepCost = 1f)
+            float upkeepCost = 1f,
+            float hubLinkCapacity = 0f)
         {
             id = buildingId;
             displayName = name;
@@ -106,6 +110,7 @@ namespace CleanEnergy.Buildings
             dischargeRate = discharge;
             connectionRange = linkRange;
             isNetworkHub = hub;
+            linkCapacity = hubLinkCapacity;
         }
     }
 }

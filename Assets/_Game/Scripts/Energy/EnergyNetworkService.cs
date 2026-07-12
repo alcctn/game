@@ -124,7 +124,8 @@ namespace CleanEnergy.Energy
                     storage,
                     isHub,
                     range,
-                    def.Id);
+                    def.Id,
+                    def.LinkCapacity);
                 _graph.AddOrReplaceNode(node);
 
                 if (isHub)

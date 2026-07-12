@@ -78,6 +78,7 @@ namespace CleanEnergy.UI
             var money = placementController != null ? placementController.Wallet.Money : 0f;
             var rp = researchController?.Service != null ? researchController.Service.Wallet.Points : 0f;
             var prod = result?.Production ?? 0f;
+            var delivered = result?.DeliveredProduction ?? prod;
             var demand = result?.Demand ?? 0f;
             var stored = result?.Stored ?? 0f;
             var phase = clock != null ? clock.DayCycle.Phase : DayPhase.Noon;
@@ -85,9 +86,12 @@ namespace CleanEnergy.UI
             var lowMaint = maintenanceController != null ? maintenanceController.LowMaintenanceCount : 0;
             var upkeep = driver != null ? driver.LastUpkeepTotal : 0f;
             var upkeepBroke = driver != null && driver.CouldNotAffordFullUpkeep;
+            var congested = result != null && result.IsCongested;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Prod {prod:F1}");
+            GUILayout.Label(congested
+                ? $"Prod {prod:F1}→{delivered:F1}"
+                : $"Prod {prod:F1}");
             GUILayout.Label($"Demand {demand:F1}");
             GUILayout.Label($"Stored {stored:F1}");
             GUILayout.Label($"Money {money:F0}");
@@ -109,6 +113,11 @@ namespace CleanEnergy.UI
             if (upkeepBroke)
             {
                 GUILayout.Label("Can't afford upkeep");
+            }
+
+            if (congested)
+            {
+                GUILayout.Label("Congested");
             }
 
             if (!string.IsNullOrEmpty(_shortageText))

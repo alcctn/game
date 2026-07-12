@@ -35,3 +35,4 @@ MonoBehaviour:
   dischargeRate: 20
   connectionRange: 10
   isNetworkHub: 1
+  linkCapacity: 120

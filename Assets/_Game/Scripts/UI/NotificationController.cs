@@ -20,6 +20,7 @@ namespace CleanEnergy.UI
         private readonly NotificationService _service = new NotificationService();
         private int _previousLowMaintenance;
         private bool _hadShortage;
+        private bool _hadCongestion;
 
         public NotificationService Service => _service;
 
@@ -117,6 +118,19 @@ namespace CleanEnergy.UI
             if (!result.HasShortage)
             {
                 _hadShortage = false;
+            }
+
+            if (result.IsCongested)
+            {
+                if (!_hadCongestion)
+                {
+                    _hadCongestion = true;
+                    _service.Push("Network congested", Time.unscaledTime);
+                }
+            }
+            else
+            {
+                _hadCongestion = false;
             }
 
             if (result.EnergyCharged > 0.0001f && HasFullBattery())

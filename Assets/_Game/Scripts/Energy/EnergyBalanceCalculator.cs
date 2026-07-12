@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CleanEnergy.Simulation;
+using UnityEngine;
 
 namespace CleanEnergy.Energy
 {
@@ -11,6 +12,11 @@ namespace CleanEnergy.Energy
         public float SurplusSold { get; }
         public float Shortage { get; }
         public float EnergyCharged { get; }
+        /// <summary>Production after hub link-capacity cap.</summary>
+        public float DeliveredProduction { get; }
+        /// <summary>Component (or network) hub capacity; 0 means unlimited.</summary>
+        public float LinkCapacity { get; }
+        public bool IsCongested { get; }
         public bool HasShortage => Shortage > 0.0001f;
 
         /// <summary>
@@ -41,7 +47,10 @@ namespace CleanEnergy.Energy
             float stored,
             float surplusSold,
             float shortage,
-            float energyCharged = 0f)
+            float energyCharged = 0f,
+            float deliveredProduction = -1f,
+            float linkCapacity = 0f,
+            bool isCongested = false)
         {
             Production = production;
             Demand = demand;
@@ -49,6 +58,9 @@ namespace CleanEnergy.Energy
             SurplusSold = surplusSold;
             Shortage = shortage;
             EnergyCharged = energyCharged;
+            DeliveredProduction = deliveredProduction < 0f ? production : deliveredProduction;
+            LinkCapacity = linkCapacity;
+            IsCongested = isCongested;
         }
     }
 
@@ -87,7 +99,13 @@ namespace CleanEnergy.Energy
                 demand += consumers[i].GetDemand(context);
             }
 
-            var available = production;
+            var capacity = ResolveComponentCapacity(component);
+            var unlimited = capacity < 0f;
+            var delivered = unlimited ? production : Mathf.Min(production, capacity);
+            var congested = !unlimited && production > capacity + 0.0001f;
+            var reportedCapacity = unlimited ? 0f : capacity;
+
+            var available = delivered;
             var shortage = 0f;
             var surplusSold = 0f;
             var energyCharged = 0f;
@@ -108,7 +126,16 @@ namespace CleanEnergy.Energy
             }
 
             var stored = _storageDispatch.TotalStored(storages);
-            return new EnergyBalanceResult(production, demand, stored, surplusSold, shortage, energyCharged);
+            return new EnergyBalanceResult(
+                production,
+                demand,
+                stored,
+                surplusSold,
+                shortage,
+                energyCharged,
+                delivered,
+                reportedCapacity,
+                congested);
         }
 
         public EnergyBalanceResult CalculateNetwork(
@@ -121,6 +148,10 @@ namespace CleanEnergy.Energy
             var sold = 0f;
             var shortage = 0f;
             var charged = 0f;
+            var delivered = 0f;
+            var capacitySum = 0f;
+            var hasFiniteCapacity = false;
+            var congested = false;
 
             foreach (var component in graph.Components)
             {
@@ -131,9 +162,57 @@ namespace CleanEnergy.Energy
                 sold += result.SurplusSold;
                 shortage += result.Shortage;
                 charged += result.EnergyCharged;
+                delivered += result.DeliveredProduction;
+                congested |= result.IsCongested;
+                if (result.LinkCapacity > 0f)
+                {
+                    hasFiniteCapacity = true;
+                    capacitySum += result.LinkCapacity;
+                }
             }
 
-            return new EnergyBalanceResult(production, demand, stored, sold, shortage, charged);
+            return new EnergyBalanceResult(
+                production,
+                demand,
+                stored,
+                sold,
+                shortage,
+                charged,
+                delivered,
+                hasFiniteCapacity ? capacitySum : 0f,
+                congested);
+        }
+
+        /// <summary>
+        /// Returns component hub throughput. Negative means unlimited.
+        /// </summary>
+        public static float ResolveComponentCapacity(EnergyNetworkComponent component)
+        {
+            if (component?.Nodes == null || component.Nodes.Count == 0)
+            {
+                return -1f;
+            }
+
+            var sum = 0f;
+            var hubCount = 0;
+            for (var i = 0; i < component.Nodes.Count; i++)
+            {
+                var node = component.Nodes[i];
+                if (!node.IsHub)
+                {
+                    continue;
+                }
+
+                hubCount++;
+                if (node.LinkCapacity <= 0f)
+                {
+                    return -1f;
+                }
+
+                sum += node.LinkCapacity;
+            }
+
+            return hubCount == 0 ? -1f : sum;
         }
     }
 }

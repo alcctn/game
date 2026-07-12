@@ -15,6 +15,8 @@ namespace CleanEnergy.Energy
         public IEnergyStorage Storage { get; }
         public bool IsHub { get; }
         public int ConnectionRange { get; }
+        /// <summary>Hub throughput per tick. Values &lt;= 0 mean unlimited.</summary>
+        public float LinkCapacity { get; }
 
         public EnergyNetworkNode(
             string id,
@@ -24,7 +26,8 @@ namespace CleanEnergy.Energy
             IEnergyStorage storage,
             bool isHub,
             int connectionRange,
-            string buildingTypeId = null)
+            string buildingTypeId = null,
+            float linkCapacity = 0f)
         {
             Id = id;
             BuildingTypeId = buildingTypeId ?? string.Empty;
@@ -34,6 +37,7 @@ namespace CleanEnergy.Energy
             Storage = storage;
             IsHub = isHub;
             ConnectionRange = Mathf.Max(1, connectionRange);
+            LinkCapacity = linkCapacity;
         }
     }
 

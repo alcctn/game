@@ -83,6 +83,14 @@ namespace CleanEnergy.UI
                     GUILayout.Label($"Demand {def.BaseDemand:F1}");
                 }
 
+                if (def.IsNetworkHub)
+                {
+                    var cap = def.LinkCapacity;
+                    GUILayout.Label(cap > 0f
+                        ? $"Link capacity {cap:F0}"
+                        : "Link capacity unlimited");
+                }
+
                 GUILayout.Label($"Maintenance {building.MaintenanceLevel:F2}");
 
                 var graph = networkService != null ? networkService.Graph : null;
