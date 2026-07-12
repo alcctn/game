@@ -72,6 +72,7 @@ namespace CleanEnergy.Core
             maintenance.Configure(placement);
             var driver = FindOrAdd<EnergySimulationDriver>(simRoot.gameObject);
             driver.Configure(clock, network, placement, maintenance, mapGenerator);
+            overlay.SetEnergyDriver(driver);
 
             var scenario = FindOrAdd<ScenarioController>(simRoot.gameObject);
             var research = FindOrAdd<ResearchController>(simRoot.gameObject);
@@ -108,6 +109,10 @@ namespace CleanEnergy.Core
             var telemetryHud = FindOrAdd<TelemetryHudUI>(telemetryHudGo.gameObject);
             telemetryHud.Configure(telemetry);
 
+            var pauseGo = EnsureChild("PauseOverlayUI", debugRoot);
+            var pauseOverlay = FindOrAdd<PauseOverlayUI>(pauseGo.gameObject);
+            pauseOverlay.Configure(clock, placement);
+
             var camTransform = cameraRoot.Find("Main Camera");
             Camera cam;
             if (camTransform == null)
@@ -142,6 +147,10 @@ namespace CleanEnergy.Core
             {
                 cam.gameObject.AddComponent<AudioListener>();
             }
+
+            var focusGo = EnsureChild("SelectionCameraFocus", debugRoot);
+            var selectionFocus = FindOrAdd<SelectionCameraFocus>(focusGo.gameObject);
+            selectionFocus.Configure(overlay, mapGenerator, placement, controller);
 
             var tutorial = FindOrAdd<TutorialController>(simRoot.gameObject);
             tutorial.Configure(controller, overlay, placement, research, scenario, mapGenerator);

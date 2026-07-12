@@ -42,6 +42,11 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 27. [Sprint 23 — Rüzgâr Gün Döngüsü](docs/SPRINT_23_WIND_DAYCYCLE.md)
 28. [Sprint 24 — Rüzgâr Türbin Mesafesi](docs/SPRINT_24_WIND_SPACING.md)
 29. [Sprint 25 — Debug Katman Kısayolları](docs/SPRINT_25_DEBUG_HOTKEYS.md)
+30. [Sprint 26 — Kamera Odaklanma](docs/SPRINT_26_CAMERA_FOCUS.md)
+31. [Sprint 27 — Yapı Döndürme](docs/SPRINT_27_BUILDING_ROTATE.md)
+32. [Sprint 28 — Pause Overlay](docs/SPRINT_28_PAUSE_OVERLAY.md)
+33. [Sprint 29 — Telemetry CSV](docs/SPRINT_29_TELEMETRY_CSV.md)
+34. [Sprint 30 — Şebeke Debug Katmanı](docs/SPRINT_30_NETWORK_DEBUG.md)
 
 ## İlk Uygulama Sırası
 

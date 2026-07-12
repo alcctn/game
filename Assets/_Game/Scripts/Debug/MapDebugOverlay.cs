@@ -1,3 +1,4 @@
+using CleanEnergy.Energy;
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
@@ -12,6 +13,7 @@ namespace CleanEnergy.DebugTools
     {
         [SerializeField] private MapGenerator mapGenerator;
         [SerializeField] private PlacementController placementController;
+        [SerializeField] private EnergySimulationDriver energyDriver;
         [SerializeField] private float overlayHeightOffset = 0.5f;
         [SerializeField] private float maxSlopeForColor = 45f;
         [SerializeField] private float maxWaterFlowForColor = 64f;
@@ -43,6 +45,11 @@ namespace CleanEnergy.DebugTools
             if (mapGenerator != null)
             {
                 mapGenerator.Events.MapGenerated -= OnMapGenerated;
+            }
+
+            if (energyDriver != null)
+            {
+                energyDriver.BalanceUpdated -= OnBalanceUpdated;
             }
 
             if (_material != null)
@@ -81,6 +88,28 @@ namespace CleanEnergy.DebugTools
         public void SetPlacementController(PlacementController controller)
         {
             placementController = controller;
+        }
+
+        public void SetEnergyDriver(EnergySimulationDriver driver)
+        {
+            if (energyDriver != null)
+            {
+                energyDriver.BalanceUpdated -= OnBalanceUpdated;
+            }
+
+            energyDriver = driver;
+            if (energyDriver != null)
+            {
+                energyDriver.BalanceUpdated += OnBalanceUpdated;
+            }
+        }
+
+        private void OnBalanceUpdated(EnergyBalanceResult _)
+        {
+            if (_mode == DebugViewMode.Network)
+            {
+                Rebuild();
+            }
         }
 
         public void SetMode(DebugViewMode mode)
@@ -252,6 +281,21 @@ namespace CleanEnergy.DebugTools
                     return Color.Lerp(new Color(0.15f, 0.15f, 0.2f), new Color(1f, 0.85f, 0.2f), Mathf.Clamp01(cell.SolarPotential));
                 case DebugViewMode.Wind:
                     return Color.Lerp(new Color(0.2f, 0.25f, 0.3f), new Color(0.55f, 0.85f, 1f), Mathf.Clamp01(cell.WindPotential));
+                case DebugViewMode.Network:
+                {
+                    var coordinate = new GridCoordinate(cell.X, cell.Y);
+                    if (energyDriver != null && energyDriver.TryGetHubUtilization(coordinate, out var util))
+                    {
+                        return NetworkUtilization.ColorForUtilization(util);
+                    }
+
+                    if (energyDriver != null && energyDriver.IsEnergyNetworkCell(coordinate))
+                    {
+                        return NetworkUtilization.EnergyNodeColor;
+                    }
+
+                    return NetworkUtilization.EmptyCellColor;
+                }
                 default:
                     return Color.white;
             }

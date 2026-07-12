@@ -10,6 +10,8 @@ namespace CleanEnergy.UI
     {
         [SerializeField] private TelemetryController telemetryController;
 
+        private string _exportStatus = string.Empty;
+
         public void Configure(TelemetryController controller)
         {
             telemetryController = controller;
@@ -24,7 +26,7 @@ namespace CleanEnergy.UI
             }
 
             const float width = 260f;
-            const float height = 150f;
+            const float height = 190f;
             GUILayout.BeginArea(new Rect(12f, Screen.height - height - 12f, width, height), GUI.skin.box);
             GUILayout.Label("Telemetry");
             GUILayout.Label($"1st build: {Format(s.TimeToFirstBuildingSeconds)}s");
@@ -36,6 +38,18 @@ namespace CleanEnergy.UI
             if (!string.IsNullOrEmpty(s.FailReason))
             {
                 GUILayout.Label($"Fail: {s.FailReason}");
+            }
+
+            if (GUILayout.Button("Export CSV"))
+            {
+                var path = s.ExportToPersistentDataPath();
+                _exportStatus = "Wrote CSV";
+                Debug.Log($"[Telemetry] Exported to {path}");
+            }
+
+            if (!string.IsNullOrEmpty(_exportStatus))
+            {
+                GUILayout.Label(_exportStatus);
             }
 
             GUILayout.EndArea();

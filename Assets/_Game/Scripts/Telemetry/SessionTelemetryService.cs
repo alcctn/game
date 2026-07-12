@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
 using CleanEnergy.DebugTools;
+using UnityEngine;
 
 namespace CleanEnergy.Telemetry
 {
@@ -8,6 +12,8 @@ namespace CleanEnergy.Telemetry
     /// </summary>
     public sealed class SessionTelemetryService
     {
+        public const string DefaultFileName = "telemetry_session.csv";
+
         private readonly Dictionary<DebugViewMode, int> _layerCounts = new Dictionary<DebugViewMode, int>();
 
         public float SessionStartTime { get; private set; }
@@ -44,6 +50,38 @@ namespace CleanEnergy.Telemetry
 
                 return best;
             }
+        }
+
+        public static string CsvHeader =>
+            "time_to_first_building,time_to_first_production,invalid_placements,preferred_layer,shortage_ratio,shortage_ticks,balance_ticks,scenario_end,fail_reason";
+
+        public string ToCsvLine()
+        {
+            return string.Join(",",
+                FormatOptional(TimeToFirstBuildingSeconds),
+                FormatOptional(TimeToFirstProductionSeconds),
+                InvalidPlacementAttempts.ToString(CultureInfo.InvariantCulture),
+                PreferredDebugLayer.ToString(),
+                AverageShortageRatio.ToString("F4", CultureInfo.InvariantCulture),
+                ShortageTicks.ToString(CultureInfo.InvariantCulture),
+                BalanceTicks.ToString(CultureInfo.InvariantCulture),
+                FormatOptional(ScenarioEndElapsedSeconds),
+                Escape(FailReason));
+        }
+
+        public string ExportToPersistentDataPath()
+        {
+            var path = Path.Combine(Application.persistentDataPath, DefaultFileName);
+            ExportToPath(path);
+            return path;
+        }
+
+        public void ExportToPath(string path)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(CsvHeader);
+            sb.AppendLine(ToCsvLine());
+            File.WriteAllText(path, sb.ToString());
         }
 
         public void Reset(float now)
@@ -105,6 +143,28 @@ namespace CleanEnergy.Telemetry
 
             ScenarioEndElapsedSeconds = now - SessionStartTime;
             FailReason = lost ? "shortage" : string.Empty;
+        }
+
+        private static string FormatOptional(float? value)
+        {
+            return value.HasValue
+                ? value.Value.ToString("F3", CultureInfo.InvariantCulture)
+                : string.Empty;
+        }
+
+        private static string Escape(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            if (value.IndexOfAny(new[] { ',', '"', '\n' }) < 0)
+            {
+                return value;
+            }
+
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
     }
 }

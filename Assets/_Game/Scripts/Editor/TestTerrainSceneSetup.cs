@@ -284,6 +284,7 @@ namespace CleanEnergy.Editor
             var overlay = overlayGo.AddComponent<MapDebugOverlay>();
             overlay.SetMapGenerator(mapGenerator);
             overlay.SetPlacementController(placement);
+            overlay.SetEnergyDriver(driver);
 
             var highlightGo = new GameObject("SelectionHighlight");
             highlightGo.transform.SetParent(overlayGo.transform, false);
@@ -334,6 +335,11 @@ namespace CleanEnergy.Editor
             var telemetryHud = telemetryHudGo.AddComponent<TelemetryHudUI>();
             telemetryHud.Configure(telemetry);
 
+            var pauseGo = new GameObject("PauseOverlayUI");
+            pauseGo.transform.SetParent(debugRoot.transform, false);
+            var pauseOverlay = pauseGo.AddComponent<PauseOverlayUI>();
+            pauseOverlay.Configure(clock, placement);
+
             var cameraRoot = new GameObject("CameraRoot");
             cameraRoot.transform.SetParent(gameRoot.transform, false);
             var mainCam = Object.FindAnyObjectByType<Camera>();
@@ -353,6 +359,11 @@ namespace CleanEnergy.Editor
             }
 
             controller.ConfigureBounds(settings.TerrainWorldSize);
+
+            var focusGo = new GameObject("SelectionCameraFocus");
+            focusGo.transform.SetParent(debugRoot.transform, false);
+            var selectionFocus = focusGo.AddComponent<SelectionCameraFocus>();
+            selectionFocus.Configure(overlay, mapGenerator, placement, controller);
 
             var tutorialController = simRoot.AddComponent<TutorialController>();
             tutorialController.Configure(

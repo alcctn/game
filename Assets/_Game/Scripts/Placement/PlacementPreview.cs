@@ -13,12 +13,13 @@ namespace CleanEnergy.Placement
         private Renderer _renderer;
         private Material _material;
 
-        public void Show(BuildingDefinition definition, Vector3 worldPosition, bool isValid)
+        public void Show(BuildingDefinition definition, Vector3 worldPosition, bool isValid, int rotation = 0)
         {
             EnsureGhost(definition);
             _ghost.SetActive(true);
             var half = EstimateHalfHeight(definition);
             _ghost.transform.position = new Vector3(worldPosition.x, worldPosition.y + half, worldPosition.z);
+            _ghost.transform.rotation = Quaternion.Euler(0f, rotation * 90f, 0f);
             var color = isValid
                 ? new Color(0.2f, 0.85f, 0.35f, 0.55f)
                 : new Color(0.9f, 0.2f, 0.15f, 0.55f);

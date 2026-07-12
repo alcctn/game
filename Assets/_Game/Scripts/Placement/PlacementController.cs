@@ -38,6 +38,7 @@ namespace CleanEnergy.Placement
         private BuildingDefinition _selected;
         private IReadOnlyList<string> _lastFailures = Array.Empty<string>();
         private bool _placementArmed;
+        private int _rotation;
 
         public Wallet Wallet => _wallet;
         public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
@@ -45,6 +46,7 @@ namespace CleanEnergy.Placement
         public BuildingDefinition SelectedBuilding => _selected;
         public IReadOnlyList<string> LastFailureReasons => _lastFailures;
         public bool IsPlacementActive => _placementArmed && _selected != null;
+        public int PlacementRotation => _rotation;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
@@ -89,6 +91,11 @@ namespace CleanEnergy.Placement
                 return;
             }
 
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                _rotation = (_rotation + 1) % 4;
+            }
+
             if (!TryGetHoveredCoordinate(out var coordinate))
             {
                 preview?.Hide();
@@ -106,7 +113,7 @@ namespace CleanEnergy.Placement
 
             if (mapGenerator.Grid.TryGetCell(coordinate, out var cell))
             {
-                preview.Show(_selected, cell.WorldPosition, result.IsValid);
+                preview.Show(_selected, cell.WorldPosition, result.IsValid, _rotation);
             }
 
             if (Input.GetMouseButtonDown(0) && !IsPointerOverImgui())
@@ -148,6 +155,7 @@ namespace CleanEnergy.Placement
         {
             _selected = definition;
             _placementArmed = definition != null;
+            _rotation = 0;
             _lastFailures = Array.Empty<string>();
             if (definition == null)
             {
@@ -159,8 +167,15 @@ namespace CleanEnergy.Placement
         {
             _placementArmed = false;
             _selected = null;
+            _rotation = 0;
             _lastFailures = Array.Empty<string>();
             preview?.Hide();
+        }
+
+        /// <summary>Cycles placement yaw for tests and input.</summary>
+        public void CycleRotation()
+        {
+            _rotation = (_rotation + 1) % 4;
         }
 
         public BuildingDefinition FindDefinition(string definitionId)
@@ -255,7 +270,7 @@ namespace CleanEnergy.Placement
             }
 
             var parent = buildingRoot != null ? buildingRoot : transform;
-            var instance = _factory.Create(_selected, coordinate, mapGenerator.Grid, parent);
+            var instance = _factory.Create(_selected, coordinate, mapGenerator.Grid, parent, _rotation);
             if (instance == null)
             {
                 return PlacementValidationResult.Failure(new[] { "Factory failed to create building." });

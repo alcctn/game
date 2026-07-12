@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using CleanEnergy.Economy;
+using CleanEnergy.Grid;
 using CleanEnergy.Maintenance;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
@@ -22,6 +24,9 @@ namespace CleanEnergy.Energy
         private readonly EnergyBalanceCalculator _balanceCalculator = new EnergyBalanceCalculator();
         private readonly UpkeepService _upkeepService = new UpkeepService();
         private readonly EmergencyCreditService _emergencyCredit = new EmergencyCreditService();
+        private readonly Dictionary<GridCoordinate, float> _hubUtilization =
+            new Dictionary<GridCoordinate, float>();
+        private readonly HashSet<GridCoordinate> _energyNodeCells = new HashSet<GridCoordinate>();
         private EnergyBalanceResult _lastResult = new EnergyBalanceResult(0f, 0f, 0f, 0f, 0f);
 
         public EnergyBalanceResult LastResult => _lastResult;
@@ -82,6 +87,16 @@ namespace CleanEnergy.Energy
             SubscribeMap();
         }
 
+        public bool TryGetHubUtilization(GridCoordinate coordinate, out float utilization)
+        {
+            return _hubUtilization.TryGetValue(coordinate, out utilization);
+        }
+
+        public bool IsEnergyNetworkCell(GridCoordinate coordinate)
+        {
+            return _energyNodeCells.Contains(coordinate);
+        }
+
         private void OnTick(SimulationContext context)
         {
             if (networkService == null)
@@ -91,7 +106,7 @@ namespace CleanEnergy.Energy
 
             maintenanceController?.ProcessTick();
             networkService.RebuildIfNeeded();
-            _lastResult = _balanceCalculator.CalculateNetwork(networkService.Graph, context);
+            RefreshNetworkSnapshot(context);
 
             if (_lastResult.SurplusSold > 0f && placementController?.Wallet != null)
             {
@@ -117,6 +132,66 @@ namespace CleanEnergy.Energy
             }
         }
 
+        private void RefreshNetworkSnapshot(SimulationContext context)
+        {
+            _hubUtilization.Clear();
+            _energyNodeCells.Clear();
+
+            var production = 0f;
+            var demand = 0f;
+            var stored = 0f;
+            var sold = 0f;
+            var shortage = 0f;
+            var charged = 0f;
+            var delivered = 0f;
+            var capacitySum = 0f;
+            var hasFiniteCapacity = false;
+            var congested = false;
+
+            foreach (var component in networkService.Graph.Components)
+            {
+                var result = _balanceCalculator.Calculate(component, context);
+                production += result.Production;
+                demand += result.Demand;
+                stored += result.Stored;
+                sold += result.SurplusSold;
+                shortage += result.Shortage;
+                charged += result.EnergyCharged;
+                delivered += result.DeliveredProduction;
+                congested |= result.IsCongested;
+                if (result.LinkCapacity > 0f)
+                {
+                    hasFiniteCapacity = true;
+                    capacitySum += result.LinkCapacity;
+                }
+
+                var util = NetworkUtilization.Compute(result.DeliveredProduction, result.LinkCapacity);
+                for (var i = 0; i < component.Nodes.Count; i++)
+                {
+                    var node = component.Nodes[i];
+                    if (node.IsHub)
+                    {
+                        _hubUtilization[node.Coordinate] = util;
+                    }
+                    else if (node.Producer != null || node.Consumer != null || node.Storage != null)
+                    {
+                        _energyNodeCells.Add(node.Coordinate);
+                    }
+                }
+            }
+
+            _lastResult = new EnergyBalanceResult(
+                production,
+                demand,
+                stored,
+                sold,
+                shortage,
+                charged,
+                delivered,
+                hasFiniteCapacity ? capacitySum : 0f,
+                congested);
+        }
+
         private void SubscribeMap()
         {
             if (mapGenerator != null)
@@ -136,6 +211,8 @@ namespace CleanEnergy.Energy
         private void OnMapGenerated(Core.MapGeneratedEvent _)
         {
             _emergencyCredit.Reset();
+            _hubUtilization.Clear();
+            _energyNodeCells.Clear();
         }
     }
 }

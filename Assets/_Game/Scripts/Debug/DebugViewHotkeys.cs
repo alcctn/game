@@ -29,6 +29,9 @@ namespace CleanEnergy.DebugTools
                 case KeyCode.F6:
                     mode = DebugViewMode.Wind;
                     return true;
+                case KeyCode.F7:
+                    mode = DebugViewMode.Network;
+                    return true;
                 default:
                     mode = DebugViewMode.Normal;
                     return false;

@@ -7,6 +7,7 @@ namespace CleanEnergy.DebugTools
         Slope = 2,
         Water = 3,
         Solar = 4,
-        Wind = 5
+        Wind = 5,
+        Network = 6
     }
 }
