@@ -185,3 +185,11 @@ Gecici modelden gercek prefab'a gecis tamam sayilirsa:
 - Prefab terrain ustune dogru oturur.
 - Save / load sonrasinda goruntu korunur.
 - `prefab` alani bos kalirsa primitive fallback hala calisir.
+
+## 11. Terrain / su gorselleri
+
+Zemin ve akarsu/göl görselleri bina prefab’larından ayrıdır:
+
+- `TerrainArtCatalog` (`Assets/_Game/Data/Art/`) — Pure Poly TerrainLayer + `PP_Water`
+- `TerrainBuilder` — matte splat; `WaterSurfaceVisual` — su mesh
+- Kurulum: Unity menü **Clean Energy → Setup Terrain Art Catalog**

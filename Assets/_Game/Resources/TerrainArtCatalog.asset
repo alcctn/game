@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5b3a3fc51d6d304f95ca92c7b202e6f, type: 3}
+  m_Name: TerrainArtCatalog
+  m_EditorClassIdentifier: CleanEnergy.Runtime::CleanEnergy.Art.TerrainArtCatalog
+  grass: {fileID: 8574412962073106934, guid: ed31af6ee70ef1f4a99d39a409e142d8, type: 2}
+  riverBed: {fileID: 8574412962073106934, guid: 39447f31df28ebe41a467e7717c03339, type: 2}
+  lakeShore: {fileID: 8574412962073106934, guid: 5e4276a7f8ae36043a85f790c3eb8bf4, type: 2}
+  waterMaterial: {fileID: 2100000, guid: fa32104831dd72c45a4fb79b6dfdc864, type: 2}

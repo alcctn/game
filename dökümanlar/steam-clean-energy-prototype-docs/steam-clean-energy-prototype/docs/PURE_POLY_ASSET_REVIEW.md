@@ -34,6 +34,13 @@ Prefab yapısı: tek GameObject + MeshFilter/Renderer + collider; scale `1,1,1`.
 
 Mevcut oyun araziyi heightmesh ile üretir (`MapGenerator`). Bu paket **overlay / tile / prop** olarak bağlanır; sim logic değiştirmez.
 
+## Terrain zemin + su (runtime)
+
+- `TerrainArtCatalog` Pure Poly TerrainLayer’ları kullanır: `Cauliflower_Green` (kara), `Pebbles_Green_Ground` (nehir yatağı), `Pebbles_Dark_Brown_Ground` (göl).
+- Biome alphamap `TerrainBuilder.ApplyBiomeAlphamap` ile boyanır; smoothness/metallic 0 (matte).
+- `WaterSurfaceVisual` `River`/`Lake` hücrelerinde `PP_Water.mat` birleşik mesh üretir.
+- Menü: **Clean Energy → Setup Terrain Art Catalog**.
+
 ## Sonuç
 
 - Paket doğru yerde import edilmiş.

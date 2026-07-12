@@ -29,6 +29,7 @@ namespace CleanEnergy.Core
         [SerializeField] private ScenarioDefinition[] scenarioCatalog;
         [SerializeField] private ResearchTreeDefinition researchTreeDefinition;
         [SerializeField] private PurePolyCatalog purePolyCatalog;
+        [SerializeField] private TerrainArtCatalog terrainArtCatalog;
         [SerializeField] private bool createSettingsIfMissing = true;
         [SerializeField] private float startingMoney = 1000f;
 
@@ -48,11 +49,17 @@ namespace CleanEnergy.Core
             var mapGenerator = FindOrAdd<MapGenerator>(mapRoot);
             mapGenerator.SetSettings(settingsAsset);
             mapGenerator.SetTerrainRoot(terrainRoot);
+            var terrainArt = ResolveTerrainArtCatalog();
+            mapGenerator.SetTerrainArtCatalog(terrainArt);
 
             var natureRoot = EnsureChild(NatureVisualSpawner.NatureRootName, mapRoot);
             var natureSpawner = FindOrAdd<NatureVisualSpawner>(mapRoot.gameObject);
             var catalog = ResolvePurePolyCatalog();
             natureSpawner.Configure(mapGenerator, catalog, natureRoot);
+
+            var waterRoot = EnsureChild(WaterSurfaceVisual.WaterRootName, mapRoot);
+            var waterVisual = FindOrAdd<WaterSurfaceVisual>(mapRoot.gameObject);
+            waterVisual.Configure(mapGenerator, terrainArt, waterRoot);
 
             var clock = FindOrAdd<SimulationClock>(simRoot.gameObject);
             clock.BindMapGenerator(mapGenerator);
@@ -325,6 +332,23 @@ namespace CleanEnergy.Core
 
             purePolyCatalog = ScriptableObject.CreateInstance<PurePolyCatalog>();
             return purePolyCatalog;
+        }
+
+        private TerrainArtCatalog ResolveTerrainArtCatalog()
+        {
+            if (terrainArtCatalog != null)
+            {
+                return terrainArtCatalog;
+            }
+
+            terrainArtCatalog = Resources.Load<TerrainArtCatalog>("TerrainArtCatalog");
+            if (terrainArtCatalog != null)
+            {
+                return terrainArtCatalog;
+            }
+
+            terrainArtCatalog = ScriptableObject.CreateInstance<TerrainArtCatalog>();
+            return terrainArtCatalog;
         }
 
         public static BuildingDefinition[] CreateDefaultBuildings()

@@ -1,6 +1,6 @@
+using CleanEnergy.Art;
 using CleanEnergy.Core;
 using CleanEnergy.Grid;
-using CleanEnergy.Map;
 using CleanEnergy.TerrainGeneration;
 using UnityEngine;
 
@@ -14,6 +14,7 @@ namespace CleanEnergy.Map
         [SerializeField] private MapGenerationSettings settings;
         [SerializeField] private Transform terrainRoot;
         [SerializeField] private bool generateOnStart = true;
+        [SerializeField] private TerrainArtCatalog terrainArtCatalog;
 
         private readonly HeightMapGenerator _heightMapGenerator = new HeightMapGenerator();
         private readonly TerrainBuilder _terrainBuilder = new TerrainBuilder();
@@ -33,6 +34,7 @@ namespace CleanEnergy.Map
         public EventBus Events => _eventBus;
         public float[,] LastHeightMap => _lastHeightMap;
         public TerrainBuilder TerrainBuilder => _terrainBuilder;
+        public TerrainArtCatalog TerrainArtCatalog => terrainArtCatalog;
 
         private void Start()
         {
@@ -50,6 +52,12 @@ namespace CleanEnergy.Map
         public void SetTerrainRoot(Transform root)
         {
             terrainRoot = root;
+        }
+
+        public void SetTerrainArtCatalog(TerrainArtCatalog catalog)
+        {
+            terrainArtCatalog = catalog;
+            _terrainBuilder.SetArtCatalog(catalog);
         }
 
         public void SetSeed(string seed)
@@ -77,6 +85,7 @@ namespace CleanEnergy.Map
                 return false;
             }
 
+            _terrainBuilder.SetArtCatalog(terrainArtCatalog);
             _lastHeightMap = _heightMapGenerator.Generate(settings);
 
             var parent = terrainRoot != null ? terrainRoot : transform;
@@ -109,6 +118,8 @@ namespace CleanEnergy.Map
             _windPotentialCalculator.Calculate(_lastHeightMap, _gridService, settings);
             _biomeGenerator.Calculate(_gridService, settings);
             _buildabilityCalculator.Calculate(_gridService, settings);
+
+            _terrainBuilder.ApplyBiomeAlphamap(_gridService, settings);
 
             _eventBus.Publish(new MapGeneratedEvent(settings.Seed, settings.GridWidth, settings.GridHeight));
             return true;

@@ -56,8 +56,9 @@ namespace CleanEnergy.Editor
             var aridPlateau = CreateOrLoadAridPlateauScenario();
             var research = CreateOrLoadResearch();
             var purePoly = CreateOrLoadPurePolyCatalog();
+            var terrainArt = CreateOrLoadTerrainArtCatalog();
             var buildings = CreateOrLoadBuildings();
-            CreateScene(settings, buildings, scenario, sunRidge, windCoast, pineBasin, aridPlateau, research, purePoly);
+            CreateScene(settings, buildings, scenario, sunRidge, windCoast, pineBasin, aridPlateau, research, purePoly, terrainArt);
             EnsureMainMenuScene();
             EnsureBootstrapScene();
             UpdateBuildSettings();
@@ -135,11 +136,27 @@ namespace CleanEnergy.Editor
             Debug.Log("[Setup] PurePolyCatalog wired from Pure Poly prefabs.");
         }
 
+        [MenuItem("Clean Energy/Setup Terrain Art Catalog")]
+        public static void SetupTerrainArtCatalogMenu()
+        {
+            EnsureFolders();
+            CreateOrLoadTerrainArtCatalog();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Setup] TerrainArtCatalog wired from Pure Poly terrain layers.");
+        }
+
         /// <summary>Ensures PurePolyCatalog exists and prefab slots are assigned (null-safe).</summary>
         public static PurePolyCatalog EnsurePurePolyCatalog()
         {
             EnsureFolders();
             return CreateOrLoadPurePolyCatalog();
+        }
+
+        /// <summary>Ensures TerrainArtCatalog exists with Pure Poly layers + water mat.</summary>
+        public static TerrainArtCatalog EnsureTerrainArtCatalog()
+        {
+            EnsureFolders();
+            return CreateOrLoadTerrainArtCatalog();
         }
 
         private static void EnsureFolders()
@@ -401,6 +418,53 @@ namespace CleanEnergy.Editor
             return catalog;
         }
 
+        private static TerrainArtCatalog CreateOrLoadTerrainArtCatalog()
+        {
+            const string dataPath = TerrainArtCatalog.DefaultAssetPath;
+            const string resourcesPath = "Assets/_Game/Resources/TerrainArtCatalog.asset";
+
+            var catalog = AssetDatabase.LoadAssetAtPath<TerrainArtCatalog>(dataPath);
+            if (catalog == null)
+            {
+                catalog = ScriptableObject.CreateInstance<TerrainArtCatalog>();
+                AssetDatabase.CreateAsset(catalog, dataPath);
+            }
+
+            catalog.Configure(
+                LoadTerrainLayer("Cauliflower_Green"),
+                LoadTerrainLayer("Pebbles_Green_Ground"),
+                LoadTerrainLayer("Pebbles_Dark_Brown_Ground"),
+                AssetDatabase.LoadAssetAtPath<Material>(TerrainArtCatalog.WaterMaterialPath));
+            catalog.EnforceMatteLayers();
+            EditorUtility.SetDirty(catalog);
+
+            var resourcesCopy = AssetDatabase.LoadAssetAtPath<TerrainArtCatalog>(resourcesPath);
+            if (resourcesCopy == null)
+            {
+                AssetDatabase.CopyAsset(dataPath, resourcesPath);
+                resourcesCopy = AssetDatabase.LoadAssetAtPath<TerrainArtCatalog>(resourcesPath);
+            }
+
+            if (resourcesCopy != null && resourcesCopy != catalog)
+            {
+                resourcesCopy.Configure(
+                    catalog.Grass,
+                    catalog.RiverBed,
+                    catalog.LakeShore,
+                    catalog.WaterMaterial);
+                resourcesCopy.EnforceMatteLayers();
+                EditorUtility.SetDirty(resourcesCopy);
+            }
+
+            return catalog;
+        }
+
+        private static TerrainLayer LoadTerrainLayer(string layerName)
+        {
+            return AssetDatabase.LoadAssetAtPath<TerrainLayer>(
+                $"{TerrainArtCatalog.LayerFolder}/{layerName}.terrainlayer");
+        }
+
         private static GameObject LoadPp(string prefabName)
         {
             return AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -600,7 +664,8 @@ namespace CleanEnergy.Editor
             ScenarioDefinition pineBasin,
             ScenarioDefinition aridPlateau,
             ResearchTreeDefinition research,
-            PurePolyCatalog purePoly = null)
+            PurePolyCatalog purePoly = null,
+            TerrainArtCatalog terrainArt = null)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
@@ -611,6 +676,7 @@ namespace CleanEnergy.Editor
             so.FindProperty("scenarioDefinition").objectReferenceValue = scenario;
             so.FindProperty("researchTreeDefinition").objectReferenceValue = research;
             so.FindProperty("purePolyCatalog").objectReferenceValue = purePoly;
+            so.FindProperty("terrainArtCatalog").objectReferenceValue = terrainArt;
             so.FindProperty("startingMoney").floatValue = 1000f;
             var catalogProp = so.FindProperty("scenarioCatalog");
             catalogProp.arraySize = 5;

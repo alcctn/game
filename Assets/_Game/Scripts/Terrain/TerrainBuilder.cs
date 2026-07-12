@@ -1,3 +1,5 @@
+using CleanEnergy.Art;
+using CleanEnergy.Grid;
 using CleanEnergy.Map;
 using UnityEngine;
 
@@ -8,9 +10,17 @@ namespace CleanEnergy.TerrainGeneration
     /// </summary>
     public sealed class TerrainBuilder
     {
+        private const int DefaultAlphamapResolution = 128;
+
         private UnityEngine.Terrain _terrain;
+        private TerrainArtCatalog _artCatalog;
 
         public UnityEngine.Terrain CurrentTerrain => _terrain;
+
+        public void SetArtCatalog(TerrainArtCatalog catalog)
+        {
+            _artCatalog = catalog;
+        }
 
         public UnityEngine.Terrain BuildOrUpdate(MapGenerationSettings settings, float[,] heightMap, Transform parent)
         {
@@ -27,7 +37,7 @@ namespace CleanEnergy.TerrainGeneration
 
             var heights = SampleToTerrainHeights(heightMap, resolution);
             terrainData.SetHeights(0, 0, heights);
-            EnsureTerrainLayers(terrainData);
+            EnsureTerrainLayers(terrainData, _artCatalog);
 
             if (_terrain == null)
             {
@@ -54,18 +64,96 @@ namespace CleanEnergy.TerrainGeneration
         }
 
         /// <summary>
-        /// URP Terrain Lit needs at least one TerrainLayer or the surface often draws blank.
+        /// Paints splat weights from grid biomes (call after biome generation).
         /// </summary>
-        public static void EnsureTerrainLayers(TerrainData terrainData)
+        public void ApplyBiomeAlphamap(GridService grid, MapGenerationSettings settings)
+        {
+            if (_terrain == null || _terrain.terrainData == null || grid == null || !grid.IsInitialized || settings == null)
+            {
+                return;
+            }
+
+            ApplyBiomeAlphamap(_terrain.terrainData, grid, settings);
+            _terrain.Flush();
+        }
+
+        public static void ApplyBiomeAlphamap(
+            TerrainData terrainData,
+            GridService grid,
+            MapGenerationSettings settings)
+        {
+            if (terrainData == null || grid == null || !grid.IsInitialized || settings == null)
+            {
+                return;
+            }
+
+            if (terrainData.alphamapLayers < TerrainBiomeSplatMath.LayerCount)
+            {
+                return;
+            }
+
+            var res = terrainData.alphamapResolution;
+            if (res < 16)
+            {
+                terrainData.alphamapResolution = DefaultAlphamapResolution;
+                res = terrainData.alphamapResolution;
+            }
+
+            var maps = new float[res, res, terrainData.alphamapLayers];
+            var weights = new float[TerrainBiomeSplatMath.LayerCount];
+            var worldSize = settings.TerrainWorldSize;
+            var denom = Mathf.Max(1, res - 1);
+
+            for (var z = 0; z < res; z++)
+            {
+                for (var x = 0; x < res; x++)
+                {
+                    var worldX = (x / (float)denom) * worldSize;
+                    var worldZ = (z / (float)denom) * worldSize;
+                    var biome = BiomeType.Plains;
+                    if (grid.TryWorldToGrid(new Vector3(worldX, 0f, worldZ), out var coord)
+                        && grid.TryGetCell(coord, out var cell))
+                    {
+                        biome = cell.Biome;
+                    }
+
+                    TerrainBiomeSplatMath.WriteWeights(weights, biome);
+                    for (var layer = 0; layer < TerrainBiomeSplatMath.LayerCount; layer++)
+                    {
+                        maps[z, x, layer] = weights[layer];
+                    }
+                }
+            }
+
+            terrainData.SetAlphamaps(0, 0, maps);
+        }
+
+        /// <summary>
+        /// Assigns Pure Poly matte layers when catalog is available; otherwise a solid green fallback.
+        /// </summary>
+        public static void EnsureTerrainLayers(TerrainData terrainData, TerrainArtCatalog catalog = null)
         {
             if (terrainData == null)
             {
                 return;
             }
 
+            if (catalog != null && catalog.HasTerrainLayers())
+            {
+                catalog.EnforceMatteLayers();
+                terrainData.terrainLayers = catalog.BuildLayerArray();
+                if (terrainData.alphamapResolution < 16)
+                {
+                    terrainData.alphamapResolution = DefaultAlphamapResolution;
+                }
+
+                return;
+            }
+
             var existing = terrainData.terrainLayers;
             if (existing != null && existing.Length > 0 && existing[0] != null)
             {
+                EnforceMatteOnLayers(existing);
                 return;
             }
 
@@ -88,8 +176,11 @@ namespace CleanEnergy.TerrainGeneration
             var layer = new TerrainLayer
             {
                 diffuseTexture = tex,
-                tileSize = new Vector2(16f, 16f),
-                tileOffset = Vector2.zero
+                tileSize = new Vector2(8f, 8f),
+                tileOffset = Vector2.zero,
+                metallic = 0f,
+                smoothness = 0f,
+                specular = Color.black
             };
             terrainData.terrainLayers = new[] { layer };
         }
@@ -117,20 +208,35 @@ namespace CleanEnergy.TerrainGeneration
                 mat = new Material(shader) { name = "GeneratedTerrain_URP" };
             }
 
-            var grass = new Color(0.32f, 0.52f, 0.26f, 1f);
+            var white = Color.white;
             if (mat.HasProperty("_Color"))
             {
-                mat.SetColor("_Color", grass);
+                mat.SetColor("_Color", white);
             }
 
             if (mat.HasProperty("_BaseColor"))
             {
-                mat.SetColor("_BaseColor", grass);
+                mat.SetColor("_BaseColor", white);
             }
 
             if (mat.HasProperty("_DiffuseColor"))
             {
-                mat.SetColor("_DiffuseColor", grass);
+                mat.SetColor("_DiffuseColor", white);
+            }
+
+            if (mat.HasProperty("_Smoothness"))
+            {
+                mat.SetFloat("_Smoothness", 0f);
+            }
+
+            if (mat.HasProperty("_Metallic"))
+            {
+                mat.SetFloat("_Metallic", 0f);
+            }
+
+            if (mat.HasProperty("_SpecColor"))
+            {
+                mat.SetColor("_SpecColor", Color.black);
             }
 
             terrain.materialTemplate = mat;
@@ -152,6 +258,27 @@ namespace CleanEnergy.TerrainGeneration
             else
             {
                 Object.DestroyImmediate(go);
+            }
+        }
+
+        private static void EnforceMatteOnLayers(TerrainLayer[] layers)
+        {
+            if (layers == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < layers.Length; i++)
+            {
+                var layer = layers[i];
+                if (layer == null)
+                {
+                    continue;
+                }
+
+                layer.metallic = 0f;
+                layer.smoothness = 0f;
+                layer.specular = Color.black;
             }
         }
 
