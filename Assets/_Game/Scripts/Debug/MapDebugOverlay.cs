@@ -73,35 +73,9 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0) && !IsPointerOverGui())
             {
-                var overGui = IsPointerOverGui();
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "A",
-                    "MapDebugOverlay.Update",
-                    "click",
-                    "{\"overGui\":" + (overGui ? "true" : "false") +
-                    ",\"willSelect\":" + (!overGui ? "true" : "false") +
-                    ",\"mx\":" + Input.mousePosition.x.ToString("F0") +
-                    ",\"my\":" + Input.mousePosition.y.ToString("F0") +
-                    ",\"sw\":" + Screen.width +
-                    ",\"sh\":" + Screen.height + "}");
-                // #endregion
-                if (!overGui)
-                {
-                    TrySelectCellUnderCursor();
-                }
-                else
-                {
-                    // #region agent log
-                    CleanEnergy.DebugTools.AgentDebugLog.Write(
-                        "A",
-                        "MapDebugOverlay.Update",
-                        "blocked_by_gui",
-                        "{}");
-                    // #endregion
-                }
+                TrySelectCellUnderCursor();
             }
         }
 

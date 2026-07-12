@@ -44,13 +44,6 @@ namespace CleanEnergy.Save
         private void Awake()
         {
             EnsureService();
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "B",
-                "SaveLoadController.Awake",
-                "service_ok",
-                "{\"hasService\":" + (_saveService != null ? "true" : "false") + "}");
-            // #endregion
         }
 
         private void EnsureService()
