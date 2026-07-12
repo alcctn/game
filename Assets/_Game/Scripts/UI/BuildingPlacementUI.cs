@@ -133,14 +133,28 @@ namespace CleanEnergy.UI
         }
 
         /// <summary>True when the building may be selected for placement.</summary>
-        public static bool CanSelectBuilding(BuildingDefinition definition, IBuildingUnlockQuery unlocks)
+        public static bool CanSelectBuilding(
+            BuildingDefinition definition,
+            IBuildingUnlockQuery unlocks,
+            bool energyOnly = false)
         {
             if (definition == null)
             {
                 return false;
             }
 
+            if (!IsCategoryAllowed(definition.Category, energyOnly))
+            {
+                return false;
+            }
+
             return unlocks == null || unlocks.IsBuildingUnlocked(definition.Id);
+        }
+
+        /// <summary>Level 1 gate: only Energy tab is interactive when energyOnly.</summary>
+        public static bool IsCategoryAllowed(BuildingCategory category, bool energyOnly)
+        {
+            return !energyOnly || category == BuildingCategory.Energy;
         }
 
         /// <summary>Formats the locked-row reason shown in the build menu.</summary>
@@ -216,6 +230,7 @@ namespace CleanEnergy.UI
 
             DrawCategoryTabs();
 
+            var energyOnly = placementController.RestrictBuildMenuToEnergy;
             var buildings = placementController.AvailableBuildings;
             if (buildings != null)
             {
@@ -231,10 +246,12 @@ namespace CleanEnergy.UI
                         continue;
                     }
 
-                    var unlocked = CanSelectBuilding(def, placementController.BuildingUnlocks);
+                    var unlocked = CanSelectBuilding(def, placementController.BuildingUnlocks, energyOnly);
                     if (!unlocked)
                     {
-                        var requirement = ResolveUnlockRequirementLabel(def.Id, tree);
+                        var requirement = energyOnly && def.Category != BuildingCategory.Energy
+                            ? "Level 1 — Energy only"
+                            : ResolveUnlockRequirementLabel(def.Id, tree);
                         var lockedLabel = $"{def.DisplayName} — {FormatLockedReason(requirement)}";
                         var previous = GUI.enabled;
                         GUI.enabled = false;
@@ -282,17 +299,55 @@ namespace CleanEnergy.UI
 
         private void DrawCategoryTabs()
         {
-            var selectedIndex = IndexOfCategory(_activeCategory);
-            var next = GUILayout.SelectionGrid(selectedIndex, TabLabels, 3);
-            if (next != selectedIndex && next >= 0 && next < TabOrder.Length)
+            var energyOnly = placementController != null && placementController.RestrictBuildMenuToEnergy;
+            if (energyOnly && !IsCategoryAllowed(_activeCategory, true))
             {
-                SetActiveCategory(TabOrder[next]);
-                if (placementController.SelectedBuilding != null
-                    && placementController.SelectedBuilding.Category != _activeCategory)
-                {
-                    placementController.CancelPlacement();
-                }
+                SetActiveCategory(BuildingCategory.Energy);
             }
+
+            GUILayout.BeginHorizontal();
+            for (var i = 0; i < TabOrder.Length; i++)
+            {
+                var category = TabOrder[i];
+                var allowed = IsCategoryAllowed(category, energyOnly);
+                var previous = GUI.enabled;
+                GUI.enabled = allowed;
+                var isActive = _activeCategory == category;
+                if (GUILayout.Toggle(isActive, TabLabels[i], "Button"))
+                {
+                    if (allowed && !isActive)
+                    {
+                        // #region agent log
+                        CleanEnergy.DebugTools.AgentDebugLog.Write(
+                            "C1",
+                            "BuildingPlacementUI.DrawCategoryTabs",
+                            "tab_ok",
+                            "{\"category\":\"" + category +
+                            "\",\"energyOnly\":" + (energyOnly ? "true" : "false") + "}");
+                        // #endregion
+                        SetActiveCategory(category);
+                        if (placementController.SelectedBuilding != null
+                            && placementController.SelectedBuilding.Category != _activeCategory)
+                        {
+                            placementController.CancelPlacement();
+                        }
+                    }
+                    else if (!allowed)
+                    {
+                        // #region agent log
+                        CleanEnergy.DebugTools.AgentDebugLog.Write(
+                            "C1",
+                            "BuildingPlacementUI.DrawCategoryTabs",
+                            "tab_blocked",
+                            "{\"category\":\"" + category + "\",\"energyOnly\":true}");
+                        // #endregion
+                    }
+                }
+
+                GUI.enabled = previous;
+            }
+
+            GUILayout.EndHorizontal();
         }
 
         private void EnsureTabLoaded()

@@ -87,6 +87,7 @@ namespace CleanEnergy.Placement
                 new MaxSameTypeCountRule(),
                 new AffordabilityRule(),
                 new TechnologyUnlockedRule(),
+                new AllowedBuildCategoryRule(),
                 new SettlementRadiusRule(settlement),
                 new WorkerRequirementRule(workers),
                 new NetworkConnectionRule()

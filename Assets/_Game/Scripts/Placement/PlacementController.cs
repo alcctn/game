@@ -94,6 +94,9 @@ namespace CleanEnergy.Placement
         public bool IsHoverValid => _hoverValid;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
         public MapGenerator MapGenerator => mapGenerator;
+        public LevelDefinition Level => _level;
+        public bool RestrictBuildMenuToEnergy =>
+            _level != null && _level.RestrictBuildMenuToEnergy;
         public bool HasDemolishUndo => _demolishUndoStack.Count > 0;
         public int DemolishUndoStackDepth => _demolishUndoStack.Count;
         public int DemolishUndoCount =>
@@ -256,6 +259,34 @@ namespace CleanEnergy.Placement
 
         public void SelectBuilding(BuildingDefinition definition)
         {
+            if (definition != null
+                && RestrictBuildMenuToEnergy
+                && definition.Category != BuildingCategory.Energy)
+            {
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "C3",
+                    "PlacementController.SelectBuilding",
+                    "select_block",
+                    "{\"id\":\"" + definition.Id +
+                    "\",\"category\":\"" + definition.Category + "\"}");
+                // #endregion
+                return;
+            }
+
+            // #region agent log
+            if (definition != null)
+            {
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "C1",
+                    "PlacementController.SelectBuilding",
+                    "select_ok",
+                    "{\"id\":\"" + definition.Id +
+                    "\",\"category\":\"" + definition.Category +
+                    "\",\"energyOnly\":" + (RestrictBuildMenuToEnergy ? "true" : "false") + "}");
+            }
+            // #endregion
+
             _selected = definition;
             _placementArmed = definition != null;
             _rotation = 0;

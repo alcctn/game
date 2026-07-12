@@ -16,6 +16,7 @@ namespace CleanEnergy.Scenario
         [SerializeField] private int placementRadius = 10;
         [SerializeField] private float connectionCostPerCell = 2f;
         [SerializeField] private bool autoConnectEnabled = true;
+        [SerializeField] private bool restrictBuildMenuToEnergy = true;
         [SerializeField] private float incomePerSuppliedEnergy = 1f;
         [SerializeField] private float requiredCoverageRatio = 0.95f;
         [SerializeField] private int requiredCoverageTicks = 40;
@@ -35,6 +36,8 @@ namespace CleanEnergy.Scenario
         public int PlacementRadius => Mathf.Max(1, placementRadius);
         public float ConnectionCostPerCell => Mathf.Max(0f, connectionCostPerCell);
         public bool AutoConnectEnabled => autoConnectEnabled;
+        /// <summary>When true, only Energy-tab buildings may be selected/placed (Level 1).</summary>
+        public bool RestrictBuildMenuToEnergy => restrictBuildMenuToEnergy;
         public float IncomePerSuppliedEnergy => Mathf.Max(0f, incomePerSuppliedEnergy);
         public float RequiredCoverageRatio => Mathf.Clamp01(requiredCoverageRatio);
         public int RequiredCoverageTicks => Mathf.Max(1, requiredCoverageTicks);
@@ -56,6 +59,7 @@ namespace CleanEnergy.Scenario
             placementRadius = 10;
             connectionCostPerCell = 2f;
             autoConnectEnabled = true;
+            restrictBuildMenuToEnergy = true;
             incomePerSuppliedEnergy = 1f;
             requiredCoverageRatio = 0.95f;
             requiredCoverageTicks = 40;

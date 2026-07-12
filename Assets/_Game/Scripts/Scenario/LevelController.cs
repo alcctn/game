@@ -72,6 +72,13 @@ namespace CleanEnergy.Scenario
             if (placementController != null)
             {
                 placementController.SetLevelServices(levelDefinition, _settlement, _workers.Pool);
+                // #region agent log
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "C5",
+                    "LevelController.Configure",
+                    "energy_only_flag",
+                    "{\"restrict\":" + (levelDefinition.RestrictBuildMenuToEnergy ? "true" : "false") + "}");
+                // #endregion
                 if (placementController.Wallet != null)
                 {
                     placementController.Wallet.SetMoney(levelDefinition.StartingMoney);

@@ -417,6 +417,41 @@ namespace CleanEnergy.Placement
     }
 
     /// <summary>
+    /// Level 1 (and similar): only Energy-category buildings may be placed.
+    /// </summary>
+    public sealed class AllowedBuildCategoryRule : IPlacementRule
+    {
+        public const string FailReason = "Only Energy buildings are available in this level.";
+
+        public string RuleId => "allowed_build_category";
+
+        public bool Evaluate(PlacementContext context, List<string> failureReasons)
+        {
+            if (context.Level == null || !context.Level.RestrictBuildMenuToEnergy)
+            {
+                return true;
+            }
+
+            if (context.Definition == null || context.Definition.Category == BuildingCategory.Energy)
+            {
+                return true;
+            }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "C3",
+                "AllowedBuildCategoryRule.Evaluate",
+                "place_block",
+                "{\"id\":\"" + context.Definition.Id +
+                "\",\"category\":\"" + context.Definition.Category + "\"}");
+            // #endregion
+
+            failureReasons.Add(FailReason);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Producers and storage must place within link range of an existing network node.
     /// Empty map: first network node (including producers) may seed the network.
     /// When Level auto-connect is enabled, network proximity is deferred to auto-grid.

@@ -4,6 +4,7 @@ using CleanEnergy.Grid;
 using CleanEnergy.Placement;
 using CleanEnergy.Scenario;
 using CleanEnergy.Settlements;
+using CleanEnergy.UI;
 using CleanEnergy.Workers;
 using NUnit.Framework;
 using UnityEngine;
@@ -61,6 +62,45 @@ namespace CleanEnergy.Tests.EditMode
             Assert.IsFalse(rule.Evaluate(ctx, reasons));
             pool.TryAdd(WorkerType.Engineer);
             reasons.Clear();
+            Assert.IsTrue(rule.Evaluate(ctx, reasons));
+        }
+
+        [Test]
+        public void Level01_RestrictsBuildMenuToEnergy()
+        {
+            var level = LevelDefinition.CreateRuntimeDefault();
+            Assert.IsTrue(level.RestrictBuildMenuToEnergy);
+            Assert.IsTrue(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Energy, true));
+            Assert.IsFalse(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Network, true));
+            Assert.IsFalse(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Storage, true));
+            Assert.IsFalse(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Settlement, true));
+            Assert.IsFalse(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Service, true));
+        }
+
+        [Test]
+        public void AllowedBuildCategoryRule_BlocksNetworkWhenRestricted()
+        {
+            var level = LevelDefinition.CreateRuntimeDefault();
+            var rule = new AllowedBuildCategoryRule();
+            var network = ScriptableObject.CreateInstance<BuildingDefinition>();
+            network.Configure(
+                "power_line", "Power Line", "", BuildingCategory.Network,
+                40f, 0f, 0f, 0f, 0f, 0f, false, false, Color.yellow);
+            var reasons = new System.Collections.Generic.List<string>();
+            var ctx = new PlacementContext(
+                network, new GridCoordinate(0, 0), CreateGrid(4), new GridOccupancyService(), new Wallet(500f),
+                level: level);
+            Assert.IsFalse(rule.Evaluate(ctx, reasons));
+            Assert.That(reasons, Does.Contain(AllowedBuildCategoryRule.FailReason));
+
+            var energy = ScriptableObject.CreateInstance<BuildingDefinition>();
+            energy.Configure(
+                "water_wheel", "WW", "", BuildingCategory.Energy,
+                80f, 8f, 25f, 0f, 0f, 0f, true, false, Color.blue);
+            reasons.Clear();
+            ctx = new PlacementContext(
+                energy, new GridCoordinate(0, 0), CreateGrid(4), new GridOccupancyService(), new Wallet(500f),
+                level: level);
             Assert.IsTrue(rule.Evaluate(ctx, reasons));
         }
 

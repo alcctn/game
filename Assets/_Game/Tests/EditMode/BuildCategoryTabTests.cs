@@ -101,6 +101,26 @@ namespace CleanEnergy.Tests.EditMode
             }
         }
 
+        [Test]
+        public void CanSelectBuilding_EnergyOnly_BlocksNetwork()
+        {
+            var line = CreateBuilding("power_line", BuildingCategory.Network);
+            var wheel = CreateBuilding("water_wheel", BuildingCategory.Energy);
+            var unlocks = new StubUnlocks("power_line", "water_wheel");
+
+            Assert.IsFalse(BuildingPlacementUI.CanSelectBuilding(line, unlocks, energyOnly: true));
+            Assert.IsTrue(BuildingPlacementUI.CanSelectBuilding(wheel, unlocks, energyOnly: true));
+            Assert.IsTrue(BuildingPlacementUI.CanSelectBuilding(line, unlocks, energyOnly: false));
+        }
+
+        [Test]
+        public void IsCategoryAllowed_EnergyOnly()
+        {
+            Assert.IsTrue(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Energy, true));
+            Assert.IsFalse(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Network, true));
+            Assert.IsTrue(BuildingPlacementUI.IsCategoryAllowed(BuildingCategory.Network, false));
+        }
+
         private static BuildingDefinition CreateBuilding(string id, BuildingCategory category)
         {
             var def = ScriptableObject.CreateInstance<BuildingDefinition>();
