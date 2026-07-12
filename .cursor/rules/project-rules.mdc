@@ -1,0 +1,98 @@
+---
+description: Clean Energy Unity/C# prototype project rules
+globs:
+  - Assets/_Game/**/*
+alwaysApply: true
+---
+
+# Clean Energy Prototype — Cursor Rules
+
+## Working style
+
+- Apply one small, testable task at a time; split large features.
+- Do not change files outside the requested scope.
+- Inspect related files before writing code.
+- Summarize changed files and how to test after each task.
+- When unclear, pick the simplest solution that matches existing architecture and naming.
+
+## Language and standards
+
+- C# compatible with Unity LTS.
+- English names for classes, methods, and public members.
+- Keep comments short and only where needed.
+- Prefer XML docs on public APIs.
+- Guard nullable risks; avoid magic numbers — use settings or named constants.
+
+## Design
+
+- Single Responsibility; no God Managers.
+- Keep MonoBehaviours thin; put pure logic in plain C# classes.
+- Use ScriptableObjects for data definitions.
+- Prefer explicit interfaces/services over tight coupling.
+- Minimize global singletons; do not add unnecessary patterns.
+
+## Module folders
+
+Place code under: Core, Camera, Map, Grid, Terrain, Resources, Buildings, Placement, Energy, Economy, Research, Settlements, Simulation, SaveLoad, UI, Debug.
+
+## Data-driven design
+
+Do not hardcode building costs, production, efficiency, maintenance, tech requirements, placement limits, or scenario goals — load from ScriptableObjects / config.
+
+## Unity
+
+- Avoid repeated `FindObjectOfType` / `GameObject.Find`.
+- No allocations in `Update()`; no heavy sim every frame.
+- Prefer `[SerializeField] private`; null-check prefab/scene refs.
+- Log runtime errors clearly with system name and id.
+- Editor tools live under `Editor` folders.
+
+## Map and grid
+
+- Separate visual terrain from logical grid data.
+- Same seed + settings must produce the same result.
+- Independent classes per generation stage.
+- World↔grid conversion only through one service.
+- Access cells via the service, not raw collections.
+
+## Placement
+
+- One rule per `PlacementRule`; return all failure reasons.
+- Preview and place share the same validator.
+- Deduct money only after successful placement; support rollback.
+
+## Energy
+
+- Separate producer / consumer / storage via interfaces.
+- Rebuild network graph only when connections change.
+- Deterministic energy math; no negative energy/capacity.
+- Report shortage and surplus as distinct values.
+
+## UI
+
+- UI must not mutate game state directly — call services/commands.
+- Keep debug UI separate from player UI.
+
+## Errors
+
+- Do not fail silently.
+- Expected user errors → result models, not exceptions.
+- Unexpected errors → clear exception or log, e.g. `[Placement] Building 'x' could not be placed at (12, 8): slope exceeds limit.`
+
+## Tests
+
+Add EditMode tests for pure logic (seed determinism, grid conversion, slope, placement, energy, storage, tech locks).
+
+After each task report: changed files, new behavior, test steps, known limits.
+
+## Forbidden
+
+- Do not implement the whole game in one pass.
+- No stub/`NotImplementedException` implementations.
+- Do not rewrite working systems without need.
+- Do not add third-party packages or change render pipeline without user approval.
+- Do not restructure folders at the root without approval.
+
+## Sprint priority
+
+Terrain foundation first (project structure, camera, grid, seeded height map, terrain, slope, debug layers). Do not start energy, placement, or economy until terrain infrastructure is validated.
