@@ -36,12 +36,13 @@ namespace CleanEnergy.Tests.EditMode
             grid.SetSolarPotential(new GridCoordinate(2, 2), 0.8f);
             grid.SetBuildable(new GridCoordinate(2, 2), true);
             var definition = CreateBuilding("small_solar", solarMin: 0.45f, maxSlope: 30f);
+            var occupancy = SeedHub(new GridOccupancyService(), new GridCoordinate(0, 0));
             var validator = new PlacementValidator();
             var result = validator.Validate(
                 definition,
                 new GridCoordinate(2, 2),
                 grid,
-                new GridOccupancyService(),
+                occupancy,
                 new Wallet(1000f));
 
             Assert.IsTrue(result.IsValid, string.Join("; ", result.FailureReasons));
@@ -70,12 +71,13 @@ namespace CleanEnergy.Tests.EditMode
             var grid = CreateFlatGrid(4);
             grid.SetSolarPotential(new GridCoordinate(0, 0), 1f);
             var definition = CreateBuilding("small_solar", cost: 500f, solarMin: 0.1f);
+            var occupancy = SeedHub(new GridOccupancyService(), new GridCoordinate(1, 0));
             var validator = new PlacementValidator();
             var result = validator.Validate(
                 definition,
                 new GridCoordinate(0, 0),
                 grid,
-                new GridOccupancyService(),
+                occupancy,
                 new Wallet(10f));
 
             Assert.IsFalse(result.IsValid);
@@ -161,6 +163,17 @@ namespace CleanEnergy.Tests.EditMode
                 new Wallet(1000f));
 
             Assert.IsTrue(result.IsValid, string.Join("; ", result.FailureReasons));
+        }
+
+        private static GridOccupancyService SeedHub(GridOccupancyService occupancy, GridCoordinate at)
+        {
+            var hub = ScriptableObject.CreateInstance<BuildingDefinition>();
+            hub.Configure(
+                "distribution_hub", "Hub", "", BuildingCategory.Network,
+                120f, 0f, 30f, 0f, 0f, 0f, false, true, Color.white,
+                linkRange: 8, hub: true, hubLinkCapacity: 120f);
+            occupancy.TryOccupy(new BuildingInstance("seed_hub", hub, at, 0, null));
+            return occupancy;
         }
 
         private static GridService CreateFlatGrid(int size)

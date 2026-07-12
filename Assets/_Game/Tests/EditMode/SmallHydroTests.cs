@@ -35,11 +35,12 @@ namespace CleanEnergy.Tests.EditMode
         {
             var grid = CreateShoreGrid(flow: 25f);
             var def = CreateHydroDef();
+            var occupancy = SeedHubNear(new GridCoordinate(0, 0));
             var result = new PlacementValidator().Validate(
                 def,
                 new GridCoordinate(1, 1),
                 grid,
-                new GridOccupancyService(),
+                occupancy,
                 new Wallet(1000f),
                 UnlockedResearch());
 
@@ -87,10 +88,22 @@ namespace CleanEnergy.Tests.EditMode
                 def,
                 new GridCoordinate(1, 1),
                 grid,
-                new GridOccupancyService(),
+                SeedHubNear(new GridCoordinate(0, 0)),
                 new Wallet(1000f),
                 service);
             Assert.IsTrue(unlocked.IsValid, string.Join("; ", unlocked.FailureReasons));
+        }
+
+        private static GridOccupancyService SeedHubNear(GridCoordinate at)
+        {
+            var occupancy = new GridOccupancyService();
+            var hub = ScriptableObject.CreateInstance<BuildingDefinition>();
+            hub.Configure(
+                "distribution_hub", "Hub", "", BuildingCategory.Network,
+                120f, 0f, 30f, 0f, 0f, 0f, false, true, Color.white,
+                linkRange: 8, hub: true, hubLinkCapacity: 120f);
+            occupancy.TryOccupy(new BuildingInstance("seed_hub", hub, at, 0, null));
+            return occupancy;
         }
 
         private static GridService CreateShoreGrid(float flow)

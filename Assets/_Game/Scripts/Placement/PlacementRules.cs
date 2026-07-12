@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using CleanEnergy.Buildings;
 using CleanEnergy.Grid;
+using UnityEngine;
 
 namespace CleanEnergy.Placement
 {
@@ -305,6 +307,69 @@ namespace CleanEnergy.Placement
 
             failureReasons.Add($"Technology locked: {context.Definition.DisplayName}.");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Producers and storage must place within link range of an existing network node.
+    /// Empty map: only hubs and consumers (village) may place freely.
+    /// </summary>
+    public sealed class NetworkConnectionRule : IPlacementRule
+    {
+        public const string FailReason = "Must connect to an existing network node.";
+
+        public string RuleId => "network_connection";
+
+        public bool Evaluate(PlacementContext context, List<string> failureReasons)
+        {
+            var definition = context.Definition;
+            if (definition == null || (!definition.IsProducer && !definition.IsStorage))
+            {
+                return true;
+            }
+
+            var occupancy = context.Occupancy;
+            if (occupancy == null || occupancy.Occupied.Count == 0)
+            {
+                failureReasons.Add(FailReason);
+                return false;
+            }
+
+            var placedRange = Mathf.Max(0, definition.ConnectionRange);
+            foreach (var pair in occupancy.Occupied)
+            {
+                var other = pair.Value?.Definition;
+                if (other == null || !IsNetworkNode(other))
+                {
+                    continue;
+                }
+
+                var allowed = Mathf.Max(placedRange, Mathf.Max(0, other.ConnectionRange));
+                if (Manhattan(context.Coordinate, pair.Key) <= allowed)
+                {
+                    return true;
+                }
+            }
+
+            failureReasons.Add(FailReason);
+            return false;
+        }
+
+        private static bool IsNetworkNode(BuildingDefinition definition)
+        {
+            return definition.IsNetworkHub
+                   || definition.IsProducer
+                   || definition.IsConsumer
+                   || definition.IsStorage;
+        }
+
+        private static int Manhattan(GridCoordinate a, GridCoordinate b)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+            if (dx < 0) dx = -dx;
+            if (dy < 0) dy = -dy;
+            return dx + dy;
         }
     }
 }

@@ -75,7 +75,8 @@ namespace CleanEnergy.Placement
                 new MinWindPotentialRule(),
                 new MinSameTypeSpacingRule(),
                 new AffordabilityRule(),
-                new TechnologyUnlockedRule()
+                new TechnologyUnlockedRule(),
+                new NetworkConnectionRule()
             };
         }
     }

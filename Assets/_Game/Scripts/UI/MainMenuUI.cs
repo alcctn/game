@@ -10,8 +10,6 @@ namespace CleanEnergy.UI
     /// </summary>
     public sealed class MainMenuUI : MonoBehaviour
     {
-        private static readonly string[] SlotLabels = { "1", "2", "3" };
-
         [SerializeField] private string[] scenarioIds = { "green_valley" };
         [SerializeField] private string[] scenarioLabels = { "Yeşil Vadi" };
         private int _selectedScenarioIndex;
@@ -32,8 +30,8 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            const float width = 320f;
-            const float height = 320f;
+            const float width = 360f;
+            const float height = 400f;
             var x = (Screen.width - width) * 0.5f;
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -48,7 +46,16 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.Label("Save slot");
-            _selectedSlot = GUILayout.SelectionGrid(_selectedSlot - 1, SlotLabels, 3) + 1;
+            for (var slot = 1; slot <= SaveGameService.MaxSlot; slot++)
+            {
+                var label = FormatSlotLabel(slot);
+                var was = _selectedSlot == slot;
+                var now = GUILayout.Toggle(was, label, GUI.skin.button, GUILayout.Height(28f));
+                if (now && !was)
+                {
+                    _selectedSlot = slot;
+                }
+            }
 
             var canContinue = _saveService != null && _saveService.SlotExists(_selectedSlot);
             GUI.enabled = canContinue;
@@ -83,6 +90,16 @@ namespace CleanEnergy.UI
             }
 
             GUILayout.EndArea();
+        }
+
+        private string FormatSlotLabel(int slot)
+        {
+            if (_saveService != null && _saveService.TryReadSummary(slot, out var summary))
+            {
+                return $"Slot {slot} — {summary.ScenarioId} ${summary.Money:F0} t{summary.TickIndex}";
+            }
+
+            return $"Slot {slot} — empty";
         }
     }
 }

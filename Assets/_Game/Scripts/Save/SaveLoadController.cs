@@ -132,7 +132,10 @@ namespace CleanEnergy.Save
                     && energyDriver.EmergencyCredit.HasBeenUsed,
                 tutorialStep = tutorialController?.Progress != null
                     ? (int)tutorialController.Progress.CurrentStep
-                    : 0
+                    : 0,
+                scenarioId = scenarioController?.Progress?.Definition != null
+                    ? scenarioController.Progress.Definition.ScenarioId
+                    : ScenarioSession.ResolveSelectedId()
             };
 
             if (researchController?.Service != null)
@@ -184,6 +187,7 @@ namespace CleanEnergy.Save
 
             placementController.ResetFactoryIds();
             placementController.CancelPlacement();
+            placementController.ClearDemolishUndo();
             if (data.buildings != null)
             {
                 for (var i = 0; i < data.buildings.Length; i++)

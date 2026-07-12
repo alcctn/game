@@ -48,5 +48,6 @@ namespace CleanEnergy.Save
         public BuildingSaveData[] buildings = Array.Empty<BuildingSaveData>();
         public ScenarioSaveData scenario = new ScenarioSaveData();
         public int tutorialStep;
+        public string scenarioId = "";
     }
 }

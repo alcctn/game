@@ -5,6 +5,16 @@ using UnityEngine;
 namespace CleanEnergy.Save
 {
     /// <summary>
+    /// Lightweight header for main-menu slot rows (no full Apply).
+    /// </summary>
+    public sealed class SlotSaveSummary
+    {
+        public string ScenarioId { get; set; } = string.Empty;
+        public float Money { get; set; }
+        public int TickIndex { get; set; }
+    }
+
+    /// <summary>
     /// Reads/writes GameSaveData JSON to slot files (slot1–slot3).
     /// </summary>
     public sealed class SaveGameService
@@ -69,6 +79,39 @@ namespace CleanEnergy.Save
         public bool SlotExists() => SlotExists(ActiveSlot);
 
         public bool SlotExists(int slot) => File.Exists(GetSlotPath(slot));
+
+        public bool TryReadSummary(int slot, out SlotSaveSummary summary)
+        {
+            summary = null;
+            var path = GetSlotPath(slot);
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+
+            try
+            {
+                var json = File.ReadAllText(path);
+                var data = FromJson(json);
+                if (data == null)
+                {
+                    return false;
+                }
+
+                summary = new SlotSaveSummary
+                {
+                    ScenarioId = string.IsNullOrEmpty(data.scenarioId) ? "?" : data.scenarioId,
+                    Money = data.money,
+                    TickIndex = data.tickIndex
+                };
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[Save] TryReadSummary failed for slot{ClampSlot(slot)}: {ex.Message}");
+                return false;
+            }
+        }
 
         public void Write(GameSaveData data) => Write(ActiveSlot, data);
 

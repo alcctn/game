@@ -123,14 +123,19 @@ namespace CleanEnergy.UI
             var bonus = researchController != null
                 ? researchController.Service.GetEfficiencyBonus(def.Id)
                 : 0f;
-            var expected = ProductionEstimate.Estimate(
+            var networkFactor = NetworkLoadFactor.ResolveForPlacement(
+                placementController.HoverCoordinate.Value,
+                def,
+                placementController.Occupancy);
+            var expected = ProductionEstimate.BreakDown(
                 def,
                 placementController.HoverCoordinate.Value,
                 map.Grid,
                 map.Settings,
                 context,
                 placementController.Occupancy,
-                bonus);
+                bonus,
+                networkFactor: networkFactor).Production;
             GUILayout.Label($"Expected: {expected:F1}");
         }
     }

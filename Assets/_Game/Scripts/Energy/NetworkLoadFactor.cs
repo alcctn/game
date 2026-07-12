@@ -1,5 +1,7 @@
 using CleanEnergy.Buildings;
 using CleanEnergy.Grid;
+using CleanEnergy.Placement;
+using UnityEngine;
 
 namespace CleanEnergy.Energy
 {
@@ -48,6 +50,47 @@ namespace CleanEnergy.Energy
             }
 
             return 0f;
+        }
+
+        /// <summary>
+        /// Placement ghost preview: load exists if a consumer or storage is within ConnectionRange.
+        /// Hub alone does not count as load.
+        /// </summary>
+        public static float ResolveForPlacement(
+            GridCoordinate coordinate,
+            BuildingDefinition definition,
+            GridOccupancyService occupancy)
+        {
+            if (definition == null || occupancy == null)
+            {
+                return 0f;
+            }
+
+            var range = Mathf.Max(0, definition.ConnectionRange);
+            foreach (var pair in occupancy.Occupied)
+            {
+                var other = pair.Value?.Definition;
+                if (other == null || (!other.IsConsumer && !other.IsStorage))
+                {
+                    continue;
+                }
+
+                if (Manhattan(coordinate, pair.Key) <= range)
+                {
+                    return 1f;
+                }
+            }
+
+            return 0f;
+        }
+
+        private static int Manhattan(GridCoordinate a, GridCoordinate b)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+            if (dx < 0) dx = -dx;
+            if (dy < 0) dy = -dy;
+            return dx + dy;
         }
     }
 }

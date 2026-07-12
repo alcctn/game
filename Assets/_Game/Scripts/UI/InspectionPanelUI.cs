@@ -161,6 +161,24 @@ namespace CleanEnergy.UI
                 GUILayout.Label(_actionMessage);
             }
 
+            if (placementController != null
+                && placementController.HasDemolishUndo
+                && !placementController.IsPlacementActive)
+            {
+                GUILayout.Space(6f);
+                if (GUILayout.Button("Undo Demolish"))
+                {
+                    if (placementController.TryUndoLastDemolish())
+                    {
+                        _actionMessage = "Demolish undone.";
+                    }
+                    else
+                    {
+                        _actionMessage = "Undo demolish failed.";
+                    }
+                }
+            }
+
             GUILayout.EndArea();
         }
 

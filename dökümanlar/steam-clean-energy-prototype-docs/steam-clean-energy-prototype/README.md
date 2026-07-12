@@ -67,6 +67,11 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 52. [Sprint 48 — Mesafe Hat Maliyeti](docs/SPRINT_48_LINE_COST.md)
 53. [Sprint 49 — İzole Üretim](docs/SPRINT_49_ISOLATED_PRODUCTION.md)
 54. [Sprint 50 — Placement Kamera Odak](docs/SPRINT_50_PLACEMENT_FOCUS.md)
+55. [Sprint 51 — Hub Mesafe Maliyeti](docs/SPRINT_51_HUB_COST.md)
+56. [Sprint 52 — Placement Şebeke Kuralı](docs/SPRINT_52_NETWORK_RULE.md)
+57. [Sprint 53 — Placement Yield Curtailment](docs/SPRINT_53_YIELD_CURTAIL.md)
+58. [Sprint 54 — Save Slot Metadata](docs/SPRINT_54_SLOT_METADATA.md)
+59. [Sprint 55 — Demolish Undo](docs/SPRINT_55_DEMOLISH_UNDO.md)
 
 ## İlk Uygulama Sırası
 

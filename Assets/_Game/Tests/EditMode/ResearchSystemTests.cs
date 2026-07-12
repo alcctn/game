@@ -52,6 +52,12 @@ namespace CleanEnergy.Tests.EditMode
             grid.SetSolarPotential(new GridCoordinate(1, 1), 0.8f);
             var def = CreateSolarDef();
             var occupancy = new GridOccupancyService();
+            var hub = ScriptableObject.CreateInstance<BuildingDefinition>();
+            hub.Configure(
+                "distribution_hub", "Hub", "", BuildingCategory.Network,
+                120f, 0f, 30f, 0f, 0f, 0f, false, true, Color.white,
+                linkRange: 8, hub: true, hubLinkCapacity: 120f);
+            occupancy.TryOccupy(new BuildingInstance("h1", hub, new GridCoordinate(0, 0), 0, null));
             var validator = new PlacementValidator();
             var result = validator.Validate(
                 def,

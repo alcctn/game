@@ -20,6 +20,35 @@ namespace CleanEnergy.Placement
     }
 
     /// <summary>
+    /// One-step demolish undo snapshot (S55).
+    /// </summary>
+    public sealed class DemolishUndoSnapshot
+    {
+        public string DefinitionId { get; }
+        public GridCoordinate Coordinate { get; }
+        public int Rotation { get; }
+        public float StoredEnergy { get; }
+        public float MaintenanceLevel { get; }
+        public float RefundAmount { get; }
+
+        public DemolishUndoSnapshot(
+            string definitionId,
+            GridCoordinate coordinate,
+            int rotation,
+            float storedEnergy,
+            float maintenanceLevel,
+            float refundAmount)
+        {
+            DefinitionId = definitionId;
+            Coordinate = coordinate;
+            Rotation = rotation;
+            StoredEnergy = storedEnergy;
+            MaintenanceLevel = maintenanceLevel;
+            RefundAmount = refundAmount;
+        }
+    }
+
+    /// <summary>
     /// Selects a building, previews validity, and commits placement.
     /// </summary>
     public sealed class PlacementController : MonoBehaviour
@@ -41,6 +70,7 @@ namespace CleanEnergy.Placement
         private int _rotation;
         private GridCoordinate? _hoverCoordinate;
         private bool _hoverValid;
+        private DemolishUndoSnapshot _demolishUndo;
 
         public Wallet Wallet => _wallet;
         public IBuildingUnlockQuery BuildingUnlocks => _buildingUnlocks;
@@ -53,6 +83,7 @@ namespace CleanEnergy.Placement
         public bool IsHoverValid => _hoverValid;
         public IReadOnlyList<BuildingDefinition> AvailableBuildings => availableBuildings;
         public MapGenerator MapGenerator => mapGenerator;
+        public bool HasDemolishUndo => _demolishUndo != null;
 
         public event Action<BuildingPlacedEvent> BuildingPlaced;
         public event Action<BuildingPlacedEvent> BuildingRemoved;
@@ -324,9 +355,45 @@ namespace CleanEnergy.Placement
             }
 
             mapGenerator.Grid.SetOccupyingBuildingId(coordinate, instance.InstanceId);
+            ClearDemolishUndo();
             BuildingPlaced?.Invoke(new BuildingPlacedEvent(instance));
             Debug.Log($"[Placement] Placed '{_selected.Id}' at {coordinate}. Money={_wallet.Money:F0}");
             return PlacementValidationResult.Success();
+        }
+
+        public void ClearDemolishUndo()
+        {
+            _demolishUndo = null;
+        }
+
+        public bool TryUndoLastDemolish()
+        {
+            if (_demolishUndo == null || _wallet == null)
+            {
+                return false;
+            }
+
+            var snap = _demolishUndo;
+            if (!_wallet.TrySpend(snap.RefundAmount))
+            {
+                return false;
+            }
+
+            if (!TryPlaceFromSave(
+                    snap.DefinitionId,
+                    snap.Coordinate,
+                    snap.Rotation,
+                    snap.StoredEnergy,
+                    snap.MaintenanceLevel))
+            {
+                _wallet.Add(snap.RefundAmount);
+                return false;
+            }
+
+            // TryPlaceFromSave clears undo; keep cleared.
+            _demolishUndo = null;
+            Debug.Log($"[Placement] Undo demolish '{snap.DefinitionId}' at {snap.Coordinate}.");
+            return true;
         }
 
         public bool TryDemolish(GridCoordinate coordinate, out float refund)
@@ -338,6 +405,13 @@ namespace CleanEnergy.Placement
             }
 
             refund = Mathf.Max(0f, building.Definition.Cost * 0.5f);
+            _demolishUndo = new DemolishUndoSnapshot(
+                building.Definition.Id,
+                building.Coordinate,
+                building.Rotation,
+                building.StoredEnergy,
+                building.MaintenanceLevel,
+                refund);
             _wallet?.Add(refund);
             _occupancy.Release(coordinate);
             if (mapGenerator != null && mapGenerator.Grid.IsInitialized)

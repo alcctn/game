@@ -5,16 +5,18 @@ using UnityEngine;
 namespace CleanEnergy.Placement
 {
     /// <summary>
-    /// Distance-scaled cost for power_line (GDD §8).
+    /// Distance-scaled cost for power_line and distribution_hub (GDD §8).
     /// </summary>
     public static class PowerLinePlacementCost
     {
         public const string PowerLineId = "power_line";
+        public const string DistributionHubId = "distribution_hub";
         public const float DistanceCostFactor = 0.15f;
 
         public static bool AppliesTo(BuildingDefinition definition)
         {
-            return definition != null && definition.Id == PowerLineId;
+            return definition != null
+                   && (definition.Id == PowerLineId || definition.Id == DistributionHubId);
         }
 
         public static bool IsNetworkNode(BuildingDefinition definition)
