@@ -95,7 +95,8 @@ namespace CleanEnergy.CameraSystem
         /// </summary>
         public void FocusOn(Vector3 worldPoint, float duration = 0.35f)
         {
-            var target = bounds.Clamp(new Vector3(worldPoint.x, focusHeight, worldPoint.z));
+            // Use terrain elevation so isometric look-at centers the cell on screen.
+            var target = bounds.Clamp(new Vector3(worldPoint.x, worldPoint.y, worldPoint.z));
             if (duration <= 0.0001f)
             {
                 _focusPoint = target;
@@ -122,10 +123,27 @@ namespace CleanEnergy.CameraSystem
                 _camera = GetComponent<Camera>();
             }
 
-            var center = new Vector3(worldBounds.center.x, focusHeight, worldBounds.center.z);
+            // Prefer bounds center Y (cell elevation) over flat focusHeight=0 so the
+            // selected surface centers on screen under isometric pitch.
+            var focusY = worldBounds.center.y;
+            var center = new Vector3(worldBounds.center.x, focusY, worldBounds.center.z);
             var targetFocus = bounds.Clamp(center);
             var size = CameraFitMath.OrthographicSizeForBounds(
                 worldBounds, _camera.aspect, minOrthographicSize, maxOrthographicSize);
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "A",
+                "IsometricCameraController.FitToBounds",
+                "fit_target",
+                "{\"runId\":\"post-fix\",\"boundsCy\":" + worldBounds.center.y.ToString("F2") +
+                ",\"focusHeight\":" + focusHeight.ToString("F2") +
+                ",\"targetX\":" + targetFocus.x.ToString("F2") +
+                ",\"targetY\":" + targetFocus.y.ToString("F2") +
+                ",\"targetZ\":" + targetFocus.z.ToString("F2") +
+                ",\"size\":" + size.ToString("F2") +
+                ",\"prevFocusY\":" + _focusPoint.y.ToString("F2") + "}");
+            // #endregion
 
             if (duration <= 0.0001f)
             {
@@ -185,6 +203,23 @@ namespace CleanEnergy.CameraSystem
                 {
                     _camera.orthographicSize = _zoomTweenTo;
                 }
+
+                // #region agent log
+                var screen = _camera != null
+                    ? _camera.WorldToScreenPoint(_focusPoint)
+                    : Vector3.zero;
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "A",
+                    "IsometricCameraController.AdvanceFocusTween",
+                    "tween_done",
+                    "{\"runId\":\"post-fix\",\"focusX\":" + _focusPoint.x.ToString("F2") +
+                    ",\"focusY\":" + _focusPoint.y.ToString("F2") +
+                    ",\"focusZ\":" + _focusPoint.z.ToString("F2") +
+                    ",\"screenX\":" + screen.x.ToString("F1") +
+                    ",\"screenY\":" + screen.y.ToString("F1") +
+                    ",\"sh\":" + Screen.height +
+                    ",\"ortho\":" + (_camera != null ? _camera.orthographicSize.ToString("F2") : "0") + "}");
+                // #endregion
 
                 CancelFocusTween();
             }

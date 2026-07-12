@@ -162,6 +162,20 @@ namespace CleanEnergy.DebugTools
             var cellSize = mapGenerator.Grid.CellSize;
             var fit = CameraFitMath.BoundsAroundCell(
                 cell.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);
+            // #region agent log
+            AgentDebugLog.Write(
+                "A",
+                "SelectionCameraFocus.FocusCell",
+                "focus_request",
+                "{\"cx\":" + coordinate.X +
+                ",\"cy\":" + coordinate.Y +
+                ",\"wx\":" + cell.WorldPosition.x.ToString("F2") +
+                ",\"wy\":" + cell.WorldPosition.y.ToString("F2") +
+                ",\"wz\":" + cell.WorldPosition.z.ToString("F2") +
+                ",\"fitCy\":" + fit.center.y.ToString("F2") +
+                ",\"camFocusY\":" + (cameraController != null ? cameraController.FocusPoint.y.ToString("F2") : "0") +
+                ",\"ortho\":" + (cameraController != null ? cameraController.OrthographicSize.ToString("F2") : "0") + "}");
+            // #endregion
             cameraController.FitToBounds(fit, duration);
         }
 
