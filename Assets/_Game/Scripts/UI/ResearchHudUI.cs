@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CleanEnergy.UI
 {
     /// <summary>
-    /// IMGUI panel for research points and unlocking tree nodes.
+    /// IMGUI panel for research points and unlocking tree nodes (branch + depth layout).
     /// </summary>
     public sealed class ResearchHudUI : MonoBehaviour
     {
@@ -25,30 +25,43 @@ namespace CleanEnergy.UI
 
             GuiScale.Apply();
 
-            const float width = 280f;
-            GUILayout.BeginArea(new Rect(12f, Screen.height / GuiScale.Current - 250f, width, 238f), GUI.skin.box);
+            const float width = 320f;
+            GUILayout.BeginArea(new Rect(12f, Screen.height / GuiScale.Current - 320f, width, 308f), GUI.skin.box);
             GUILayout.Label(service.Tree != null ? service.Tree.DisplayName : StringTable.Get(StringKeys.Research));
             GUILayout.Label($"RP: {service.Wallet.Points:F0}");
 
-            var nodes = service.Tree.Nodes;
-            for (var i = 0; i < nodes.Length; i++)
+            var nodes = service.Tree != null ? service.Tree.Nodes : null;
+            var ordered = ResearchGraphLayout.OrderForGraph(nodes);
+            var byId = ResearchGraphLayout.IndexById(nodes);
+            string lastBranch = null;
+
+            for (var i = 0; i < ordered.Count; i++)
             {
-                var node = nodes[i];
-                if (node == null)
+                var node = ordered[i];
+                var branch = ResearchGraphLayout.ResolveBranchRootId(node, byId);
+                if (branch != lastBranch)
                 {
-                    continue;
+                    lastBranch = branch;
+                    var rootName = byId.TryGetValue(branch, out var root) && root != null
+                        ? root.DisplayName
+                        : branch;
+                    GUILayout.Space(4f);
+                    GUILayout.Label($"— {rootName} —");
                 }
+
+                var depth = ResearchGraphLayout.PrerequisiteDepth(node, byId);
+                var indent = ResearchGraphLayout.IndentPrefix(depth);
 
                 if (service.IsNodeUnlocked(node.Id))
                 {
-                    GUILayout.Label($"[x] {node.DisplayName}");
+                    GUILayout.Label($"{indent}[x] {node.DisplayName}");
                     continue;
                 }
 
                 var can = service.CanUnlock(node.Id, out var reason);
                 var label = can
-                    ? $"Unlock {node.DisplayName} ({node.ResearchPointCost:F0} RP)"
-                    : $"{node.DisplayName} — {reason}";
+                    ? $"{indent}Unlock {node.DisplayName} ({node.ResearchPointCost:F0} RP)"
+                    : $"{indent}{node.DisplayName} — {reason}";
                 GUI.enabled = can;
                 if (GUILayout.Button(label))
                 {

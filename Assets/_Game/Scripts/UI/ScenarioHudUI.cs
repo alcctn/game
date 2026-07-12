@@ -13,6 +13,7 @@ namespace CleanEnergy.UI
         private ScenarioObjectiveState _state;
         private bool _won;
         private bool _lost;
+        private string _failReason = ScenarioFailedEvent.DefaultReason;
 
         public void Configure(ScenarioController controller)
         {
@@ -26,6 +27,7 @@ namespace CleanEnergy.UI
             scenarioController = controller;
             _won = false;
             _lost = false;
+            _failReason = ScenarioFailedEvent.DefaultReason;
             _state = scenarioController != null ? scenarioController.State : null;
 
             if (scenarioController != null)
@@ -72,9 +74,13 @@ namespace CleanEnergy.UI
             _won = true;
         }
 
-        private void OnFailed(ScenarioFailedEvent _)
+        private void OnFailed(ScenarioFailedEvent evt)
         {
             _lost = true;
+            if (evt != null && !string.IsNullOrEmpty(evt.Reason))
+            {
+                _failReason = evt.Reason;
+            }
         }
 
         private void OnGUI()
@@ -157,7 +163,7 @@ namespace CleanEnergy.UI
             var y = (Screen.height - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label("Scenario failed");
-            GUILayout.Label("Village satisfaction collapsed from prolonged shortages.");
+            GUILayout.Label(_failReason);
             GUILayout.Label("Press Generate to try again.");
             if (GUILayout.Button("Restart"))
             {

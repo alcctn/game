@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleanEnergy.CameraSystem;
 using CleanEnergy.Grid;
 using CleanEnergy.Map;
@@ -8,6 +9,7 @@ namespace CleanEnergy.DebugTools
 {
     /// <summary>
     /// Focuses the isometric camera on selection and placement hover cells.
+    /// Home / selection focus sets orthographic size from selection bounds (S58 / S110).
     /// </summary>
     public sealed class SelectionCameraFocus : MonoBehaviour
     {
@@ -57,15 +59,8 @@ namespace CleanEnergy.DebugTools
             }
 
             var d = duration < 0f ? focusDuration : duration;
-            if (debugOverlay != null
-                && debugOverlay.SelectedCell.HasValue
-                && mapGenerator != null
-                && mapGenerator.Grid.IsInitialized
-                && mapGenerator.Grid.TryGetCell(debugOverlay.SelectedCell.Value, out var cell))
+            if (TryBuildSelectionFitBounds(out var fit))
             {
-                var cellSize = mapGenerator.Grid.CellSize;
-                var fit = CameraFitMath.BoundsAroundCell(
-                    cell.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);
                 cameraController.FitToBounds(fit, d);
                 return;
             }
@@ -78,6 +73,7 @@ namespace CleanEnergy.DebugTools
             if (debugOverlay != null)
             {
                 debugOverlay.SelectionChanged += OnSelectionChanged;
+                debugOverlay.MultiSelectionChanged += OnMultiSelectionChanged;
             }
         }
 
@@ -86,6 +82,7 @@ namespace CleanEnergy.DebugTools
             if (debugOverlay != null)
             {
                 debugOverlay.SelectionChanged -= OnSelectionChanged;
+                debugOverlay.MultiSelectionChanged -= OnMultiSelectionChanged;
             }
         }
 
@@ -105,6 +102,22 @@ namespace CleanEnergy.DebugTools
             }
 
             FocusCell(coordinate.Value, focusDuration);
+        }
+
+        private void OnMultiSelectionChanged()
+        {
+            if (cameraController == null
+                || mapGenerator == null
+                || !mapGenerator.Grid.IsInitialized
+                || placementController != null && placementController.IsPlacementActive)
+            {
+                return;
+            }
+
+            if (TryBuildSelectionFitBounds(out var fit))
+            {
+                cameraController.FitToBounds(fit, focusDuration);
+            }
         }
 
         private void UpdatePlacementHoverFocus()
@@ -132,7 +145,11 @@ namespace CleanEnergy.DebugTools
             }
 
             _lastPlacementHover = hover;
-            FocusCell(hover, placementFocusDuration);
+            // Placement hover pans only; Home / selection use zoom-to-fit.
+            if (mapGenerator.Grid.TryGetCell(hover, out var cell))
+            {
+                cameraController.FocusOn(cell.WorldPosition, placementFocusDuration);
+            }
         }
 
         private void FocusCell(GridCoordinate coordinate, float duration)
@@ -142,7 +159,52 @@ namespace CleanEnergy.DebugTools
                 return;
             }
 
-            cameraController.FocusOn(cell.WorldPosition, duration);
+            var cellSize = mapGenerator.Grid.CellSize;
+            var fit = CameraFitMath.BoundsAroundCell(
+                cell.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);
+            cameraController.FitToBounds(fit, duration);
+        }
+
+        private bool TryBuildSelectionFitBounds(out Bounds fit)
+        {
+            fit = default;
+            if (debugOverlay == null
+                || mapGenerator == null
+                || !mapGenerator.Grid.IsInitialized)
+            {
+                return false;
+            }
+
+            var cellSize = mapGenerator.Grid.CellSize;
+            var multi = debugOverlay.MultiSelectedCells;
+            if (multi != null && multi.Count > 0)
+            {
+                var positions = new List<Vector3>(multi.Count);
+                for (var i = 0; i < multi.Count; i++)
+                {
+                    if (mapGenerator.Grid.TryGetCell(multi[i], out var cell))
+                    {
+                        positions.Add(cell.WorldPosition);
+                    }
+                }
+
+                if (positions.Count > 0)
+                {
+                    fit = CameraFitMath.BoundsAroundCells(
+                        positions, cellSize, CameraFitMath.SelectionPaddingCells);
+                    return true;
+                }
+            }
+
+            if (debugOverlay.SelectedCell.HasValue
+                && mapGenerator.Grid.TryGetCell(debugOverlay.SelectedCell.Value, out var selected))
+            {
+                fit = CameraFitMath.BoundsAroundCell(
+                    selected.WorldPosition, cellSize, CameraFitMath.SelectionPaddingCells);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>Pure helper for tests: whether a hover change should trigger focus.</summary>
@@ -157,6 +219,17 @@ namespace CleanEnergy.DebugTools
             }
 
             return !lastHover.HasValue || !lastHover.Value.Equals(hover.Value);
+        }
+
+        /// <summary>Pure helper: ortho size for selection fit with clamp.</summary>
+        public static float ResolveSelectionOrthoSize(
+            Bounds selectionBounds,
+            float aspect,
+            float minSize,
+            float maxSize)
+        {
+            return CameraFitMath.OrthographicSizeForBounds(
+                selectionBounds, aspect, minSize, maxSize);
         }
     }
 }

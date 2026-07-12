@@ -603,13 +603,13 @@ namespace CleanEnergy.Editor
             var hudGo = new GameObject("EnergyHudUI");
             hudGo.transform.SetParent(debugRoot.transform, false);
             var hud = hudGo.AddComponent<EnergyHudUI>();
-            hud.Configure(driver, clock, placement, researchController, maintenance);
+            hud.Configure(driver, clock, placement, researchController, maintenance, scenarioController);
 
             var inspectionGo = new GameObject("InspectionPanelUI");
             inspectionGo.transform.SetParent(debugRoot.transform, false);
             var inspection = inspectionGo.AddComponent<InspectionPanelUI>();
             inspection.Configure(
-                overlay, mapGenerator, placement, network, clock, researchController, scenarioController, driver);
+                overlay, mapGenerator, placement, network, clock, researchController, scenarioController, driver, maintenance);
 
             var notification = simRoot.AddComponent<NotificationController>();
             notification.Configure(
@@ -620,7 +620,8 @@ namespace CleanEnergy.Editor
             sfx.Configure(placement, notification);
             var musicGo = new GameObject("MusicService");
             musicGo.transform.SetParent(debugRoot.transform, false);
-            musicGo.AddComponent<MusicService>();
+            var music = musicGo.AddComponent<MusicService>();
+            music.Configure(null, clock);
             var notificationHudGo = new GameObject("NotificationHudUI");
             notificationHudGo.transform.SetParent(debugRoot.transform, false);
             var notificationHud = notificationHudGo.AddComponent<NotificationHudUI>();
@@ -676,6 +677,7 @@ namespace CleanEnergy.Editor
             var tutorialController = simRoot.AddComponent<TutorialController>();
             tutorialController.Configure(
                 controller, overlay, placement, researchController, scenarioController, mapGenerator);
+            placementUi.Configure(placement, clock, researchController, tutorialController);
             var tutorialHudGo = new GameObject("TutorialHudUI");
             tutorialHudGo.transform.SetParent(debugRoot.transform, false);
             var tutorialHud = tutorialHudGo.AddComponent<TutorialHudUI>();
@@ -683,7 +685,7 @@ namespace CleanEnergy.Editor
 
             var saveLoad = simRoot.AddComponent<SaveLoadController>();
             saveLoad.Configure(
-                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController, driver, sfx);
+                mapGenerator, placement, researchController, scenarioController, clock, network, tutorialController, driver, sfx, maintenance);
             pauseOverlay.Configure(clock, placement, controller, saveLoad);
             var saveHudGo = new GameObject("SaveLoadHudUI");
             saveHudGo.transform.SetParent(debugRoot.transform, false);

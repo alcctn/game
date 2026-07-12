@@ -22,8 +22,10 @@ namespace CleanEnergy.Tutorial
 
         private TutorialProgressService _progress;
         private bool _suppressEvents;
+        private bool _enabled = true;
 
         public TutorialProgressService Progress => _progress;
+        public bool IsEnabled => _enabled;
         public bool SuppressEvents
         {
             get => _suppressEvents;
@@ -59,19 +61,45 @@ namespace CleanEnergy.Tutorial
             scenarioController = scenario;
             mapGenerator = generator;
             EnsureProgress();
+            RefreshEnabled();
             Subscribe();
             StepChanged?.Invoke(_progress.CurrentStep);
+        }
+
+        /// <summary>Enables tutorial only for Green Valley.</summary>
+        public void RefreshEnabled()
+        {
+            var id = scenarioController?.Progress?.Definition?.ScenarioId
+                ?? ScenarioSession.ResolveSelectedId();
+            _enabled = TutorialProgressService.IsEnabledForScenario(id);
+            if (!_enabled)
+            {
+                EnsureProgress();
+                _progress.Restore(TutorialStepId.Completed);
+            }
         }
 
         public void ResetTutorial()
         {
             EnsureProgress();
+            RefreshEnabled();
+            if (!_enabled)
+            {
+                return;
+            }
+
             _progress.Reset();
         }
 
         public void RestoreTutorial(TutorialStepId step)
         {
             EnsureProgress();
+            RefreshEnabled();
+            if (!_enabled)
+            {
+                return;
+            }
+
             _progress.Restore(step);
         }
 
@@ -175,7 +203,7 @@ namespace CleanEnergy.Tutorial
 
         private void OnCameraInput()
         {
-            if (_suppressEvents)
+            if (_suppressEvents || !_enabled)
             {
                 return;
             }
@@ -185,7 +213,7 @@ namespace CleanEnergy.Tutorial
 
         private void OnDebugModeChanged(DebugViewMode mode)
         {
-            if (_suppressEvents || _progress == null)
+            if (_suppressEvents || !_enabled || _progress == null)
             {
                 return;
             }
@@ -202,7 +230,7 @@ namespace CleanEnergy.Tutorial
 
         private void OnBuildingPlaced(BuildingPlacedEvent evt)
         {
-            if (_suppressEvents || _progress == null || evt?.Instance?.Definition == null)
+            if (_suppressEvents || !_enabled || _progress == null || evt?.Instance?.Definition == null)
             {
                 return;
             }
@@ -227,7 +255,7 @@ namespace CleanEnergy.Tutorial
 
         private void OnResearchUnlocked(ResearchUnlockedEvent evt)
         {
-            if (_suppressEvents || _progress == null || evt == null)
+            if (_suppressEvents || !_enabled || _progress == null || evt == null)
             {
                 return;
             }
@@ -240,7 +268,7 @@ namespace CleanEnergy.Tutorial
 
         private void OnScenarioStateChanged(ScenarioObjectiveState state)
         {
-            if (_suppressEvents || _progress == null || state == null)
+            if (_suppressEvents || !_enabled || _progress == null || state == null)
             {
                 return;
             }

@@ -36,6 +36,9 @@ namespace CleanEnergy.UI
         /// <summary>Raised when a battery-full notice is pushed to the feed.</summary>
         public event Action BatteryFullNotified;
 
+        /// <summary>Raised when diversity RP bonus is toasted.</summary>
+        public event Action DiversityBonusNotified;
+
         public void Configure(
             EnergySimulationDriver driver,
             ResearchController research,
@@ -85,6 +88,11 @@ namespace CleanEnergy.UI
                 researchController.Service.NodeUnlocked += OnResearchUnlocked;
             }
 
+            if (researchController != null)
+            {
+                researchController.DiversityBonusGranted += OnDiversityBonusGranted;
+            }
+
             if (scenarioController != null)
             {
                 scenarioController.Failed += OnScenarioFailed;
@@ -109,6 +117,11 @@ namespace CleanEnergy.UI
             if (researchController?.Service != null)
             {
                 researchController.Service.NodeUnlocked -= OnResearchUnlocked;
+            }
+
+            if (researchController != null)
+            {
+                researchController.DiversityBonusGranted -= OnDiversityBonusGranted;
             }
 
             if (scenarioController != null)
@@ -193,6 +206,29 @@ namespace CleanEnergy.UI
             return string.IsNullOrEmpty(nodeId) ? string.Empty : nodeId;
         }
 
+        /// <summary>Toast text for diversity RP bonus.</summary>
+        public static string FormatDiversityBonusToast(float amount = ResearchProgressTracker.DiversityBonusRp)
+        {
+            return $"Diversity +{amount:F0} RP";
+        }
+
+        /// <summary>Toast text for scenario failure (parity with win toast).</summary>
+        public static string FormatFailToast(string reason = null)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                return "Scenario failed";
+            }
+
+            return $"Scenario failed — {reason}";
+        }
+
+        private void OnDiversityBonusGranted()
+        {
+            _service.Push(FormatDiversityBonusToast(), Time.unscaledTime);
+            DiversityBonusNotified?.Invoke();
+        }
+
         private void OnScenarioWon(ScenarioWonEvent _)
         {
             _service.Push("Scenario complete", Time.unscaledTime);
@@ -205,9 +241,9 @@ namespace CleanEnergy.UI
                 Time.unscaledTime);
         }
 
-        private void OnScenarioFailed(ScenarioFailedEvent _)
+        private void OnScenarioFailed(ScenarioFailedEvent evt)
         {
-            _service.Push("Scenario failed", Time.unscaledTime);
+            _service.Push(FormatFailToast(evt?.Reason), Time.unscaledTime);
         }
 
         private void OnWeatherStarted(WeatherEventKind kind)

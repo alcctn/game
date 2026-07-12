@@ -1,4 +1,5 @@
 using System;
+using CleanEnergy.UI;
 
 namespace CleanEnergy.Tutorial
 {
@@ -22,22 +23,7 @@ namespace CleanEnergy.Tutorial
     public sealed class TutorialProgressService
     {
         public const int MeetDemandStreakTicks = 10;
-
-        private static readonly TutorialStepInfo[] StepInfos =
-        {
-            new TutorialStepInfo(TutorialStepId.Camera, "Move the camera", "Use WASD, Q/E, or scroll wheel."),
-            new TutorialStepInfo(TutorialStepId.OpenWaterLayer, "Open Water layer", "Select Water in Terrain Debug view modes."),
-            new TutorialStepInfo(TutorialStepId.PlaceWaterWheel, "Build a Water Wheel", "Place water_wheel next to a stream."),
-            new TutorialStepInfo(TutorialStepId.PlacePowerLine, "Connect with Power Line", "Place a power_line near your buildings."),
-            new TutorialStepInfo(TutorialStepId.OpenSolarLayer, "Open Solar layer", "Select Solar in Terrain Debug view modes."),
-            new TutorialStepInfo(TutorialStepId.UnlockSolar, "Research Basic Solar", "Spend RP to unlock solar_basic."),
-            new TutorialStepInfo(TutorialStepId.PlaceSolar, "Build Small Solar", "Place a small_solar panel."),
-            new TutorialStepInfo(
-                TutorialStepId.PlaceBattery,
-                "Unlock Storage & Battery",
-                "Research storage_basic, then place a battery near your network."),
-            new TutorialStepInfo(TutorialStepId.MeetDemand, "Sustain village demand", "Keep coverage high for 10 ticks.")
-        };
+        public const string TutorialScenarioId = "green_valley";
 
         public TutorialStepId CurrentStep { get; private set; }
         public bool IsComplete => CurrentStep == TutorialStepId.Completed;
@@ -47,6 +33,41 @@ namespace CleanEnergy.Tutorial
         public TutorialProgressService()
         {
             Reset();
+        }
+
+        /// <summary>Tutorial runs only for Green Valley.</summary>
+        public static bool IsEnabledForScenario(string scenarioId)
+        {
+            return string.Equals(scenarioId, TutorialScenarioId, StringComparison.Ordinal);
+        }
+
+        /// <summary>Soft-highlight build target id for the current step, or null.</summary>
+        public static string ResolveBuildTargetId(TutorialStepId step)
+        {
+            switch (step)
+            {
+                case TutorialStepId.PlaceWaterWheel:
+                    return "water_wheel";
+                case TutorialStepId.PlacePowerLine:
+                    return "power_line";
+                case TutorialStepId.PlaceSolar:
+                    return "small_solar";
+                case TutorialStepId.PlaceBattery:
+                    return "battery";
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>Soft highlight prefix for build menu rows (no hard lock).</summary>
+        public static string FormatSoftHighlightLabel(string label, bool highlighted)
+        {
+            if (!highlighted || string.IsNullOrEmpty(label))
+            {
+                return label ?? string.Empty;
+            }
+
+            return $"> {label}";
         }
 
         public void Reset()
@@ -85,24 +106,82 @@ namespace CleanEnergy.Tutorial
 
         public TutorialStepInfo GetCurrentInfo()
         {
-            if (IsComplete)
-            {
-                return new TutorialStepInfo(TutorialStepId.Completed, "Tutorial complete", "Keep supplying the village.");
-            }
-
-            return StepInfos[(int)CurrentStep];
+            return GetInfo(CurrentStep);
         }
 
         public static TutorialStepInfo GetInfo(TutorialStepId step)
         {
-            if (step == TutorialStepId.Completed || (int)step < 0 || (int)step >= StepInfos.Length)
-            {
-                return new TutorialStepInfo(TutorialStepId.Completed, "Tutorial complete", "Keep supplying the village.");
-            }
-
-            return StepInfos[(int)step];
+            return GetInfo(step, null);
         }
 
-        public static int StepCount => StepInfos.Length;
+        public static TutorialStepInfo GetInfo(TutorialStepId step, string locale)
+        {
+            if (step == TutorialStepId.Completed || (int)step < 0 || (int)step >= StepCount)
+            {
+                return new TutorialStepInfo(
+                    TutorialStepId.Completed,
+                    Resolve(StringKeys.TutorialCompleteTitle, locale),
+                    Resolve(StringKeys.TutorialCompleteHint, locale));
+            }
+
+            ResolveKeys(step, out var titleKey, out var hintKey);
+            return new TutorialStepInfo(step, Resolve(titleKey, locale), Resolve(hintKey, locale));
+        }
+
+        public static int StepCount => 9;
+
+        private static string Resolve(string key, string locale)
+        {
+            return string.IsNullOrEmpty(locale)
+                ? StringTable.Get(key)
+                : StringTable.Get(key, locale);
+        }
+
+        private static void ResolveKeys(TutorialStepId step, out string titleKey, out string hintKey)
+        {
+            switch (step)
+            {
+                case TutorialStepId.Camera:
+                    titleKey = StringKeys.TutorialCameraTitle;
+                    hintKey = StringKeys.TutorialCameraHint;
+                    break;
+                case TutorialStepId.OpenWaterLayer:
+                    titleKey = StringKeys.TutorialOpenWaterTitle;
+                    hintKey = StringKeys.TutorialOpenWaterHint;
+                    break;
+                case TutorialStepId.PlaceWaterWheel:
+                    titleKey = StringKeys.TutorialPlaceWaterWheelTitle;
+                    hintKey = StringKeys.TutorialPlaceWaterWheelHint;
+                    break;
+                case TutorialStepId.PlacePowerLine:
+                    titleKey = StringKeys.TutorialPlacePowerLineTitle;
+                    hintKey = StringKeys.TutorialPlacePowerLineHint;
+                    break;
+                case TutorialStepId.OpenSolarLayer:
+                    titleKey = StringKeys.TutorialOpenSolarTitle;
+                    hintKey = StringKeys.TutorialOpenSolarHint;
+                    break;
+                case TutorialStepId.UnlockSolar:
+                    titleKey = StringKeys.TutorialUnlockSolarTitle;
+                    hintKey = StringKeys.TutorialUnlockSolarHint;
+                    break;
+                case TutorialStepId.PlaceSolar:
+                    titleKey = StringKeys.TutorialPlaceSolarTitle;
+                    hintKey = StringKeys.TutorialPlaceSolarHint;
+                    break;
+                case TutorialStepId.PlaceBattery:
+                    titleKey = StringKeys.TutorialPlaceBatteryTitle;
+                    hintKey = StringKeys.TutorialPlaceBatteryHint;
+                    break;
+                case TutorialStepId.MeetDemand:
+                    titleKey = StringKeys.TutorialMeetDemandTitle;
+                    hintKey = StringKeys.TutorialMeetDemandHint;
+                    break;
+                default:
+                    titleKey = StringKeys.TutorialCompleteTitle;
+                    hintKey = StringKeys.TutorialCompleteHint;
+                    break;
+            }
+        }
     }
 }

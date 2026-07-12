@@ -4,6 +4,7 @@ using CleanEnergy.Energy;
 using CleanEnergy.Placement;
 using CleanEnergy.Research;
 using CleanEnergy.Simulation;
+using CleanEnergy.Tutorial;
 using UnityEngine;
 
 namespace CleanEnergy.UI
@@ -36,6 +37,7 @@ namespace CleanEnergy.UI
         [SerializeField] private PlacementController placementController;
         [SerializeField] private SimulationClock simulationClock;
         [SerializeField] private ResearchController researchController;
+        [SerializeField] private TutorialController tutorialController;
 
         private BuildingCategory _activeCategory = BuildingCategory.Energy;
         private bool _tabLoaded;
@@ -53,11 +55,16 @@ namespace CleanEnergy.UI
         public void Configure(
             PlacementController controller,
             SimulationClock clock = null,
-            ResearchController research = null)
+            ResearchController research = null,
+            TutorialController tutorial = null)
         {
             placementController = controller;
             simulationClock = clock;
             researchController = research;
+            if (tutorial != null)
+            {
+                tutorialController = tutorial;
+            }
         }
 
         /// <summary>Sets the active tab and persists it to PlayerPrefs.</summary>
@@ -236,6 +243,9 @@ namespace CleanEnergy.UI
 
                     var selected = placementController.SelectedBuilding == def;
                     var label = $"{def.DisplayName} ({def.Cost:F0})";
+                    var highlightId = ResolveTutorialBuildTargetId();
+                    var highlighted = !string.IsNullOrEmpty(highlightId) && def.Id == highlightId;
+                    label = TutorialProgressService.FormatSoftHighlightLabel(label, highlighted);
                     if (GUILayout.Toggle(selected, label, "Button") && !selected)
                     {
                         placementController.SelectBuilding(def);
@@ -351,7 +361,8 @@ namespace CleanEnergy.UI
                 placementController.Occupancy);
             var deliveryFactor = TransmissionLoss.ResolveDeliveryFactorForPlacement(
                 placementController.HoverCoordinate.Value,
-                placementController.Occupancy);
+                placementController.Occupancy,
+                def);
             var expected = ProductionEstimate.BreakDown(
                 def,
                 placementController.HoverCoordinate.Value,
@@ -363,6 +374,21 @@ namespace CleanEnergy.UI
                 networkFactor: networkFactor,
                 deliveryFactor: deliveryFactor).Production;
             GUILayout.Label($"Expected: {expected:F1}");
+        }
+
+        private string ResolveTutorialBuildTargetId()
+        {
+            if (tutorialController == null || !tutorialController.IsEnabled || tutorialController.Progress == null)
+            {
+                return null;
+            }
+
+            if (tutorialController.Progress.IsComplete)
+            {
+                return null;
+            }
+
+            return TutorialProgressService.ResolveBuildTargetId(tutorialController.Progress.CurrentStep);
         }
     }
 }

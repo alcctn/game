@@ -69,6 +69,90 @@ namespace CleanEnergy.DebugTools
             return UpkeepMultiplierForDensity(ScoreAt(coordinate, occupied));
         }
 
+        /// <summary>
+        /// Mean density across unique producer cells (0 when none).
+        /// </summary>
+        public static float MeanDensity(IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied)
+        {
+            if (occupied == null || occupied.Count == 0)
+            {
+                return 0f;
+            }
+
+            var seen = new HashSet<string>();
+            var sum = 0f;
+            var count = 0;
+            foreach (var pair in occupied)
+            {
+                var building = pair.Value;
+                if (building?.Definition == null
+                    || !building.Definition.IsProducer
+                    || string.IsNullOrEmpty(building.InstanceId)
+                    || !seen.Add(building.InstanceId))
+                {
+                    continue;
+                }
+
+                sum += ScoreAt(building.Coordinate, occupied);
+                count++;
+            }
+
+            return count == 0 ? 0f : sum / count;
+        }
+
+        /// <summary>
+        /// Number of unique producer sites whose local density exceeds <see cref="HighDensityThreshold"/>.
+        /// </summary>
+        public static int CountHighDensitySites(
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied)
+        {
+            if (occupied == null || occupied.Count == 0)
+            {
+                return 0;
+            }
+
+            var seen = new HashSet<string>();
+            var high = 0;
+            foreach (var pair in occupied)
+            {
+                var building = pair.Value;
+                if (building?.Definition == null
+                    || !building.Definition.IsProducer
+                    || string.IsNullOrEmpty(building.InstanceId)
+                    || !seen.Add(building.InstanceId))
+                {
+                    continue;
+                }
+
+                if (ScoreAt(building.Coordinate, occupied) > HighDensityThreshold)
+                {
+                    high++;
+                }
+            }
+
+            return high;
+        }
+
+        /// <summary>
+        /// Compact HUD line: mean density, or high-site count when any are elevated.
+        /// </summary>
+        public static string FormatHudMeter(IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied)
+        {
+            var high = CountHighDensitySites(occupied);
+            if (high > 0)
+            {
+                return $"High density sites: {high}";
+            }
+
+            var mean = MeanDensity(occupied);
+            if (mean <= 0.0001f)
+            {
+                return string.Empty;
+            }
+
+            return $"Env density {mean.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}";
+        }
+
         public static Color ColorForScore(float score)
         {
             var t = Mathf.Clamp01(score);

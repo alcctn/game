@@ -45,6 +45,7 @@ namespace CleanEnergy.Save
         public float researchPoints;
         public bool emergencyCreditUsed;
         public float creditDebt;
+        public int creditUses;
         public string[] unlockedNodeIds = Array.Empty<string>();
         public BuildingSaveData[] buildings = Array.Empty<BuildingSaveData>();
         public ScenarioSaveData scenario = new ScenarioSaveData();

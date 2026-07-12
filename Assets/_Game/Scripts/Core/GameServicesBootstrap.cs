@@ -44,13 +44,17 @@ namespace CleanEnergy.Core
                 _instance.gameObject.AddComponent<MusicService>();
             }
 
+            GameServices.RegisterCloudSaveStore(new LocalCloudSaveStore());
             SettingsService.ApplyAll();
             EnsureSaveDirectory();
         }
 
         private static void EnsureSaveDirectory()
         {
-            var service = new SaveGameService();
+            var localRoot = System.IO.Path.Combine(
+                UnityEngine.Application.persistentDataPath, "saves");
+            var resolved = GameServices.CloudSaveStore.ResolveSaveDirectory(localRoot);
+            var service = new SaveGameService(resolved);
             if (!System.IO.Directory.Exists(service.SlotDirectory))
             {
                 System.IO.Directory.CreateDirectory(service.SlotDirectory);

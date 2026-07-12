@@ -13,6 +13,16 @@ namespace CleanEnergy.UI
     /// </summary>
     public sealed class PauseOverlayUI : MonoBehaviour
     {
+        public const float SavedFlashSeconds = 1.25f;
+
+        private enum ConfirmMode
+        {
+            None = 0,
+            MainMenu = 1,
+            Delete = 2,
+            Overwrite = 3
+        }
+
         [SerializeField] private SimulationClock clock;
         [SerializeField] private PlacementController placementController;
         [SerializeField] private IsometricCameraController cameraController;
@@ -20,12 +30,21 @@ namespace CleanEnergy.UI
 
         private bool _overlayVisible;
         private bool _settingsOpen;
-        private bool _confirmMainMenu;
+        private ConfirmMode _confirmMode;
+        private int _confirmSlot;
         private SimulationSpeed _speedBeforePause = SimulationSpeed.One;
+        private float _savedFlashTimer;
+        private int _savedFlashSlot;
 
         public bool IsOverlayVisible => _overlayVisible;
         public bool IsSettingsOpen => _settingsOpen;
-        public bool IsConfirmingMainMenu => _confirmMainMenu;
+        public bool IsConfirmingMainMenu => _confirmMode == ConfirmMode.MainMenu;
+        public bool IsConfirmingDelete => _confirmMode == ConfirmMode.Delete;
+        public bool IsConfirmingOverwrite => _confirmMode == ConfirmMode.Overwrite;
+        public int ConfirmDeleteSlot => _confirmMode == ConfirmMode.Delete ? _confirmSlot : 0;
+        public int ConfirmOverwriteSlot => _confirmMode == ConfirmMode.Overwrite ? _confirmSlot : 0;
+        public bool IsShowingSavedFlash => _savedFlashTimer > 0f;
+        public int SavedFlashSlot => _savedFlashSlot;
 
         public void Configure(
             SimulationClock simulationClock,
@@ -44,6 +63,15 @@ namespace CleanEnergy.UI
 
         private void Update()
         {
+            if (_savedFlashTimer > 0f)
+            {
+                _savedFlashTimer -= Time.unscaledDeltaTime;
+                if (_savedFlashTimer < 0f)
+                {
+                    _savedFlashTimer = 0f;
+                }
+            }
+
             if (!Input.GetKeyDown(KeyCode.Escape))
             {
                 return;
@@ -60,7 +88,19 @@ namespace CleanEnergy.UI
                 return;
             }
 
-            if (_confirmMainMenu)
+            if (_confirmMode == ConfirmMode.Delete)
+            {
+                CancelDeleteConfirm();
+                return;
+            }
+
+            if (_confirmMode == ConfirmMode.Overwrite)
+            {
+                CancelOverwriteConfirm();
+                return;
+            }
+
+            if (_confirmMode == ConfirmMode.MainMenu)
             {
                 CancelMainMenuConfirm();
                 return;
@@ -90,7 +130,7 @@ namespace CleanEnergy.UI
 
             _overlayVisible = true;
             _settingsOpen = false;
-            _confirmMainMenu = false;
+            ClearConfirm();
         }
 
         public void Resume()
@@ -105,24 +145,88 @@ namespace CleanEnergy.UI
 
             _overlayVisible = false;
             _settingsOpen = false;
-            _confirmMainMenu = false;
+            ClearConfirm();
         }
 
         public void RequestMainMenuConfirm()
         {
-            _confirmMainMenu = true;
+            _confirmMode = ConfirmMode.MainMenu;
+            _confirmSlot = 0;
         }
 
         public void CancelMainMenuConfirm()
         {
-            _confirmMainMenu = false;
+            if (_confirmMode == ConfirmMode.MainMenu)
+            {
+                ClearConfirm();
+            }
+        }
+
+        public void RequestDeleteSlotConfirm(int slot)
+        {
+            _confirmMode = ConfirmMode.Delete;
+            _confirmSlot = SaveGameService.ClampSlot(slot);
+        }
+
+        public void CancelDeleteConfirm()
+        {
+            if (_confirmMode == ConfirmMode.Delete)
+            {
+                ClearConfirm();
+            }
+        }
+
+        public void RequestOverwriteConfirm(int slot)
+        {
+            _confirmMode = ConfirmMode.Overwrite;
+            _confirmSlot = SaveGameService.ClampSlot(slot);
+        }
+
+        public void CancelOverwriteConfirm()
+        {
+            if (_confirmMode == ConfirmMode.Overwrite)
+            {
+                ClearConfirm();
+            }
+        }
+
+        /// <summary>Deletes the pending confirm slot via SaveLoadController. Returns false if empty/missing.</summary>
+        public bool ConfirmDeleteSlotAction()
+        {
+            if (_confirmMode != ConfirmMode.Delete || _confirmSlot <= 0)
+            {
+                return false;
+            }
+
+            var slot = _confirmSlot;
+            ClearConfirm();
+            var saveLoad = ResolveSaveLoad();
+            if (saveLoad == null)
+            {
+                return false;
+            }
+
+            return saveLoad.DeleteSlot(slot);
+        }
+
+        /// <summary>Overwrites the pending slot after confirm.</summary>
+        public bool ConfirmOverwriteSlotAction()
+        {
+            if (_confirmMode != ConfirmMode.Overwrite || _confirmSlot <= 0)
+            {
+                return false;
+            }
+
+            var slot = _confirmSlot;
+            ClearConfirm();
+            return PerformSave(slot);
         }
 
         public void GoToMainMenu()
         {
             _overlayVisible = false;
             _settingsOpen = false;
-            _confirmMainMenu = false;
+            ClearConfirm();
             if (clock != null)
             {
                 clock.SetSpeed(SimulationSpeed.One);
@@ -141,6 +245,27 @@ namespace CleanEnergy.UI
                 : $"Save Slot {clamped}";
         }
 
+        /// <summary>Formats save-slot button with optional metadata summary.</summary>
+        public static string FormatSaveSlotLabel(
+            int slot,
+            int activeSlot,
+            SlotSaveSummary summary,
+            bool slotExists)
+        {
+            var baseLabel = FormatSaveSlotLabel(slot, activeSlot);
+            if (slotExists && summary != null)
+            {
+                return $"{baseLabel} — {summary.ScenarioId} ${summary.Money:F0} t{summary.TickIndex}";
+            }
+
+            if (slotExists)
+            {
+                return baseLabel;
+            }
+
+            return $"{baseLabel} — empty";
+        }
+
         private void OnGUI()
         {
             if (!_overlayVisible)
@@ -156,19 +281,36 @@ namespace CleanEnergy.UI
                 return;
             }
 
-            if (_confirmMainMenu)
+            if (_confirmMode == ConfirmMode.MainMenu)
             {
                 DrawMainMenuConfirm();
                 return;
             }
 
-            const float width = 280f;
-            const float height = 360f;
+            if (_confirmMode == ConfirmMode.Delete)
+            {
+                DrawDeleteConfirm();
+                return;
+            }
+
+            if (_confirmMode == ConfirmMode.Overwrite)
+            {
+                DrawOverwriteConfirm();
+                return;
+            }
+
+            const float width = 320f;
+            const float height = 440f;
             var x = (Screen.width / GuiScale.Current - width) * 0.5f;
             var y = (Screen.height / GuiScale.Current - height) * 0.5f;
             GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
             GUILayout.Label(StringTable.Get(StringKeys.Pause));
             GUILayout.Label(StringTable.Get(StringKeys.EscToResume));
+            if (IsShowingSavedFlash)
+            {
+                GUILayout.Label($"Saved slot{_savedFlashSlot}.");
+            }
+
             if (GUILayout.Button(StringTable.Get(StringKeys.Resume)))
             {
                 _speedBeforePause = SimulationSpeed.One;
@@ -177,13 +319,26 @@ namespace CleanEnergy.UI
 
             GUILayout.Space(6f);
             var activeSlot = ResolveActiveSlot();
+            var saveLoad = ResolveSaveLoad();
             for (var slot = 1; slot <= SaveGameService.MaxSlot; slot++)
             {
-                var label = FormatSaveSlotLabel(slot, activeSlot);
+                SlotSaveSummary summary = null;
+                var exists = saveLoad?.Service != null && saveLoad.Service.SlotExists(slot);
+                if (exists)
+                {
+                    saveLoad.Service.TryReadSummary(slot, out summary);
+                }
+
+                var label = FormatSaveSlotLabel(slot, activeSlot, summary, exists);
                 if (GUILayout.Button(label, GUILayout.Height(28f)))
                 {
                     TrySaveSlot(slot);
                 }
+            }
+
+            if (GUILayout.Button(StringTable.Get(StringKeys.DeleteSlot), GUILayout.Height(28f)))
+            {
+                RequestDeleteSlotConfirm(activeSlot);
             }
 
             if (GUILayout.Button(StringTable.Get(StringKeys.Settings)))
@@ -196,6 +351,54 @@ namespace CleanEnergy.UI
                 RequestMainMenuConfirm();
             }
 
+            GUILayout.EndArea();
+        }
+
+        private void DrawDeleteConfirm()
+        {
+            const float width = 300f;
+            const float height = 140f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
+            var y = (Screen.height / GuiScale.Current - height) * 0.5f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            GUILayout.Label($"Delete save slot {_confirmSlot}?");
+            GUILayout.Label("This cannot be undone.");
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Confirm", GUILayout.Height(28f)))
+            {
+                ConfirmDeleteSlotAction();
+            }
+
+            if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
+            {
+                CancelDeleteConfirm();
+            }
+
+            GUILayout.EndHorizontal();
+            GUILayout.EndArea();
+        }
+
+        private void DrawOverwriteConfirm()
+        {
+            const float width = 300f;
+            const float height = 140f;
+            var x = (Screen.width / GuiScale.Current - width) * 0.5f;
+            var y = (Screen.height / GuiScale.Current - height) * 0.5f;
+            GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+            GUILayout.Label($"Overwrite save slot {_confirmSlot}?");
+            GUILayout.Label("Existing save will be replaced.");
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Confirm", GUILayout.Height(28f)))
+            {
+                ConfirmOverwriteSlotAction();
+            }
+
+            if (GUILayout.Button(StringTable.Get(StringKeys.Back), GUILayout.Height(28f)))
+            {
+                CancelOverwriteConfirm();
+            }
+
+            GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
 
@@ -237,14 +440,44 @@ namespace CleanEnergy.UI
         private void TrySaveSlot(int slot)
         {
             var saveLoad = ResolveSaveLoad();
-            if (saveLoad == null)
+            if (saveLoad?.Service != null && saveLoad.Service.SlotExists(slot))
             {
+                RequestOverwriteConfirm(slot);
                 return;
             }
 
+            PerformSave(slot);
+        }
+
+        private bool PerformSave(int slot)
+        {
+            var saveLoad = ResolveSaveLoad();
+            if (saveLoad == null)
+            {
+                return false;
+            }
+
             saveLoad.SetActiveSlot(slot);
-            saveLoad.SaveSlot(slot);
-            ScenarioSession.ContinueSlot = SaveGameService.ClampSlot(slot);
+            var ok = saveLoad.SaveSlot(slot);
+            if (ok)
+            {
+                ScenarioSession.ContinueSlot = SaveGameService.ClampSlot(slot);
+                ShowSavedFlash(slot);
+            }
+
+            return ok;
+        }
+
+        private void ShowSavedFlash(int slot)
+        {
+            _savedFlashSlot = SaveGameService.ClampSlot(slot);
+            _savedFlashTimer = SavedFlashSeconds;
+        }
+
+        private void ClearConfirm()
+        {
+            _confirmMode = ConfirmMode.None;
+            _confirmSlot = 0;
         }
 
         private SaveLoadController ResolveSaveLoad()

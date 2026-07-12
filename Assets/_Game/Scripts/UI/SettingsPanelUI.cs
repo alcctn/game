@@ -74,6 +74,12 @@ namespace CleanEnergy.UI
             DrawKeybind(RemappableAction.Speed3, "Speed 4x");
             DrawKeybind(RemappableAction.Undo, "Undo (with Ctrl)");
             DrawKeybind(RemappableAction.Home, "Home Fit");
+            DrawKeybind(RemappableAction.CamForward, "Cam Forward");
+            DrawKeybind(RemappableAction.CamBack, "Cam Back");
+            DrawKeybind(RemappableAction.CamLeft, "Cam Left");
+            DrawKeybind(RemappableAction.CamRight, "Cam Right");
+            DrawKeybind(RemappableAction.CamRotateLeft, "Cam Rotate L");
+            DrawKeybind(RemappableAction.CamRotateRight, "Cam Rotate R");
         }
 
         private static void DrawUiScaleButton(float scale, string label)

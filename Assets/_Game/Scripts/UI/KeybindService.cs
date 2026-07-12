@@ -9,7 +9,13 @@ namespace CleanEnergy.UI
         Speed2,
         Speed3,
         Undo,
-        Home
+        Home,
+        CamForward,
+        CamBack,
+        CamLeft,
+        CamRight,
+        CamRotateLeft,
+        CamRotateRight
     }
 
     /// <summary>
@@ -29,6 +35,12 @@ namespace CleanEnergy.UI
                 case RemappableAction.Speed3: return KeyCode.Alpha3;
                 case RemappableAction.Undo: return KeyCode.Z;
                 case RemappableAction.Home: return KeyCode.Home;
+                case RemappableAction.CamForward: return KeyCode.W;
+                case RemappableAction.CamBack: return KeyCode.S;
+                case RemappableAction.CamLeft: return KeyCode.A;
+                case RemappableAction.CamRight: return KeyCode.D;
+                case RemappableAction.CamRotateLeft: return KeyCode.Q;
+                case RemappableAction.CamRotateRight: return KeyCode.E;
                 default: return KeyCode.None;
             }
         }

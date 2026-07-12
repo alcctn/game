@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CleanEnergy.CameraSystem
@@ -29,6 +30,30 @@ namespace CleanEnergy.CameraSystem
             var pad = Mathf.Max(0, paddingCells) * Mathf.Max(0.01f, cellSize);
             var extents = new Vector3(pad, 0f, pad);
             return new Bounds(cellWorld, extents * 2f);
+        }
+
+        /// <summary>
+        /// Axis-aligned bounds covering one or more cell centers with padding.
+        /// </summary>
+        public static Bounds BoundsAroundCells(
+            IReadOnlyList<Vector3> cellWorldPositions,
+            float cellSize,
+            int paddingCells)
+        {
+            if (cellWorldPositions == null || cellWorldPositions.Count == 0)
+            {
+                return BoundsAroundCell(Vector3.zero, cellSize, paddingCells);
+            }
+
+            var bounds = new Bounds(cellWorldPositions[0], Vector3.zero);
+            for (var i = 1; i < cellWorldPositions.Count; i++)
+            {
+                bounds.Encapsulate(cellWorldPositions[i]);
+            }
+
+            var pad = Mathf.Max(0, paddingCells) * Mathf.Max(0.01f, cellSize);
+            bounds.Expand(new Vector3(pad * 2f, 0f, pad * 2f));
+            return bounds;
         }
     }
 }

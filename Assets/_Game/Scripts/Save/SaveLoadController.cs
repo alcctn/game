@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CleanEnergy.Audio;
 using CleanEnergy.Energy;
+using CleanEnergy.Maintenance;
 using CleanEnergy.Map;
 using CleanEnergy.Placement;
 using CleanEnergy.Research;
@@ -25,6 +26,7 @@ namespace CleanEnergy.Save
         [SerializeField] private TutorialController tutorialController;
         [SerializeField] private EnergySimulationDriver energyDriver;
         [SerializeField] private SfxService sfxService;
+        [SerializeField] private MaintenanceController maintenanceController;
 
         private readonly SaveGameService _saveService = new SaveGameService();
 
@@ -40,7 +42,8 @@ namespace CleanEnergy.Save
             EnergyNetworkService network,
             TutorialController tutorial = null,
             EnergySimulationDriver driver = null,
-            SfxService sfx = null)
+            SfxService sfx = null,
+            MaintenanceController maintenance = null)
         {
             mapGenerator = map;
             placementController = placement;
@@ -51,6 +54,7 @@ namespace CleanEnergy.Save
             tutorialController = tutorial;
             energyDriver = driver;
             sfxService = sfx;
+            maintenanceController = maintenance;
         }
 
         public bool SaveSlot()
@@ -137,6 +141,9 @@ namespace CleanEnergy.Save
                 creditDebt = energyDriver != null
                     ? energyDriver.EmergencyCredit.RemainingDebt
                     : 0f,
+                creditUses = energyDriver != null
+                    ? energyDriver.EmergencyCredit.CreditUses
+                    : 0,
                 tutorialStep = tutorialController?.Progress != null
                     ? (int)tutorialController.Progress.CurrentStep
                     : 0,
@@ -208,6 +215,7 @@ namespace CleanEnergy.Save
             placementController.ResetFactoryIds();
             placementController.CancelPlacement();
             placementController.ClearDemolishUndo();
+            maintenanceController?.RepairUndo.Clear();
             if (data.buildings != null)
             {
                 for (var i = 0; i < data.buildings.Length; i++)
@@ -235,7 +243,13 @@ namespace CleanEnergy.Save
             if (energyDriver != null)
             {
                 // Generate already reset the flag via MapGenerated; restore from save.
-                energyDriver.EmergencyCredit.Restore(data.emergencyCreditUsed, data.creditDebt);
+                var uses = data.creditUses;
+                if (uses <= 0 && data.emergencyCreditUsed)
+                {
+                    uses = 1;
+                }
+
+                energyDriver.EmergencyCredit.Restore(uses, data.creditDebt);
             }
 
             if (scenarioController != null && data.scenario != null)

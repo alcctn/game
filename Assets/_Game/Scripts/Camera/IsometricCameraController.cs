@@ -1,4 +1,5 @@
 using System;
+using CleanEnergy.UI;
 using UnityEngine;
 
 namespace CleanEnergy.CameraSystem
@@ -189,10 +190,25 @@ namespace CleanEnergy.CameraSystem
         private bool HandleMove(float dt)
         {
             var input = Vector3.zero;
-            if (Input.GetKey(KeyCode.W)) input.z += 1f;
-            if (Input.GetKey(KeyCode.S)) input.z -= 1f;
-            if (Input.GetKey(KeyCode.D)) input.x += 1f;
-            if (Input.GetKey(KeyCode.A)) input.x -= 1f;
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamForward)))
+            {
+                input.z += 1f;
+            }
+
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamBack)))
+            {
+                input.z -= 1f;
+            }
+
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamRight)))
+            {
+                input.x += 1f;
+            }
+
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamLeft)))
+            {
+                input.x -= 1f;
+            }
 
             if (input.sqrMagnitude < 1e-6f)
             {
@@ -211,8 +227,16 @@ namespace CleanEnergy.CameraSystem
         private bool HandleRotate(float dt)
         {
             var rotate = 0f;
-            if (Input.GetKey(KeyCode.Q)) rotate -= 1f;
-            if (Input.GetKey(KeyCode.E)) rotate += 1f;
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamRotateLeft)))
+            {
+                rotate -= 1f;
+            }
+
+            if (Input.GetKey(KeybindService.Get(RemappableAction.CamRotateRight)))
+            {
+                rotate += 1f;
+            }
+
             if (Mathf.Abs(rotate) < 1e-6f)
             {
                 return false;

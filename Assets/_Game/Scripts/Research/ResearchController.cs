@@ -23,7 +23,14 @@ namespace CleanEnergy.Research
             new System.Collections.Generic.HashSet<string>();
 
         public ResearchService Service => _service;
+
+        /// <summary>Coverage RP granted on the last balance tick (0 when none).</summary>
+        public float LastCoverageRpGranted => _tracker?.LastCoverageRpGranted ?? 0f;
+
         public event System.Action StateChanged;
+
+        /// <summary>Raised once when diversity bonus RP is granted.</summary>
+        public event System.Action DiversityBonusGranted;
 
         private void OnEnable()
         {
@@ -50,7 +57,7 @@ namespace CleanEnergy.Research
             scenarioController = scenario;
             mapGenerator = generator;
             _service = new ResearchService(treeDefinition);
-            _tracker = new ResearchProgressTracker(_service);
+            BindTracker(new ResearchProgressTracker(_service));
             if (_service != null)
             {
                 _service.StateChanged += OnServiceStateChanged;
@@ -93,8 +100,27 @@ namespace CleanEnergy.Research
             }
 
             _service = new ResearchService(treeDefinition);
-            _tracker = new ResearchProgressTracker(_service);
+            BindTracker(new ResearchProgressTracker(_service));
             _service.StateChanged += OnServiceStateChanged;
+        }
+
+        private void BindTracker(ResearchProgressTracker tracker)
+        {
+            if (_tracker != null)
+            {
+                _tracker.DiversityBonusGranted -= OnDiversityBonusGranted;
+            }
+
+            _tracker = tracker;
+            if (_tracker != null)
+            {
+                _tracker.DiversityBonusGranted += OnDiversityBonusGranted;
+            }
+        }
+
+        private void OnDiversityBonusGranted()
+        {
+            DiversityBonusGranted?.Invoke();
         }
 
         private void Subscribe()
@@ -178,6 +204,11 @@ namespace CleanEnergy.Research
 
         private void OnDestroy()
         {
+            if (_tracker != null)
+            {
+                _tracker.DiversityBonusGranted -= OnDiversityBonusGranted;
+            }
+
             if (_service != null)
             {
                 _service.StateChanged -= OnServiceStateChanged;

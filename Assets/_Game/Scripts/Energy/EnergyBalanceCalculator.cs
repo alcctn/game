@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using CleanEnergy.Grid;
 using CleanEnergy.Simulation;
 using UnityEngine;
 
@@ -74,7 +73,8 @@ namespace CleanEnergy.Energy
 
         public EnergyBalanceResult Calculate(
             EnergyNetworkComponent component,
-            SimulationContext context)
+            SimulationContext context,
+            EnergyNetworkGraph graph = null)
         {
             var producers = new List<IEnergyProducer>();
             var consumers = new List<IEnergyConsumer>();
@@ -103,8 +103,9 @@ namespace CleanEnergy.Energy
                 }
                 else
                 {
-                    var coord = ResolveProducerCoordinate(component, producers[i].NodeId);
-                    var delivery = TransmissionLoss.ResolveDeliveryFactor(coord, component);
+                    var delivery = graph != null
+                        ? TransmissionLoss.ResolveDeliveryFactor(producers[i].NodeId, graph)
+                        : 1f;
                     amount *= delivery;
                     if (producers[i] is ResourceProducerAdapter adapter)
                     {
@@ -177,7 +178,7 @@ namespace CleanEnergy.Energy
 
             foreach (var component in graph.Components)
             {
-                var result = Calculate(component, context);
+                var result = Calculate(component, context, graph);
                 production += result.Production;
                 demand += result.Demand;
                 stored += result.Stored;
@@ -235,21 +236,6 @@ namespace CleanEnergy.Energy
             }
 
             return hubCount == 0 ? -1f : sum;
-        }
-
-        private static GridCoordinate ResolveProducerCoordinate(
-            EnergyNetworkComponent component,
-            string nodeId)
-        {
-            for (var i = 0; i < component.Nodes.Count; i++)
-            {
-                if (component.Nodes[i].Id == nodeId)
-                {
-                    return component.Nodes[i].Coordinate;
-                }
-            }
-
-            return default;
         }
     }
 }

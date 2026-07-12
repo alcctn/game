@@ -24,6 +24,7 @@ namespace CleanEnergy.UI
         [SerializeField] private ResearchController researchController;
         [SerializeField] private ScenarioController scenarioController;
         [SerializeField] private EnergySimulationDriver energyDriver;
+        [SerializeField] private MaintenanceController maintenanceController;
 
         private string _actionMessage = string.Empty;
         private readonly List<float> _sparklineScratch = new List<float>(20);
@@ -36,7 +37,8 @@ namespace CleanEnergy.UI
             SimulationClock clock = null,
             ResearchController research = null,
             ScenarioController scenario = null,
-            EnergySimulationDriver driver = null)
+            EnergySimulationDriver driver = null,
+            MaintenanceController maintenance = null)
         {
             debugOverlay = overlay;
             mapGenerator = generator;
@@ -46,6 +48,7 @@ namespace CleanEnergy.UI
             researchController = research;
             scenarioController = scenario;
             energyDriver = driver;
+            maintenanceController = maintenance;
         }
 
         private void OnGUI()
@@ -84,6 +87,7 @@ namespace CleanEnergy.UI
                             debugOverlay.MultiSelectedCells,
                             placementController.Occupancy.Occupied,
                             placementController.Wallet,
+                            maintenanceController != null ? maintenanceController.RepairUndo : null,
                             out var count,
                             out var cost,
                             out var fail))
@@ -133,7 +137,10 @@ namespace CleanEnergy.UI
                     if (GUILayout.Button("Repair"))
                     {
                         if (MaintenanceService.TryManualRepair(
-                                building, placementController.Wallet, out var fail))
+                                building,
+                                placementController.Wallet,
+                                maintenanceController != null ? maintenanceController.RepairUndo : null,
+                                out var fail))
                         {
                             _actionMessage = "Repaired.";
                         }
@@ -148,10 +155,17 @@ namespace CleanEnergy.UI
                 {
                     if (GUILayout.Button("Repair All In Range"))
                     {
+                        RepairUndoService repairUndo = null;
+                        if (maintenanceController != null)
+                        {
+                            repairUndo = maintenanceController.RepairUndo;
+                        }
+
                         if (MaintenanceService.TryBulkRepairInDepotRange(
                                 building,
                                 placementController.Occupancy.Occupied,
                                 placementController.Wallet,
+                                repairUndo,
                                 out var count,
                                 out var cost,
                                 out var fail))
@@ -303,6 +317,33 @@ namespace CleanEnergy.UI
                     else
                     {
                         _actionMessage = "Undo demolish failed.";
+                    }
+                }
+            }
+
+            if (maintenanceController != null
+                && maintenanceController.RepairUndo.HasRepairUndo
+                && placementController != null
+                && !placementController.IsPlacementActive)
+            {
+                GUILayout.Space(4f);
+                var undo = maintenanceController.RepairUndo;
+                var repairLabel = undo.RepairUndoStackDepth > 1
+                    ? $"Undo Repair ×{undo.RepairUndoStackDepth}"
+                    : undo.RepairUndoCount > 1
+                        ? $"Undo Repair ({undo.RepairUndoCount})"
+                        : "Undo Repair";
+                if (GUILayout.Button(repairLabel))
+                {
+                    if (undo.TryUndoLast(
+                            placementController.Occupancy.Occupied,
+                            placementController.Wallet))
+                    {
+                        _actionMessage = "Repair undone.";
+                    }
+                    else
+                    {
+                        _actionMessage = "Undo repair failed.";
                     }
                 }
             }

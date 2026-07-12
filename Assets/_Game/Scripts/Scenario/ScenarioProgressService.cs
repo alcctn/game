@@ -45,11 +45,15 @@ namespace CleanEnergy.Scenario
 
     public sealed class ScenarioFailedEvent
     {
-        public string ScenarioId { get; }
+        public const string DefaultReason = "Village satisfaction collapsed from prolonged shortages.";
 
-        public ScenarioFailedEvent(string scenarioId)
+        public string ScenarioId { get; }
+        public string Reason { get; }
+
+        public ScenarioFailedEvent(string scenarioId, string reason = null)
         {
             ScenarioId = scenarioId;
+            Reason = string.IsNullOrEmpty(reason) ? DefaultReason : reason;
         }
     }
 

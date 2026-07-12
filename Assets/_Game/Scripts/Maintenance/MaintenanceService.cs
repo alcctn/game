@@ -115,6 +115,15 @@ namespace CleanEnergy.Maintenance
 
         public static bool TryManualRepair(BuildingInstance building, Economy.Wallet wallet, out string failure)
         {
+            return TryManualRepair(building, wallet, null, out failure);
+        }
+
+        public static bool TryManualRepair(
+            BuildingInstance building,
+            Economy.Wallet wallet,
+            RepairUndoService undo,
+            out string failure)
+        {
             failure = null;
             if (building?.Definition == null || !building.Definition.IsProducer)
             {
@@ -135,7 +144,12 @@ namespace CleanEnergy.Maintenance
                 return false;
             }
 
+            var previous = building.MaintenanceLevel;
             building.MaintenanceLevel = MaxLevel;
+            undo?.Push(new List<RepairUndoSnapshot>
+            {
+                new RepairUndoSnapshot(building.InstanceId, previous, cost)
+            });
             return true;
         }
 
@@ -143,6 +157,19 @@ namespace CleanEnergy.Maintenance
             BuildingInstance depot,
             IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
             Economy.Wallet wallet,
+            out int repairedCount,
+            out float totalCost,
+            out string failure)
+        {
+            return TryBulkRepairInDepotRange(
+                depot, occupied, wallet, null, out repairedCount, out totalCost, out failure);
+        }
+
+        public static bool TryBulkRepairInDepotRange(
+            BuildingInstance depot,
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
+            Economy.Wallet wallet,
+            RepairUndoService undo,
             out int repairedCount,
             out float totalCost,
             out string failure)
@@ -163,6 +190,7 @@ namespace CleanEnergy.Maintenance
             }
 
             var targets = new List<BuildingInstance>();
+            var costs = new List<float>();
             var seen = new HashSet<string>();
             var depots = new List<BuildingInstance> { depot };
             foreach (var pair in occupied)
@@ -182,8 +210,10 @@ namespace CleanEnergy.Maintenance
 
                 if (IsCoveredByDepot(instance, depots))
                 {
+                    var cost = ManualRepairCost(instance);
                     targets.Add(instance);
-                    totalCost += ManualRepairCost(instance);
+                    costs.Add(cost);
+                    totalCost += cost;
                 }
             }
 
@@ -207,6 +237,7 @@ namespace CleanEnergy.Maintenance
                 return false;
             }
 
+            PushRepairBatch(undo, targets, costs);
             for (var i = 0; i < targets.Count; i++)
             {
                 targets[i].MaintenanceLevel = MaxLevel;
@@ -226,6 +257,18 @@ namespace CleanEnergy.Maintenance
             out float totalCost,
             out string failure)
         {
+            return TryGlobalRepairAllProducers(
+                occupied, wallet, null, out repairedCount, out totalCost, out failure);
+        }
+
+        public static bool TryGlobalRepairAllProducers(
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
+            Economy.Wallet wallet,
+            RepairUndoService undo,
+            out int repairedCount,
+            out float totalCost,
+            out string failure)
+        {
             repairedCount = 0;
             totalCost = 0f;
             failure = null;
@@ -236,6 +279,7 @@ namespace CleanEnergy.Maintenance
             }
 
             var targets = new List<BuildingInstance>();
+            var costs = new List<float>();
             var seen = new HashSet<string>();
             foreach (var pair in occupied)
             {
@@ -252,8 +296,10 @@ namespace CleanEnergy.Maintenance
                     continue;
                 }
 
+                var cost = ManualRepairCost(instance);
                 targets.Add(instance);
-                totalCost += ManualRepairCost(instance);
+                costs.Add(cost);
+                totalCost += cost;
             }
 
             if (targets.Count == 0)
@@ -276,6 +322,7 @@ namespace CleanEnergy.Maintenance
                 return false;
             }
 
+            PushRepairBatch(undo, targets, costs);
             for (var i = 0; i < targets.Count; i++)
             {
                 targets[i].MaintenanceLevel = MaxLevel;
@@ -296,6 +343,19 @@ namespace CleanEnergy.Maintenance
             out float totalCost,
             out string failure)
         {
+            return TryRepairSelectedProducers(
+                coordinates, occupied, wallet, null, out repairedCount, out totalCost, out failure);
+        }
+
+        public static bool TryRepairSelectedProducers(
+            IReadOnlyList<GridCoordinate> coordinates,
+            IReadOnlyDictionary<GridCoordinate, BuildingInstance> occupied,
+            Economy.Wallet wallet,
+            RepairUndoService undo,
+            out int repairedCount,
+            out float totalCost,
+            out string failure)
+        {
             repairedCount = 0;
             totalCost = 0f;
             failure = null;
@@ -306,6 +366,7 @@ namespace CleanEnergy.Maintenance
             }
 
             var targets = new List<BuildingInstance>();
+            var costs = new List<float>();
             var seen = new HashSet<string>();
             var limit = Mathf.Min(coordinates.Count, 8);
             for (var i = 0; i < limit; i++)
@@ -323,8 +384,10 @@ namespace CleanEnergy.Maintenance
                     continue;
                 }
 
+                var cost = ManualRepairCost(instance);
                 targets.Add(instance);
-                totalCost += ManualRepairCost(instance);
+                costs.Add(cost);
+                totalCost += cost;
             }
 
             if (targets.Count == 0)
@@ -347,6 +410,7 @@ namespace CleanEnergy.Maintenance
                 return false;
             }
 
+            PushRepairBatch(undo, targets, costs);
             for (var i = 0; i < targets.Count; i++)
             {
                 targets[i].MaintenanceLevel = MaxLevel;
@@ -354,6 +418,34 @@ namespace CleanEnergy.Maintenance
 
             repairedCount = targets.Count;
             return true;
+        }
+
+        private static void PushRepairBatch(
+            RepairUndoService undo,
+            IReadOnlyList<BuildingInstance> targets,
+            IReadOnlyList<float> costs)
+        {
+            if (undo == null || targets == null || costs == null)
+            {
+                return;
+            }
+
+            var group = new List<RepairUndoSnapshot>(targets.Count);
+            for (var i = 0; i < targets.Count; i++)
+            {
+                var building = targets[i];
+                if (building == null)
+                {
+                    continue;
+                }
+
+                group.Add(new RepairUndoSnapshot(
+                    building.InstanceId,
+                    building.MaintenanceLevel,
+                    i < costs.Count ? costs[i] : 0f));
+            }
+
+            undo.Push(group);
         }
 
         private static int Manhattan(GridCoordinate a, GridCoordinate b)

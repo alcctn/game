@@ -164,6 +164,17 @@ namespace CleanEnergy.Energy
             }
         }
 
+        /// <summary>Undirected neighbors of a node, or empty when unknown.</summary>
+        public IReadOnlyCollection<string> GetNeighbors(string nodeId)
+        {
+            if (string.IsNullOrEmpty(nodeId) || !_edges.TryGetValue(nodeId, out var set))
+            {
+                return Array.Empty<string>();
+            }
+
+            return set;
+        }
+
         public bool AreConnected(string a, string b)
         {
             if (a == b)

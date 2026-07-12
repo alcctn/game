@@ -105,11 +105,12 @@ namespace CleanEnergy.Core
 
             var hudGo = EnsureChild("EnergyHudUI", debugRoot);
             var hud = FindOrAdd<EnergyHudUI>(hudGo.gameObject);
-            hud.Configure(driver, clock, placement, research, maintenance);
+            hud.Configure(driver, clock, placement, research, maintenance, scenario);
 
             var inspectionGo = EnsureChild("InspectionPanelUI", debugRoot);
             var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
-            inspection.Configure(overlay, mapGenerator, placement, network, clock, research, scenario, driver);
+            inspection.Configure(
+                overlay, mapGenerator, placement, network, clock, research, scenario, driver, maintenance);
 
             var notification = FindOrAdd<NotificationController>(simRoot.gameObject);
             notification.Configure(driver, research, maintenance, network, scenario, clock);
@@ -117,7 +118,8 @@ namespace CleanEnergy.Core
             var sfx = FindOrAdd<SfxService>(sfxGo.gameObject);
             sfx.Configure(placement, notification);
             var musicGo = EnsureChild("MusicService", debugRoot);
-            FindOrAdd<MusicService>(musicGo.gameObject);
+            var music = FindOrAdd<MusicService>(musicGo.gameObject);
+            music.Configure(null, clock);
             var notificationHudGo = EnsureChild("NotificationHudUI", debugRoot);
             var notificationHud = FindOrAdd<NotificationHudUI>(notificationHudGo.gameObject);
             notificationHud.Configure(notification, sfx);
@@ -181,12 +183,14 @@ namespace CleanEnergy.Core
 
             var tutorial = FindOrAdd<TutorialController>(simRoot.gameObject);
             tutorial.Configure(controller, overlay, placement, research, scenario, mapGenerator);
+            placementUi.Configure(placement, clock, research, tutorial);
             var tutorialHudGo = EnsureChild("TutorialHudUI", debugRoot);
             var tutorialHud = FindOrAdd<TutorialHudUI>(tutorialHudGo.gameObject);
             tutorialHud.Configure(tutorial);
 
             var saveLoad = FindOrAdd<SaveLoadController>(simRoot.gameObject);
-            saveLoad.Configure(mapGenerator, placement, research, scenario, clock, network, tutorial, driver, sfx);
+            saveLoad.Configure(
+                mapGenerator, placement, research, scenario, clock, network, tutorial, driver, sfx, maintenance);
             pauseOverlay.Configure(clock, placement, controller, saveLoad);
             var hotkeys = FindOrAdd<PlayHotkeys>(simRoot.gameObject);
             hotkeys.Configure(clock, placement, pauseOverlay);

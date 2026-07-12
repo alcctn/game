@@ -11,8 +11,10 @@ namespace CleanEnergy.Maintenance
         [SerializeField] private PlacementController placementController;
 
         private readonly MaintenanceService _service = new MaintenanceService();
+        private readonly RepairUndoService _repairUndo = new RepairUndoService();
 
         public MaintenanceService Service => _service;
+        public RepairUndoService RepairUndo => _repairUndo;
         public int LowMaintenanceCount => _service.LowMaintenanceCount;
 
         public void Configure(PlacementController placement)

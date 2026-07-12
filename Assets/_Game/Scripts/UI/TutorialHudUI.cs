@@ -45,7 +45,12 @@ namespace CleanEnergy.UI
 
         private void OnGUI()
         {
-            var progress = tutorialController != null ? tutorialController.Progress : null;
+            if (tutorialController == null || !tutorialController.IsEnabled)
+            {
+                return;
+            }
+
+            var progress = tutorialController.Progress;
             if (progress == null)
             {
                 return;
@@ -53,10 +58,10 @@ namespace CleanEnergy.UI
 
             var info = progress.GetCurrentInfo();
             GUILayout.BeginArea(new Rect(12f, 380f, 300f, 140f), GUI.skin.box);
-            GUILayout.Label("Tutorial");
+            GUILayout.Label(StringTable.Get(StringKeys.Tutorial));
             if (progress.IsComplete)
             {
-                GUILayout.Label("[x] All steps complete");
+                GUILayout.Label($"[x] {StringTable.Get(StringKeys.TutorialCompleteTitle)}");
             }
             else
             {

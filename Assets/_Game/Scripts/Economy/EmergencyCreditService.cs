@@ -3,41 +3,57 @@ using UnityEngine;
 namespace CleanEnergy.Economy
 {
     /// <summary>
-    /// One-time bailout when the money wallet hits zero after upkeep, plus interest debt.
+    /// Emergency bailout when money hits zero after upkeep, with interest debt.
+    /// Up to two grants per session (second only after full repay).
     /// </summary>
     public sealed class EmergencyCreditService
     {
         public const float CreditAmount = 200f;
+        public const float SecondCreditAmount = 150f;
         public const float InterestRate = 0.01f;
+        public const int MaxCreditUses = 2;
 
-        public bool HasBeenUsed { get; private set; }
+        public int CreditUses { get; private set; }
+        public bool HasBeenUsed => CreditUses > 0;
         public float RemainingDebt { get; private set; }
+
+        public float NextGrantAmount =>
+            CreditUses <= 0 ? CreditAmount : SecondCreditAmount;
 
         public void Reset()
         {
-            HasBeenUsed = false;
+            CreditUses = 0;
             RemainingDebt = 0f;
         }
 
         public void Restore(bool used, float debt = 0f)
         {
-            HasBeenUsed = used;
-            RemainingDebt = used ? Mathf.Max(0f, debt) : 0f;
+            Restore(used ? 1 : 0, debt);
+        }
+
+        public void Restore(int creditUses, float debt = 0f)
+        {
+            CreditUses = Mathf.Clamp(creditUses, 0, MaxCreditUses);
+            RemainingDebt = CreditUses > 0 ? Mathf.Max(0f, debt) : 0f;
         }
 
         /// <summary>
-        /// If money is depleted and credit unused, grants CreditAmount and opens debt.
+        /// If money is depleted, debt is clear, and uses remain, grants the next credit amount.
         /// </summary>
         public bool TryGrant(Wallet wallet)
         {
-            if (wallet == null || HasBeenUsed || wallet.Money > 0.0001f)
+            if (wallet == null
+                || CreditUses >= MaxCreditUses
+                || RemainingDebt > 0.0001f
+                || wallet.Money > 0.0001f)
             {
                 return false;
             }
 
-            wallet.Add(CreditAmount);
-            HasBeenUsed = true;
-            RemainingDebt = CreditAmount;
+            var amount = NextGrantAmount;
+            wallet.Add(amount);
+            CreditUses++;
+            RemainingDebt = amount;
             return true;
         }
 
