@@ -29,6 +29,7 @@ MonoBehaviour:
   requiresAdjacentWater: 1
   requireBuildableCell: 0
   minSameTypeSpacing: 0
+  maxSameTypeCount: 1
   gizmoColor: {r: 0.25, g: 0.55, b: 0.95, a: 1}
   baseDemand: 0
   storageCapacity: 0

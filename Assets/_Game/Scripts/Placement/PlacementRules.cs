@@ -268,14 +268,6 @@ namespace CleanEnergy.Placement
             var max = context.Definition != null ? context.Definition.MaxSameTypeCount : 0;
             if (max <= 0 || context.Occupancy == null || context.Definition == null)
             {
-                // #region agent log
-                CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "A",
-                    "MaxSameTypeCountRule.Evaluate",
-                    "skip_unlimited",
-                    "{\"id\":\"" + (context.Definition != null ? context.Definition.Id : "") +
-                    "\",\"max\":" + max + "}");
-                // #endregion
                 return true;
             }
 
@@ -298,18 +290,18 @@ namespace CleanEnergy.Placement
                 count++;
             }
 
-            // #region agent log
-            CleanEnergy.DebugTools.AgentDebugLog.Write(
-                "E",
-                "MaxSameTypeCountRule.Evaluate",
-                count < max ? "allow" : "block",
-                "{\"id\":\"" + id + "\",\"max\":" + max + ",\"count\":" + count + "}");
-            // #endregion
-
             if (count < max)
             {
                 return true;
             }
+
+            // #region agent log
+            CleanEnergy.DebugTools.AgentDebugLog.Write(
+                "E",
+                "MaxSameTypeCountRule.Evaluate",
+                "block",
+                "{\"id\":\"" + id + "\",\"max\":" + max + ",\"count\":" + count + "}");
+            // #endregion
 
             failureReasons.Add(string.Format(
                 FailReasonFormat, max, context.Definition.DisplayName));

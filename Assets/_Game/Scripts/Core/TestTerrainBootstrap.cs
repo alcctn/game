@@ -439,6 +439,7 @@ namespace CleanEnergy.Core
                     case "water_wheel":
                         def.SetEconomy(80f, 0f);
                         def.SetWorkerRequirements(1, 0);
+                        def.SetMaxSameTypeCount(1);
                         def.SetGizmoColor(new Color(0.25f, 0.55f, 0.95f, 1f));
                         // #region agent log
                         CleanEnergy.DebugTools.AgentDebugLog.Write(

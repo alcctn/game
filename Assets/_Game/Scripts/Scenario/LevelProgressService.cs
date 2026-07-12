@@ -115,7 +115,10 @@ namespace CleanEnergy.Scenario
 
             if (coverageRatio + 0.0001f >= _level.RequiredCoverageRatio)
             {
-                _state.CoverageStreakTicks++;
+                if (_state.CoverageStreakTicks < _level.RequiredCoverageTicks)
+                {
+                    _state.CoverageStreakTicks++;
+                }
             }
             else
             {
@@ -125,8 +128,7 @@ namespace CleanEnergy.Scenario
             _state.CoverageComplete = _state.CoverageStreakTicks >= _level.RequiredCoverageTicks;
             // #region agent log
             if (_state.CoverageStreakTicks == 1
-                || _state.CoverageStreakTicks == _level.RequiredCoverageTicks
-                || _state.CoverageStreakTicks == _level.RequiredCoverageTicks + 1)
+                || _state.CoverageStreakTicks == _level.RequiredCoverageTicks)
             {
                 CleanEnergy.DebugTools.AgentDebugLog.Write(
                     "D",
@@ -134,8 +136,23 @@ namespace CleanEnergy.Scenario
                     "coverage_streak",
                     "{\"streak\":" + _state.CoverageStreakTicks +
                     ",\"required\":" + _level.RequiredCoverageTicks +
-                    ",\"ratio\":" + coverageRatio.ToString("F2") +
+                    ",\"ratio\":" + coverageRatio.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"water\":" + (_state.WaterComplete ? "true" : "false") +
                     ",\"complete\":" + (_state.CoverageComplete ? "true" : "false") + "}");
+            }
+            // #endregion
+
+            // #region agent log
+            if (_state.WaterComplete || _state.WindComplete)
+            {
+                CleanEnergy.DebugTools.AgentDebugLog.Write(
+                    "T1",
+                    "LevelProgressService.Evaluate",
+                    "objectives",
+                    "{\"water\":" + (_state.WaterComplete ? "true" : "false") +
+                    ",\"tech\":" + (_state.TechnicianComplete ? "true" : "false") +
+                    ",\"wind\":" + (_state.WindComplete ? "true" : "false") +
+                    ",\"eng\":" + (_state.EngineerComplete ? "true" : "false") + "}");
             }
             // #endregion
 

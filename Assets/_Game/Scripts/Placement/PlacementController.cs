@@ -404,6 +404,18 @@ namespace CleanEnergy.Placement
             if (!result.IsValid)
             {
                 PlacementRejected?.Invoke();
+                // #region agent log
+                if (_selected != null
+                    && (_selected.Id == "water_wheel" || _selected.Id == "small_wind"))
+                {
+                    CleanEnergy.DebugTools.AgentDebugLog.Write(
+                        "T4",
+                        "PlacementController.TryPlace",
+                        "place_fail",
+                        "{\"id\":\"" + _selected.Id +
+                        "\",\"reasons\":\"" + string.Join(" | ", result.FailureReasons).Replace("\"", "'") + "\"}");
+                }
+                // #endregion
                 Debug.Log(
                     $"[Placement] Building '{_selected.Id}' could not be placed at {coordinate}: {string.Join("; ", result.FailureReasons)}");
                 return result;
