@@ -72,7 +72,7 @@ namespace CleanEnergy.UI
         {
             const float width = 520f;
             var x = (Screen.width - width) * 0.5f;
-            GUILayout.BeginArea(new Rect(x, 8f, width, 88f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(x, 8f, width, 108f), GUI.skin.box);
 
             var result = driver != null ? driver.LastResult : null;
             var money = placementController != null ? placementController.Wallet.Money : 0f;
@@ -83,6 +83,8 @@ namespace CleanEnergy.UI
             var phase = clock != null ? clock.DayCycle.Phase : DayPhase.Noon;
             var demandMul = DayCycleService.GetDemandMultiplier(phase);
             var lowMaint = maintenanceController != null ? maintenanceController.LowMaintenanceCount : 0;
+            var upkeep = driver != null ? driver.LastUpkeepTotal : 0f;
+            var upkeepBroke = driver != null && driver.CouldNotAffordFullUpkeep;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label($"Prod {prod:F1}");
@@ -90,6 +92,7 @@ namespace CleanEnergy.UI
             GUILayout.Label($"Stored {stored:F1}");
             GUILayout.Label($"Money {money:F0}");
             GUILayout.Label($"RP {rp:F0}");
+            GUILayout.Label($"Upkeep {upkeep:F0}/tick");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -101,6 +104,11 @@ namespace CleanEnergy.UI
             if (lowMaint > 0)
             {
                 GUILayout.Label($"Maintenance low ({lowMaint})");
+            }
+
+            if (upkeepBroke)
+            {
+                GUILayout.Label("Can't afford upkeep");
             }
 
             if (!string.IsNullOrEmpty(_shortageText))

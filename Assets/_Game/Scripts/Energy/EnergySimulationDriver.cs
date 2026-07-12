@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CleanEnergy.Energy
 {
     /// <summary>
-    /// Drives energy balance each simulation tick and updates wallet from surplus sales.
+    /// Drives energy balance each simulation tick and updates wallet from surplus sales / upkeep.
     /// </summary>
     public sealed class EnergySimulationDriver : MonoBehaviour
     {
@@ -18,9 +18,14 @@ namespace CleanEnergy.Energy
         [SerializeField] private float surplusSellPrice = 0.5f;
 
         private readonly EnergyBalanceCalculator _balanceCalculator = new EnergyBalanceCalculator();
+        private readonly UpkeepService _upkeepService = new UpkeepService();
         private EnergyBalanceResult _lastResult = new EnergyBalanceResult(0f, 0f, 0f, 0f, 0f);
 
         public EnergyBalanceResult LastResult => _lastResult;
+        public UpkeepService Upkeep => _upkeepService;
+        public float LastUpkeepTotal => _upkeepService.LastUpkeepTotal;
+        public bool CouldNotAffordFullUpkeep => _upkeepService.CouldNotAffordFullUpkeep;
+
         public event System.Action<EnergyShortageEvent> ShortageOccurred;
         public event System.Action<EnergyBalanceResult> BalanceUpdated;
 
@@ -75,6 +80,13 @@ namespace CleanEnergy.Energy
             if (_lastResult.SurplusSold > 0f && placementController?.Wallet != null)
             {
                 placementController.Wallet.Add(_lastResult.SurplusSold * surplusSellPrice);
+            }
+
+            if (placementController != null)
+            {
+                _upkeepService.ProcessTick(
+                    placementController.Occupancy.Occupied,
+                    placementController.Wallet);
             }
 
             BalanceUpdated?.Invoke(_lastResult);

@@ -81,13 +81,15 @@ namespace CleanEnergy.Buildings
             float discharge = 20f,
             int linkRange = 4,
             bool hub = false,
-            float buildingEfficiency = 0.8f)
+            float buildingEfficiency = 0.8f,
+            float upkeepCost = 1f)
         {
             id = buildingId;
             displayName = name;
             description = desc;
             category = buildingCategory;
             cost = buildingCost;
+            maintenanceCost = Mathf.Max(0f, upkeepCost);
             installedPower = power;
             maxSlopeDegrees = slopeMax;
             minWaterFlow = waterMin;
