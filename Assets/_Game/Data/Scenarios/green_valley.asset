@@ -23,5 +23,6 @@ MonoBehaviour:
   riskSatisfactionThreshold: 30
   countedProducerTypeIds:
   - water_wheel
+  - small_hydro
   - small_solar
   - small_wind

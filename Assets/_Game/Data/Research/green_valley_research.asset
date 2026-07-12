@@ -32,6 +32,16 @@ MonoBehaviour:
     - water_wheel
     efficiencyTargetBuildingId: 
     efficiencyBonus: 0
+  - id: hydro_turbine
+    displayName: Small Hydro Turbine
+    description: Unlocks small hydro
+    prerequisiteNodeId: hydro_basic
+    researchPointCost: 30
+    unlockedByDefault: 0
+    unlockBuildingIds:
+    - small_hydro
+    efficiencyTargetBuildingId: 
+    efficiencyBonus: 0
   - id: hydro_eff
     displayName: Hydro Efficiency
     description: +0.1 water wheel efficiency

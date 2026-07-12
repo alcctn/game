@@ -46,6 +46,11 @@ namespace CleanEnergy.Research
                 "hydro_basic", "Basic Hydro", "Unlocks water wheel",
                 "", 0f, true, new[] { "water_wheel" }, "", 0f);
 
+            var hydroTurbine = new ResearchNodeDefinition();
+            hydroTurbine.Configure(
+                "hydro_turbine", "Small Hydro Turbine", "Unlocks small hydro",
+                "hydro_basic", 30f, false, new[] { "small_hydro" }, "", 0f);
+
             var hydroEff = new ResearchNodeDefinition();
             hydroEff.Configure(
                 "hydro_eff", "Hydro Efficiency", "+0.1 water wheel efficiency",
@@ -73,7 +78,7 @@ namespace CleanEnergy.Research
 
             nodes = new[]
             {
-                hydroBasic, hydroEff,
+                hydroBasic, hydroTurbine, hydroEff,
                 solarBasic, solarEff,
                 windBasic, windEff
             };

@@ -200,6 +200,10 @@ namespace CleanEnergy.Core
                     BuildingCategory.Energy, 80f, 8f, 25f, 8f, 0f, 0f, true, false,
                     new Color(0.25f, 0.55f, 0.95f)),
                 CreateRuntimeBuilding(
+                    "small_hydro", "Small Hydro", "High-flow hydro turbine",
+                    BuildingCategory.Energy, 220f, 18f, 35f, 20f, 0f, 0f, true, false,
+                    new Color(0.2f, 0.45f, 0.85f), buildingEfficiency: 0.85f),
+                CreateRuntimeBuilding(
                     "small_solar", "Small Solar", "Daytime solar array",
                     BuildingCategory.Energy, 120f, 12f, 20f, 0f, 0.45f, 0f, false, true,
                     new Color(0.95f, 0.8f, 0.2f)),
@@ -249,7 +253,8 @@ namespace CleanEnergy.Core
             float charge = 20f,
             float discharge = 20f,
             int linkRange = 4,
-            bool hub = false)
+            bool hub = false,
+            float buildingEfficiency = 0.8f)
         {
             var def = ScriptableObject.CreateInstance<BuildingDefinition>();
             def.name = id;
@@ -257,7 +262,7 @@ namespace CleanEnergy.Core
                 id, name, description, category,
                 cost, power, maxSlope, minWater, minSolar, minWind,
                 adjacentWater, requireBuildable, color,
-                demand, capacity, charge, discharge, linkRange, hub);
+                demand, capacity, charge, discharge, linkRange, hub, buildingEfficiency);
             return def;
         }
 

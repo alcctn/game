@@ -20,6 +20,7 @@ namespace CleanEnergy.Scenario
         [SerializeField] private string[] countedProducerTypeIds =
         {
             "water_wheel",
+            "small_hydro",
             "small_solar",
             "small_wind"
         };
@@ -58,6 +59,7 @@ namespace CleanEnergy.Scenario
             countedProducerTypeIds = new[]
             {
                 "water_wheel",
+                "small_hydro",
                 "small_solar",
                 "small_wind"
             };

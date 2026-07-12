@@ -57,6 +57,7 @@ namespace CleanEnergy.Energy
             switch (buildingId)
             {
                 case "water_wheel":
+                case "small_hydro":
                     return SampleHydroPotential(coordinate, cell);
                 case "small_solar":
                     return Mathf.Clamp01(cell.SolarPotential) * Mathf.Clamp01(context.DaylightFactor);
