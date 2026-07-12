@@ -295,6 +295,11 @@ namespace CleanEnergy.Editor
             var hud = hudGo.AddComponent<EnergyHudUI>();
             hud.Configure(driver, clock, placement, researchController, maintenance);
 
+            var inspectionGo = new GameObject("InspectionPanelUI");
+            inspectionGo.transform.SetParent(debugRoot.transform, false);
+            var inspection = inspectionGo.AddComponent<InspectionPanelUI>();
+            inspection.Configure(overlay, mapGenerator, placement, network);
+
             var scenarioHudGo = new GameObject("ScenarioHudUI");
             scenarioHudGo.transform.SetParent(debugRoot.transform, false);
             var scenarioHud = scenarioHudGo.AddComponent<ScenarioHudUI>();

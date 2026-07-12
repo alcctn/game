@@ -50,11 +50,6 @@ namespace CleanEnergy.DebugTools
 
         private void Update()
         {
-            if (_mode == DebugViewMode.Normal)
-            {
-                return;
-            }
-
             if (placementController != null && placementController.IsPlacementActive)
             {
                 return;

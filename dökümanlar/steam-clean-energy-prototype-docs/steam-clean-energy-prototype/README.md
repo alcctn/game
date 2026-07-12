@@ -30,6 +30,7 @@ Bu depo, çevresel koşullara göre temiz enerji üretme, yerleşim talebini kar
 15. [Sprint 11 — Dağıtım Noktası](docs/SPRINT_11_DISTRIBUTION.md)
 16. [Sprint 12 — Küçük Hidro Türbin](docs/SPRINT_12_SMALL_HYDRO.md)
 17. [Sprint 13 — Periyodik Bakım Gideri](docs/SPRINT_13_UPKEEP.md)
+18. [Sprint 14 — Sağ Bilgi Paneli](docs/SPRINT_14_INFO_PANEL.md)
 
 ## İlk Uygulama Sırası
 

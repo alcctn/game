@@ -80,6 +80,10 @@ namespace CleanEnergy.Core
             var hud = FindOrAdd<EnergyHudUI>(hudGo.gameObject);
             hud.Configure(driver, clock, placement, research, maintenance);
 
+            var inspectionGo = EnsureChild("InspectionPanelUI", debugRoot);
+            var inspection = FindOrAdd<InspectionPanelUI>(inspectionGo.gameObject);
+            inspection.Configure(overlay, mapGenerator, placement, network);
+
             var scenarioHudGo = EnsureChild("ScenarioHudUI", debugRoot);
             var scenarioHud = FindOrAdd<ScenarioHudUI>(scenarioHudGo.gameObject);
             scenarioHud.Configure(scenario);
