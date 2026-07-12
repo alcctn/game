@@ -5,7 +5,7 @@ using UnityEngine;
 namespace CleanEnergy.CameraSystem
 {
     /// <summary>
-    /// Orthographic isometric-style camera with WASD, zoom, and Q/E rotate.
+    /// Orthographic isometric-style camera with WASD, drag pan, zoom, and Q/E rotate.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class IsometricCameraController : MonoBehaviour
@@ -31,6 +31,8 @@ namespace CleanEnergy.CameraSystem
         private float _zoomTweenFrom;
         private float _zoomTweenTo;
         private bool _zoomTweenActive;
+        private Vector3 _dragLastScreen;
+        private bool _dragActive;
 
         public CameraBounds Bounds => bounds;
         public Vector3 FocusPoint => _focusPoint;
@@ -64,19 +66,23 @@ namespace CleanEnergy.CameraSystem
             used |= HandleMove(dt);
             used |= HandleRotate(dt);
             used |= HandleZoom();
+            used |= HandleDragPan();
             if (used)
             {
                 CancelFocusTween();
                 CameraInputUsed?.Invoke();
                 // #region agent log
                 CleanEnergy.DebugTools.AgentDebugLog.Write(
-                    "B",
+                    "E",
                     "IsometricCameraController.Update",
                     "cam_input",
                     "{\"scroll\":" + Input.mouseScrollDelta.y.ToString("F3") +
                     ",\"ortho\":" + (_camera != null ? _camera.orthographicSize.ToString("F2") : "0") +
-                    ",\"tween\":" + (_focusTweenActive ? "true" : "false") +
-                    ",\"zoomSpd\":" + zoomSpeed.ToString("F1") + "}");
+                    ",\"drag\":" + (_dragActive ? "true" : "false") +
+                    ",\"rmb\":" + (Input.GetMouseButton(1) ? "true" : "false") +
+                    ",\"mmb\":" + (Input.GetMouseButton(2) ? "true" : "false") +
+                    ",\"focusX\":" + _focusPoint.x.ToString("F1") +
+                    ",\"focusZ\":" + _focusPoint.z.ToString("F1") + "}");
                 // #endregion
             }
             else
@@ -278,6 +284,43 @@ namespace CleanEnergy.CameraSystem
                 _camera.orthographicSize - scroll * zoomSpeed,
                 minOrthographicSize,
                 maxOrthographicSize);
+            return true;
+        }
+
+        /// <summary>
+        /// Right or middle mouse drag pans the focus (grab-map style). GDD: middle; RMB also supported.
+        /// </summary>
+        private bool HandleDragPan()
+        {
+            var held = Input.GetMouseButton(1) || Input.GetMouseButton(2);
+            if (!held)
+            {
+                _dragActive = false;
+                return false;
+            }
+
+            var screen = Input.mousePosition;
+            if (!_dragActive)
+            {
+                _dragActive = true;
+                _dragLastScreen = screen;
+                return true;
+            }
+
+            var delta = screen - _dragLastScreen;
+            _dragLastScreen = screen;
+            if (delta.sqrMagnitude < 1e-4f)
+            {
+                return true;
+            }
+
+            var unitsPerPixel = (2f * _camera.orthographicSize) / Mathf.Max(1f, Screen.height);
+            var yawRotation = Quaternion.Euler(0f, _yaw, 0f);
+            var right = yawRotation * Vector3.right;
+            var forward = yawRotation * Vector3.forward;
+            // Grab-the-map: drag right moves the world with the cursor (focus opposite).
+            _focusPoint -= (right * delta.x + forward * delta.y) * unitsPerPixel;
+            _focusPoint = bounds.Clamp(_focusPoint);
             return true;
         }
 
